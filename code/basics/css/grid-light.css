@@ -1,0 +1,12 @@
+
+.grid-square {
+  stroke: black;
+}
+
+.grid-label {
+  fill: darkslategray;
+}
+
+.grid-line {
+  stroke: gray;
+}
