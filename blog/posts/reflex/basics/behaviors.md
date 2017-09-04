@@ -9,7 +9,7 @@ extra-js: /js/reflex/basics/reflex-basics.min.js
 
 <div id="grid-setup"></div>
 
-[Previously](../events) we had a look at `Event`s, which describe values occurring at particular instants in time.
+[Previously](./events/) we had a look at `Event`s, which describe values occurring at particular instants in time.
 Now we'll have a look at the other half of the core FRP types - `Behavior`s.
 
 ## What is a `Behavior`?
@@ -156,4 +156,4 @@ instance (Reflex t, IsString a) => IsString (Behavior t a) where ...
 The `reflex` library also has a type that combines the two together.
 This is done for performance reasons, but also nicely encapsulates a pattern from FRP folklore.
 
-This combined type is called a [`Dynamic`](../dynamics/)
+In the [next post](./dynamics/) we'll look at the combination of the two - `Dynamic`s.

@@ -134,7 +134,7 @@ mkParseInput :: MonadWidget t m
              => m (Event t ParseText)
 mkParseInput = do
   tiColour <- textInput $ def & textInputConfig_initialValue .~ "Blue"
-  eClick <- button "Go"
+  eClick <- buttonClass "btn btn-default" "Go"
   return $ ParseText <$> current (tiColour ^. textInput_value) <@ eClick
 
 wrapDemo ::
@@ -278,7 +278,7 @@ demoClickMe ::
   MonadWidget t m =>
   m ()
 demoClickMe = divClass "panel panel-default" . divClass "panel-body" $ do
-  eClick <- button "Click Me"
+  eClick <- buttonClass "btn btn-default" "Click Me"
   eOnes <- accum (+) 0 (1 <$ eClick)
   let
     eHundreds = (* 100) <$> eOnes
@@ -291,7 +291,7 @@ demoTick ::
 demoTick = divClass "panel panel-default" . divClass "panel-body" $ mdo
   let
     wInitial = Workflow $ do
-      eNext <- button "Start"
+      eNext <- buttonClass "btn btn-default" "Start"
       pure ((), wRunning <$ eNext)
     wRunning = Workflow $ do
       eStop <- demoTick'

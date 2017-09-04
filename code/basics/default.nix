@@ -33,6 +33,7 @@ let
       cp ./css/* $out/css/
 
       mkdir -p $out/js
+      cp ./js/* $out/js/
       cp $out/bin/reflex-basics.jsexe/all.js $out/js/reflex-basics.js
 
       cd $out/bin/reflex-basics.jsexe

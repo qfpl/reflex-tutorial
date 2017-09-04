@@ -157,3 +157,6 @@ splitPair dPair =
     p2 <- holdUniqDyn (fmap snd dPair)
     pure (p1, p2)
 ```
+
+## Next up
+
