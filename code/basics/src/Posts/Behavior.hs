@@ -18,6 +18,8 @@ behaviorPostExamples ::
   MonadJSM m =>
   m ()
 behaviorPostExamples = do
+  attachId_ "basics-behaviors-sample" $
+    wrapDemo sampleBlue mkRedBlueInput
   attachId_ "basics-behaviors-sampleBlue1" $
     wrapDemo sampleBlue1 mkRedBlueInput
   attachId_ "basics-behaviors-sampleBlue2" $
@@ -28,6 +30,15 @@ behaviorPostExamples = do
     wrapDemo (const $ pure . sampleAlwaysBlue) mkRedBlueInput
   attachId_ "basics-behaviors-samplePair" $
     wrapDemo2 samplePair mkRedBlueInput
+
+sampleBlue :: (Reflex t, MonadHold t m)
+            => Event t Colour
+            -> Event t ()
+            -> m (Event t Colour)
+sampleBlue eColour eSample = do
+  bColour <- hold Blue eColour
+  colour <- sample bColour
+  pure $ colour <$ eSample
 
 sampleBlue1 :: (Reflex t, MonadHold t m)
             => Event t Colour

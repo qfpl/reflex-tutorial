@@ -19,7 +19,7 @@ let
     overrides = (self: super: {
       ghc = super.ghc // { withPackages = super.ghc.withHoogle; };
       ghcWithPackages = self.ghc.withPackages;
-      common = import ../common { inherit compiler; };
+      common = pkgs.haskell.lib.dontHaddock (import ../common { inherit compiler; });
     });
   };
 
