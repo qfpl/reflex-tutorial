@@ -123,4 +123,4 @@ We'll look at using Nix to do much fancier things later on in this series.
 
 As I've mentioned, there are two main types at the heart of the more powerful FRP libraries: `Event`s and `Behavior`s.
 
-In the [next post](../events) will start by looking at `Event`s.
+In the [next post](../events/) will start by looking at `Event`s.

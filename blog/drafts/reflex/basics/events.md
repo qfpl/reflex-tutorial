@@ -9,7 +9,7 @@ extra-js: /js/reflex/basics/reflex-basics.min.js, /js/reflex/basics/rx.all.min.j
 
 <div id="grid-setup"></div>
 
-[Previously](./introduction/) we introduced FRP and the `reflex` library, and now we're going to take a look at the first of the main types that is used in these kinds of systems.
+[Previously](../introduction/) we introduced FRP and the `reflex` library, and now we're going to take a look at the first of the main types that is used in these kinds of systems.
 
 ## What is an `Event`?
 
@@ -77,7 +77,7 @@ We can create derived `Event`s in more exciting ways than just defining new `Eve
 
 There is `Functor` instance for `Event`s, for example:
 ```haskell
-instance Functor (Event t) where ...
+instance Reflex t => Functor (Event t) where ...
 ```
 
 We can define a simple function on `Colour`s:
@@ -386,4 +386,4 @@ The RxJS library isn't designed starting with semantics though, and so the risk 
 
 `Event`s are only half of the FRP picture.
 
-In the [next post](./behaviors/) we'll look at their partner - `Behavior`s.
+In the [next post](../behaviors/) we'll look at their partner - `Behavior`s.

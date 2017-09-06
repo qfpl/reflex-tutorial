@@ -29,19 +29,19 @@ let
     postInstall = ''
       mkdir -p $out
 
-      mkdir -p $out/css
-      cp ./css/* $out/css/
+      mkdir -p $out/css/reflex/basics
+      cp ./css/* $out/css/reflex/basics/
 
-      mkdir -p $out/js
-      cp ./js/* $out/js/
-      cp $out/bin/reflex-basics.jsexe/all.js $out/js/reflex-basics.js
+      mkdir -p $out/js/reflex/basics
+      cp ./js/* $out/js/reflex/basics/
+      cp $out/bin/reflex-basics.jsexe/all.js $out/js/reflex/basics/reflex-basics.js
 
       cd $out/bin/reflex-basics.jsexe
-      closure-compiler all.js --compilation_level=ADVANCED_OPTIMIZATIONS --isolation_mode=IIFE --assume_function_wrapper --jscomp_off="*" --externs=all.js.externs > $out/js/reflex-basics.min.js
+      closure-compiler all.js --compilation_level=ADVANCED_OPTIMIZATIONS --isolation_mode=IIFE --assume_function_wrapper --jscomp_off="*" --externs=all.js.externs > $out/js/reflex/basics/reflex-basics.min.js
       rm -Rf $out/bin/reflex-basics.jsexe
       rm -Rf $out/bin
 
-      cd $out/js
+      cd $out/js/reflex/basics
       zopfli -i1000 reflex-basics.min.js
 
       rm -Rf $out/lib
