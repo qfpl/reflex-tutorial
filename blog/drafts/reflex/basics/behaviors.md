@@ -36,7 +36,7 @@ Given the same inputs they will respond with the same outputs, and they'll behav
 
 We'll start to see various typeclass constraints appearing when we're doing something that is dependent on which frame we are in, or something that is going to introduce a change to the processing of future frames.
 
-## Working with `Behavior`s
+## Getting started with `Behavior`s
 
 Let us start by creating a `Behavior`.
 
@@ -53,7 +53,7 @@ The `Behavior` starts has the initial value as its value until the first firing 
 After that, the `Behavior` has the value the `Event` had at the last time it fired.
 
 The use of the `MonadHold` typeclass constraint indicates that we're doing something that will have an effect on the behavior of the FRP network in future frames.
-Under the hood, `hold` is modifying the FRP network in order to add some state.
+Under the hood, `hold` is modifying the FRP network in order to add some state, so we can think of the `MonadHold` context as a builder for an FRP network.
 
 We could use this to keep hold of the last colour that was clicked on:
 ```haskell
@@ -86,7 +86,7 @@ We don't need to modify the FRP network, or to read from a frame-specific value,
 
 We can use `tag` to query the value of the `Behavior` we built up before:
 ```haskell
-sampleBlue :: MonadHold t m 
+sampleBlue :: (Reflex t, MonadHold t m)
            => Event t Colour 
            -> Event t () 
            -> m (Event t Colour)
@@ -104,7 +104,7 @@ If we then start clicking on combinations of "Red", "Blue", and "Sample", we'll 
 The state doesn't change until the frame _after_ the firing of the `Event`s in `hold`.
 We can see that by sampling from the `Behavior` when _any_ of the buttons are pressed:
 ```haskell
-sampleBlue :: MonadHold t m 
+sampleBlue :: (Reflex t, MonadHold t m)
            => Event t Colour 
            -> Event t () 
            -> m (Event t Colour)
@@ -123,48 +123,85 @@ Any modifications to the state, or reads from the state, happen at discrete poin
 We're a lot less explicit about time when working with the `State` monad, so it might take some squinting to see the parallels there.
 It's also not as straightforward to compose computations working with `State s1 m` and `State s2 m` into a computation working with `State (s1, s2) m`, or to decompose a computation that works with `State (s1, s2) m` into computations that work with `State s1 m` and `State s2 m`.
 
-TODO a bit on MonadSample / sample, why you possibly don't want it most of the time
+It's also worth mentioning the `MonadSample` class at this point, although it may not do what you expect and we won't be using it for a little while yet.
 
+It gives us the `sample` function:
+```haskell
+sample :: MonadSample t m 
+       => Behavior t a 
+       -> m a
+```
+
+This gives us the value of the `Behavior` in the current frame.
+We were able to use `tag` without a monadic context since it was reading the value of a `Behavior` in whichever frames the input `Event`s were firing in.
+We need a monadic context for `sample` because it is reading from the `Behavior` at the point we are up to in the construction of the FRP network. 
+
+Let's take a look:
+```haskell
+sampleBlue :: (Reflex t, MonadHold t m)
+           => Event t Colour
+           -> Event t ()
+           -> m (Event t Colour)
+sampleBlue eColour eSample = do
+  bColour <- hold Blue eColour
+  colour  <- sample bColour
+  pure $ colour <$ eSample
+```
+
+If we have a click around on this, we'll see how different it is to what we had before:
 <div id="basics-behaviors-sample"></div>
 
-## Other functions on `Behavior`s
+At the point we called `sample`, `bColour` could only have the value `Blue`, and so that's what we get as the output.
+This becomes handy later on, but for now it's enough to know that it exist and that it may not be the thing that you want.
 
+There a few other functions for reading from `Behavior`s that are worth knowing about:
 ```haskell
 attach          :: Reflex t 
                 => Behavior t a 
                 -> Event t b 
                 -> Event t (a, b)
-```
 
-```haskell
 attachWith      :: Reflex t 
                 => (a -> b -> c) 
                 -> Behavior t a
                 -> Event t b
                 -> Event t c
-```
 
-```haskell
 attachWithMaybe :: Reflex t
                 => (a -> b -> Maybe c) 
                 -> Behavior t a
                 -> Event t b
                 -> Event t c
 ```
+These are all easy to use and you can probably work out how to use them from their type signatures.
+We won't be using them all that much.
 
+A function that we will be using quite a bit is `gate`:
 ```haskell
-gate :: Reflex t 
-     => Behavior t Bool
-     -> Event t a
-     -> Event t a
+gate            :: Reflex t 
+                => Behavior t Bool
+                -> Event t a
+                -> Event t a
 ```
+
+It can be pretty handy to create a `Behavior` somewhere in your application:
+<div id="basics-behaviors-gateOut"></div>
+and pass that value around through your application until it is used somewhere else in your application to filter `Event`s:
+<div id="basics-behaviors-gateIn"></div>
+
+This is half of what I think makes `Behavior`s exciting as a method of state management.
 
 ## Interesting instances
 
+The other half comes from the typeclass instances.
+
+There is a `Functor` instance:
 ```haskell
 instance Reflex t => Functor (Behavior t) where ..
 ```
+that can be used to transform the `Behavior` at all points of time.
 
+It behaves as you would probably expect:
 ```haskell
 sampleFlipBlue :: MonadHold t m
                => Event t Colour
@@ -178,10 +215,12 @@ sampleFlipBlue eInput eSample = do
 
 <div id="basics-behaviors-sampleFlipBlue"></div>
 
+The `Applicative` instances step things up a notch:
 ```haskell
 instance Reflex t => Applicative (Behavior t) where ..
 ```
 
+We can use `pure` to create a constant `Behavior`:
 ```haskell
 sampleAlwaysBlue :: Reflex t
                  => Event t Colour
@@ -193,7 +232,16 @@ sampleAlwaysBlue eInput eSample =
 
 <div id="basics-behaviors-sampleAlwaysBlue"></div>
 
+We can use `<*>` to combine `Behavior`s.
+So not only do we have first-class values for managing state, we can use the `Applicative` instance to compose them.
+
+Our first brush with this idea is pretty simple:
 ```haskell
+samplePair :: (Reflex t, MonadHold t m)
+           => Event t Colour
+           -> Event t Colour
+           -> Event t ()
+           -> m (Event t (Colour, Colour))
 samplePair eInput1 eInput2 eSample = do
   bColour1 <- hold Blue eInput1
   bColour2 <- hold Blue eInput2
@@ -201,14 +249,21 @@ samplePair eInput1 eInput2 eSample = do
   pure $ tag bPair eSample
 ```
 
+<div id="basics-behaviors-samplePair"></div>
+
+but we can do some really good things with it.
+
+<!--
+TODO more on these helper functions
+
 ```haskell
 samplePair eInput1 eInput2 eSample = do
   bColour1 <- hold Blue eInput1
   bColour2 <- hold Blue eInput2
   pure $ (,) <$> bColour1 <*> bColour2 <@ eSample
 ```
+-->
 
-<div id="basics-behaviors-samplePair"></div>
 
 As usual, `reflex` wants to be your friend and so provides all kinds of other instances that you might find a use for:
 
@@ -226,4 +281,5 @@ instance (Reflex t, IsString a) => IsString (Behavior t a) where ...
 The `reflex` library also has a type that combines the two together.
 This is done for performance reasons, but also nicely encapsulates a pattern from FRP folklore.
 
-In the [next post](../dynamics/) we'll look at the combination of the two - `Dynamic`s.
+<!-- In the [next post](../dynamics/) we'll look at the combination of the two - `Dynamic`s. -->
+In the next post we'll look at the combination of the two - `Dynamic`s.

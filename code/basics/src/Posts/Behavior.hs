@@ -8,6 +8,8 @@ module Posts.Behavior (
 import Reflex.Dom.Core
 import GHCJS.DOM.Types (MonadJSM)
 
+import Control.Lens
+
 import Colour
 
 import Util.Reflex
@@ -24,6 +26,14 @@ behaviorPostExamples = do
     wrapDemo sampleBlue1 mkRedBlueInput
   attachId_ "basics-behaviors-sampleBlue2" $
     wrapDemo sampleBlue2 mkRedBlueInput
+
+  mbGate <- attachId "basics-behaviors-gateOut"
+    gateOut
+  case mbGate of
+    Nothing -> pure ()
+    Just bGate -> attachId_ "basics-behaviors-gateIn" $
+      gateIn bGate
+
   attachId_ "basics-behaviors-sampleFlipBlue" $
     wrapDemo sampleFlipBlue mkRedBlueInput
   attachId_ "basics-behaviors-sampleAlwaysBlue" $
@@ -99,6 +109,28 @@ wrapDemo guest mkIn = divClass "panel panel-default" . divClass "panel-body" $ m
     eReset <- buttonClass "btn btn-default pull-right" "Reset"
     return (eInput, eSample, eReset)
   return ()
+
+gateOut ::
+  MonadWidget t m =>
+  m (Behavior t Bool)
+gateOut = divClass "panel panel-default" . divClass "panel-body" $ do
+  text "Allow events to pass through"
+
+  cb <- checkbox True def
+  pure . current $ cb ^. checkbox_value
+
+gateIn ::
+  MonadWidget t m =>
+  Behavior t Bool ->
+  m ()
+gateIn bGate = divClass "panel panel-default" . divClass "panel-body" $ mdo
+    let w = runDemo (\e _ -> pure e) eInput never
+    _ <- widgetHold w (w <$ eReset)
+    (eInput, eReset) <- el "div" $ do
+      eInput <- mkRedBlueInput
+      eReset <- buttonClass "btn btn-default pull-right" "Reset"
+      return (gate bGate eInput, eReset)
+    pure ()
 
 runDemo ::
   ( MonadWidget t m
