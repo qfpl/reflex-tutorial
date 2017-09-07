@@ -10,13 +10,13 @@ in
 
     installPhase = ''
       mkdir -p $out
-      ln -sf ${blog}/drafts $out/drafts
+      ln -sv ${blog}/drafts $out/drafts
 
       mkdir -p $out/js/
-      ln -sf ${code}/js/reflex $out/js/reflex
+      ln -sv ${code}/js/reflex $out/js/reflex
 
       mkdir -p $out/css
-      ln -sf ${code}/css/reflex $out/css/reflex
+      ln -sv ${code}/css/reflex $out/css/reflex
     '';
 
     phases = ["installPhase"];
