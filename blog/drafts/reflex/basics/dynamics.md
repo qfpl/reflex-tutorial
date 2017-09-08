@@ -80,6 +80,40 @@ foldDyn ($) :: (Reflex t, MonadHold t m, MonadFix m)
 
 ## An example of using `Dynamic`s
 
+We're going to build a simple counter. 
+
+To do that we're going to build a up a `Dynamic t Int`, which will start at `0` and will be transformed when various `Event`s fire.
+
+We can use `foldDyn` to get started:
+```haskell
+counter :: (Reflex t, MonadHold t m, MonadFix m) 
+        => 
+           m (Dynamic t Int)
+counter             =
+  foldDyn ($) 0 $ 
+    _
+```
+
+We'll add an `Event` corresponding to the pressing of an "Add" button:
+```haskell
+counter :: (Reflex t, MonadHold t m, MonadFix m) 
+        => Event t ()
+        -> m (Dynamic t Int)
+counter eAdd        =
+  foldDyn ($) 0 $ 
+    _
+```
+
+When that button fires, we'll need to use that `Event` to supply a function of type `Int -> Int`:
+```haskell
+counter :: (Reflex t, MonadHold t m, MonadFix m) 
+        => Event t ()
+        -> m (Dynamic t Int)
+counter eAdd        =
+  foldDyn ($) 0 $ 
+    _       <$ eAdd
+```
+and fortunately we have just the thing:
 ```haskell
 counter :: (Reflex t, MonadHold t m, MonadFix m) 
         => Event t ()
@@ -89,7 +123,62 @@ counter eAdd        =
     (+ 1)   <$ eAdd
 ```
 
+<div id="basics-dynamic-counter-1"></div>
 
+Now we'll make some modification to our counter so that we can reset it.
+
+We start with this:
+```haskell
+counter :: (Reflex t, MonadHold t m, MonadFix m) 
+        => Event t ()
+        ->
+           m (Dynamic t Int)
+counter eAdd        =
+  foldDyn ($) 0                 $
+      (+ 1)   <$ eAdd
+      
+  
+```
+and add an `Event` that will fire when the "Clear" button is pressed:
+```haskell
+counter :: (Reflex t, MonadHold t m, MonadFix m) 
+        => Event t ()
+        -> Event t ()
+        -> m (Dynamic t Int)
+counter eAdd        =
+  foldDyn ($) 0                 $
+      (+ 1)   <$ eAdd
+      
+  
+```
+
+The `Event`s probably won't happen simultaneously, but we need to specify what to do if that happened.
+Since we're working with `Event t (Int -> Int)`, we'll merge them using function composition:
+```haskell
+counter :: (Reflex t, MonadHold t m, MonadFix m) 
+        => Event t ()
+        -> Event t ()
+        -> m (Dynamic t Int)
+counter eAdd        =
+  foldDyn ($) 0 . mergeWith (.) $ [
+      (+ 1)   <$ eAdd
+    , _
+    ]
+```
+
+Now we just need to put the `Event` in place:
+```haskell
+counter :: (Reflex t, MonadHold t m, MonadFix m) 
+        => Event t ()
+        -> Event t ()
+        -> m (Dynamic t Int)
+counter eAdd eClear =
+  foldDyn ($) 0 . mergeWith (.) $ [
+      (+ 1)   <$ eAdd
+    , _          eClear
+    ]
+```
+and supply a suitable function:
 ```haskell
 counter :: (Reflex t, MonadHold t m, MonadFix m) 
         => Event t ()
@@ -102,8 +191,7 @@ counter eAdd eClear =
     ]
 ```
 
-<div id="basics-dynamic-counter"></div>
-
+<div id="basics-dynamic-counter-2"></div>
 
 ## Removing extraneous updates
 
