@@ -253,19 +253,7 @@ samplePair eInput1 eInput2 eSample = do
 
 but we can do some really good things with it.
 
-<!--
-TODO more on these helper functions
-
-```haskell
-samplePair eInput1 eInput2 eSample = do
-  bColour1 <- hold Blue eInput1
-  bColour2 <- hold Blue eInput2
-  pure $ (,) <$> bColour1 <*> bColour2 <@ eSample
-```
--->
-
-
-As usual, `reflex` wants to be your friend and so provides all kinds of other instances that you might find a use for:
+In addition to this, `reflex` wants to be your friend and so provides all kinds of other instances that you might find a use for:
 
 ```haskell
 instance  Reflex t              => Monad    (Behavior t  ) where ...
@@ -273,6 +261,39 @@ instance (Reflex t, Monoid a)   => Monoid   (Behavior t a) where ...
 instance (Reflex t, Num a)      => Num      (Behavior t a) where ...
 instance (Reflex t, IsString a) => IsString (Behavior t a) where ...
 ```
+
+### Aside: some handy helpers for the `Applicative` instance
+
+We can do that last example a little more succinctly with a helper operator which came from `reactive-banana`
+```haskell
+samplePair eInput1 eInput2 eSample = do
+  bColour1 <- hold Blue eInput1
+  bColour2 <- hold Blue eInput2
+  pure $ (,) <$> bColour1 <*> bColour2 <@ eSample
+```
+
+Both `<@>` and `<@` are similar to `<*>` and `<*` from `Applicative`.
+
+The usual pattern is to chain several `Behavior`s together with `<*>` and to end the chain with `<@>` or `<@` and an `Event`.
+
+If we have
+```haskell
+f :: a -> b -> c -> d
+g :: a -> b -> d
+b1 :: Behavior t a
+b2 :: Behavior t b
+e3 :: Event t c
+```
+we can combine the values from the `Behavior` at the time of the `Event` along with the value of the `Event` with:
+```haskell
+f <$> b1 <*> b2 <@> e3 :: Event t d
+```
+or, if we don't care about the value of the `Event` we can do:
+```haskell
+g <$> b1 <*> b2 <@ e3 :: Event t d
+```
+
+This becomes pretty handy when you have a few `Behavior`s in flight at the same time.
 
 ## Next up
 
