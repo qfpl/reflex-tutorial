@@ -7,6 +7,8 @@ extra-css: /css/reflex/basics/grid-light.css
 extra-js: /js/reflex/basics/reflex-basics.min.js
 ---
 
+<div id="grid-setup"></div>
+
 [Previously](../behaviors/) we had a look at `Behavior`s, which finished our coverage of the two main FRP types.
 
 Now we'll have a look at an additional tool that `reflex` gives us - `Dynamic`s.
@@ -28,7 +30,12 @@ The `Behavior` carries some state around, and the `Event` fires with the value o
 This is useful for reasons of efficiency.
 `Behavior`s are pull-based, which means we need to poll them for changes, so combining a `Behavior` with an `Event` that fires when it updates means that we can write code that reacts to changes in state at the time when the changes occur.
 
-TODO usefulness for updating a DOM
+This is very useful when we want to update a piece of the DOM.
+A `Dynamic t Text` can be passed from where it was created, through the application, down to a DOM node that needs to display some changing text.
+The `Behavior t Text` takes care of tracking the current state of the text to display, and `reflex-dom` can set up some code to replace the text in the DOM node whenever there is a change.
+
+The `reflex` and `reflex-dom` libraries aren't proscriptive about how you structure your application, but the common advice is to pass `Dynamic`s as far down as possible into the code that generates DOM.
+If you follow that advice then you can arrange things so that your code is doing the same changes to the DOM as the various virtual DOM libraries would, but skipping the need to diff and patch the various DOM trees.
 
 ## Working with `Dynamic`s
 
@@ -70,7 +77,7 @@ foldDyn     :: (Reflex t, MonadHold t m, MonadFix m)
             -> Event t a 
             -> m (Dynamic t b)
 ```
-which we'll be using a lot with the function application operator - `($)`:
+which we'll often be using with the function application operator - `($)`:
 ```haskell
 foldDyn ($) :: (Reflex t, MonadHold t m, MonadFix m) 
             => c 
@@ -89,7 +96,7 @@ We can use `foldDyn` to get started:
 counter :: (Reflex t, MonadHold t m, MonadFix m) 
         => 
            m (Dynamic t Int)
-counter             =
+counter      =
   foldDyn ($) 0 $ 
     _
 ```
@@ -99,7 +106,7 @@ We'll add an `Event` corresponding to the pressing of an "Add" button:
 counter :: (Reflex t, MonadHold t m, MonadFix m) 
         => Event t ()
         -> m (Dynamic t Int)
-counter eAdd        =
+counter eAdd =
   foldDyn ($) 0 $ 
     _
 ```
@@ -109,7 +116,7 @@ When that button fires, we'll need to use that `Event` to supply a function of t
 counter :: (Reflex t, MonadHold t m, MonadFix m) 
         => Event t ()
         -> m (Dynamic t Int)
-counter eAdd        =
+counter eAdd =
   foldDyn ($) 0 $ 
     _       <$ eAdd
 ```
@@ -118,7 +125,7 @@ and fortunately we have just the thing:
 counter :: (Reflex t, MonadHold t m, MonadFix m) 
         => Event t ()
         -> m (Dynamic t Int)
-counter eAdd        =
+counter eAdd =
   foldDyn ($) 0 $ 
     (+ 1)   <$ eAdd
 ```
@@ -127,7 +134,7 @@ counter eAdd        =
 
 Now we'll make some modification to our counter so that we can reset it.
 
-We start with this:
+We start with what we had before:
 ```haskell
 counter :: (Reflex t, MonadHold t m, MonadFix m) 
         => Event t ()
@@ -145,21 +152,23 @@ counter :: (Reflex t, MonadHold t m, MonadFix m)
         => Event t ()
         -> Event t ()
         -> m (Dynamic t Int)
-counter eAdd        =
+counter eAdd eClear =
   foldDyn ($) 0                 $
       (+ 1)   <$ eAdd
       
   
 ```
 
-The `Event`s probably won't happen simultaneously, but we need to specify what to do if that happened.
-Since we're working with `Event t (Int -> Int)`, we'll merge them using function composition:
+We are planning on creating some buttons to produce these `Event`s, and so the `Event`s won't happen simultaneously.
+However, since we have separated out the logic from the controls, and are taking `Event`s as inputs, we can't guarantee that the `Event`s will be happening in different frames.
+
+We are working with `Event t (Int -> Int)`, so we'll combine the `Event`s using `mergeWith` and function composition:
 ```haskell
 counter :: (Reflex t, MonadHold t m, MonadFix m) 
         => Event t ()
         -> Event t ()
         -> m (Dynamic t Int)
-counter eAdd        =
+counter eAdd eClear =
   foldDyn ($) 0 . mergeWith (.) $ [
       (+ 1)   <$ eAdd
     , _
@@ -195,6 +204,7 @@ counter eAdd eClear =
 
 ## Removing extraneous updates
 
+Imagine that we constructed a `Dynamic` that keeps track of a pair of `Colour`s:
 ```haskell
 dynPair :: (Reflex t, MonadHold t m) 
         => Event t Colour
@@ -203,10 +213,10 @@ dynPair :: (Reflex t, MonadHold t m)
 dynPair eInput1 eInput2 = do
   dColour1 <- holdDyn Blue eInput1
   dColour2 <- holdDyn Blue eInput2
-  pure $      (,) <$> dColour1 <*> dColour2
+  pure $ (,) <$> dColour1 <*> dColour2
  
 ```
-
+and in some other part of our application we would like to break that pair apart into a pair of `Dynamic`s:
 ```haskell
 splitPair :: Reflex t 
           => Dynamic t (Colour, Colour)
@@ -219,12 +229,24 @@ splitPair dPair =
     (p1, p2)
 ```
 
+This probably won't do what we want.
+
+Imagine that the first `Event` passed to `dynPair` never fires.
+Whenever the second `Event` passed to `dynPair` fires, the output `Dynamic` will update.
+If that output is passed through `splitPair` we'll have a pair of `Dynamic`s that are updating, although the first of them will have `Event` firing that don't correspond to a change in state.
+
+This is particularly problematic if we're trying to minimize the number of times we have to update a DOM tree.
+
+We can see that in action here if we click back and forth between "Red" and "Blue" for one set of inputs:
+<div id="basics-dynamic-split-1"></div>
+
+We can solve this by using `holdUniqDyn`:
 ```haskell
 holdUniqDyn :: (Reflex t, MonadHold t m, MonadFix m, Eq a) 
             => Dynamic t a 
             -> m (Dynamic t a)
 ```
-
+to create a new version of `splitPair`:
 ```haskell
 splitPair :: (Reflex t, MonadHold t m, MonadFix m)
           => Dynamic t (Colour, Colour)
@@ -236,47 +258,27 @@ splitPair dPair =
     pure (p1, p2)
 ```
 
+Which does what we want with respect to minimizing unnecessary updates:
+<div id="basics-dynamic-split-2"></div>
+
+This highlights an additional issue with our implementation of `dynPair` - if we clicked the same button over and over, we'd trigger updates even when the state wasn't changing.
+We could potentially address this by using `holdUniqDyn` within `dynPair` itself.
+
 ## Bringing `RecursiveDo` into the picture
 
-`Behavior`s are specified at all points of time
+`Behavior`s have values at all points in time, and `Event`s only have values at certain instants in time.
+This means that all `Behavior`s have a value before any `Event`s in the application fire, and so any `Event` can be used to sample from a `Behavior`.
 
- This is also true of `Dynamic`s
+We can use one firing of a particular `Event` to build up a `Behavior` and a later firing of the same `Event` to sample a `Behavior`.
+Going further than this, we can use one firing of a particular `Event` to both build up and sample from a `Behavior`.
+The reason this is fine is that `hold` updates the `Behavior` in the next frame rather than the current frame.
 
-`Event`s are only specified at some unique points of time
+The result of this is that we are able to have loops in the graph of our FRP network.
+This is fine, and is often very useful, but we need a language extension to be able to input them into Haskell in a convenient manner.
 
-So all `Behavior`s have a value before any of the `Event`s fire
+Imagine that we had an application that contained a counter that we wrote earlier, and that we wanted to specify an upper limit for the value of the counter.
 
-It is perfectly valid to have `Event`s that build a `Behavior` and also depend on the `Behavior`
-
-This is where the one frame delay comes in - we are using the old value of the `Behavior` to build the new value of the `Behavior`
-
-This means some dependencies can be loops, which is fine
-
-We just need a way to specify them
-
-```haskell
-{-# LANGUAGE RecursiveDo #-}
-counter :: (Reflex t, MonadFix m, MonadHold t m) 
-        => Dynamic t Int
-        -> Event t ()
-        -> Event t ()
-        -> m (Dynamic t Int)
-counter dLimit eAdd eClear = mdo
-  let dLimitOK = (<) <$> dCount <*> dLimit
-      eAddOK   = gate (current dLimitOK) eAdd
-
-  dCount <- foldDyn ($) 0 . mergeWith (.) $ [
-      (+ 1)   <$ eAddOK
-    , const 0 <$ eClear
-    ]
-    
-  pure dCount
-```
-
-
-<div id="basics-recursiveDo-3"></div>
-
-The limit could be coming from something like this:
+We could add something like this to the settings page for the application:
 ```haskell
 limit :: (Reflex t, MonadFix m, MonadHold t m) 
       => Event t () 
@@ -299,10 +301,132 @@ limit eStart eAdd eClear = do
 
 <div id="basics-recursiveDo-1"></div>
 
-and if you play around with these two widgets, you will see that they are linked.
+and then plumb the results into a revised form of our counter.
 
-TODO
+We would start with our old counter:
+```haskell
 
+counter :: (Reflex t, MonadFix m, MonadHold t m) 
+        =>
+           Event t ()
+        -> Event t ()
+        -> m (Dynamic t Int)
+counter        eAdd eClear =  do
+  dCount <- foldDyn ($) 0 . mergeWith (.) $ [
+      (+ 1)   <$ eAdd
+    , const 0 <$ eClear
+    ]
+    
+    
+    
+    
+  pure dCount
+```
+and then pass in the limit:
+```haskell
+
+counter :: (Reflex t, MonadFix m, MonadHold t m) 
+        => Dynamic t Int
+        -> Event t ()
+        -> Event t ()
+        -> m (Dynamic t Int)
+counter dLimit eAdd eClear =  do
+  dCount <- foldDyn ($) 0 . mergeWith (.) $ [
+      (+ 1)   <$ eAdd
+    , const 0 <$ eClear
+    ]
+    
+    
+    
+    
+  pure dCount
+```
+
+We can then check if we are within the limit:
+```haskell
+
+counter :: (Reflex t, MonadFix m, MonadHold t m) 
+        => Dynamic t Int
+        -> Event t ()
+        -> Event t ()
+        -> m (Dynamic t Int)
+counter dLimit eAdd eClear =  do
+  dCount <- foldDyn ($) 0 . mergeWith (.) $ [
+      (+ 1)   <$ eAdd
+    , const 0 <$ eClear
+    ]
+    
+  let dLimitOK = (<) <$> dCount <*> dLimit
+    
+    
+  pure dCount
+```
+and use that to create a version of `eAdd` which only fires if we are within the bounds of the limit:
+```haskell
+
+counter :: (Reflex t, MonadFix m, MonadHold t m) 
+        => Dynamic t Int
+        -> Event t ()
+        -> Event t ()
+        -> m (Dynamic t Int)
+counter dLimit eAdd eClear =  do
+  dCount <- foldDyn ($) 0 . mergeWith (.) $ [
+      (+ 1)   <$ eAdd
+    , const 0 <$ eClear
+    ]
+    
+  let dLimitOK = (<) <$> dCount <*> dLimit
+      eAddOK   = gate (current dLimitOK) eAdd
+    
+  pure dCount
+```
+
+Now all we have to do is replace the use of `eAdd` in the `foldDyn` with `eAddOK`.
+
+That is going to look a little weird and fail to compile, due to the cyclic dependency it introduces:
+```haskell
+
+counter :: (Reflex t, MonadFix m, MonadHold t m) 
+        => Dynamic t Int
+        -> Event t ()
+        -> Event t ()
+        -> m (Dynamic t Int)
+counter dLimit eAdd eClear =  do
+  dCount <- foldDyn ($) 0 . mergeWith (.) $ [
+      (+ 1)   <$ eAddOK
+    , const 0 <$ eClear
+    ]
+    
+  let dLimitOK = (<) <$> dCount <*> dLimit
+      eAddOK   = gate (current dLimitOK) eAdd
+
+  pure dCount
+```
+but we can resolve this by add the `RecursiveDo` language pragma and replacing the the `do` keyword with `mdo`:
+```haskell
+{-# LANGUAGE RecursiveDo #-}
+counter :: (Reflex t, MonadFix m, MonadHold t m) 
+        => Dynamic t Int
+        -> Event t ()
+        -> Event t ()
+        -> m (Dynamic t Int)
+counter dLimit eAdd eClear = mdo
+  dCount <- foldDyn ($) 0 . mergeWith (.) $ [
+      (+ 1)   <$ eAddOK
+    , const 0 <$ eClear
+    ]
+    
+  let dLimitOK = (<) <$> dCount <*> dLimit
+      eAddOK   = gate (current dLimitOK) eAdd
+
+  pure dCount
+```
+
+If you play around with this:
+<div id="basics-recursiveDo-3"></div>
+you'll see that it works, and that it is linked to the `limit` widget above.
+
+We could take this further, and create a data type to manage the settings:
 ```haskell
 data Settings =
   Settings {
@@ -311,6 +435,7 @@ data Settings =
   }
 ```
 
+We can pull the settings apart for use in our counter:
 ```haskell
 counter :: (Reflex t, MonadFix m, MonadHold t m) 
         => Dynamic t Settings
@@ -318,9 +443,10 @@ counter :: (Reflex t, MonadFix m, MonadHold t m)
         -> Event t ()
         -> m (Dynamic t Int)
 counter dSettings eAdd eClear = mdo
-  let dLimit      = settingsLimit <$> dSettings
-      dStep       = settingsStep  <$> dSettings
-      check c s l = c + s <= l
+  dLimit <- holdUniqDyn (settingsLimit <$> dSettings)
+  dStep  <- holdUniqDyn (settingsStep <$> dSettings)
+
+  let check c s l = c + s <= l
       dLimitOK    = check <$> dCount <*> dStep <*> dLimit
       eAddOK      = gate (current dLimitOK) eAdd
 
@@ -331,13 +457,18 @@ counter dSettings eAdd eClear = mdo
     
   return dCount
 ```
-
-
+and we can build the settings up from the individual pieces on our hypothetical settings page:
 ```haskell
 counter (Settings <$> dLimit <*> dStep) eAdd eClear
 ```
 
 <div id="basics-recursiveDo-4"></div>
 
+We're still playing with basic examples, but hopefully these examples plus a bit of imagination are enough to help see the usefulness of building up, passing around and pulling apart first-class values for state management.
+
 ## Next up
 
+We now have all the pieces that we need to build an FRP network.
+
+In the next post we'll look at some tools `reflex` provides for making modifications to the graph in response to `Event`s.
+<!--In the [next post](../switching/) we'll look at some tools `reflex` provides for making modifications to the graph in response to `Event`s.-->

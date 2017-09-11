@@ -13,11 +13,16 @@ import Reflex.Dom.Core
 import GHCJS.DOM.Types (MonadJSM)
 
 import Util.Attach
+import Util.Reflex
 
 recursiveDoPostExamples ::
   MonadJSM m =>
   m ()
 recursiveDoPostExamples = do
+  attachId_ "basics-recursiveDo-loop-1" $
+    loopCounter (loop1 0 5)
+  attachId_ "basics-recursiveDo-loop-2" $
+    loopCounter (loop2 0 5)
   mdLimit <- attachId "basics-recursiveDo-1" $
     counterExample1 5
   mdStep <- attachId "basics-recursiveDo-2" $
@@ -34,12 +39,12 @@ mkCounter ::
   MonadWidget t m =>
   (Event t () -> Event t () -> m (Dynamic t Int)) ->
   m (Dynamic t Int)
-mkCounter network = mdo
+mkCounter network = divClass "panel panel-default" . divClass "panel-body" $ mdo
   el "div" $
     display dCount
 
   (eAdd, eClear) <- el "span" $
-    (,) <$> button "Add" <*> button "Clear"
+    (,) <$> buttonClass "btn btn-default" "Add" <*> buttonClass "btn btn-default" "Clear"
 
   dCount <- network eAdd eClear
 
@@ -60,6 +65,65 @@ counter1 initial eAdd eClear =
       const 0 <$ eClear
     , (+ 1) <$ eAdd
     ]
+
+loop1 ::
+  ( Reflex t
+  , MonadHold t m
+  , MonadFix m
+  ) =>
+  Int ->
+  Int ->
+  Event t () ->
+  m (Dynamic t Int)
+loop1 initial limit eAdd = mdo
+  let
+    dLimit = (>= limit) <$> dCount
+    eClear = gate (current dLimit) eAdd
+
+  dCount <- foldDyn ($) initial . mergeWith (.) $ [
+      (+ 1) <$ eAdd
+    , const 0 <$ eClear
+    ]
+
+  pure dCount
+
+loop2 ::
+  ( Reflex t
+  , MonadHold t m
+  , MonadFix m
+  ) =>
+  Int ->
+  Int ->
+  Event t () ->
+  m (Dynamic t Int)
+loop2 initial limit eAdd = mdo
+  let
+    dLimit = (>= limit) <$> dCount
+    eClear = gate (current dLimit) eAdd
+
+  dCount <- foldDyn ($) initial . mergeWith (.) $ [
+      const 0 <$ eClear
+    , (+ 1) <$ eAdd
+    ]
+
+  pure dCount
+
+loopCounter ::
+  ( Reflex t
+  , MonadFix m
+  , MonadWidget t m
+  ) =>
+  (Event t () -> m (Dynamic t Int)) ->
+  m ()
+loopCounter counterFn = divClass "panel panel-default" . divClass "panel-body" $ mdo
+  el "div" $
+    display dCount
+
+  eAdd <- buttonClass "btn btn-default" "Add"
+  dCount <- counterFn eAdd
+
+  pure ()
+
 
 counterExample1 ::
   MonadWidget t m =>
@@ -108,7 +172,7 @@ counterExample2 dLimit dStep =
 bigExample ::
   MonadWidget t m =>
   m ()
-bigExample = do
+bigExample = divClass "panel panel-default" . divClass "panel-body" $ do
   dLimit <- el "div" $ do
     text "Limit"
     counterExample1 5

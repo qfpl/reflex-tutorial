@@ -268,8 +268,9 @@ We need something a bit more flexible, like the `mergeWith` function:
 ```haskell
 mergeWith :: (a -> a -> a) -> [Event t a] -> Event t a
 ```
+which does a more efficiently version of `foldl1` over the list of `Event`s.
 
-This let's us specify a function to use to combine the values from `Event`s which are firing simultaneously:
+This let's us specify a function to use to combine the values from `Event`s which are firing simultaneously, and so we use `(<>)` to concatentate the `Text` in the `Event`s:
 ```haskell
 eMerge :: Event t Text
 eMerge = mergeWith (<>) [eFizz, eBuzz]
@@ -277,9 +278,9 @@ eMerge = mergeWith (<>) [eFizz, eBuzz]
 and that seems to work for us when the `Event`s collide:
 <div id="basics-events-mergeWith"></div>
 
-We can be a little more concise than that though, since `reflex` adds a lot of useful typeclass instances for us.
+We can be more concise than that, as `reflex` adds a lot of useful typeclass instances for us.
 
-As an example, we can use this:
+As an example, we can use this instance:
 ```haskell
 instance Semigroup a => Semigroup (Event t a) where ...
 ```
