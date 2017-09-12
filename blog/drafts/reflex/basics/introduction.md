@@ -7,9 +7,9 @@ project: reflex
 
 ## What is Functional Reactive Programming (FRP)?
 
-There has been a lot of interest in FRP over the last few years, and there are now a lot of different meanings in use.
+There has been a lot of interest in FRP over the last few years, and there are now a lot of different meanings of FRP that are in use.
 
-My claim is that the FRP implementations that are closer to the original idea are much more useful and powerful than some of the things that have come afterwards.
+My claim is that the FRP implementations that are closer to the original idea are much more useful and powerful than the others.
 We'll have to go a little way down the rabbit hole with the ideas and concepts before I can make a solid case for that.
 
 The original definition of FRP required two things:
@@ -24,18 +24,19 @@ The implementations that I prefer usually:
 - have the ability to do higher-order FRP, so that the network of `Event`s and `Behavior`s can be changed over time.
 - have come up with APIs to greatly reduce the risk of introducing space or time leaks
 
-These systems give you first-class values that model mutable state, with a built-in and souped-up version of observers, and the clear denotational semantics mean that abstractions provided by these systems all compose well.
+These systems give you first-class values that model mutable state, with a built-in and souped-up version of observers.
+The clear denotational semantics mean that abstractions provided by these systems all compose well.
 
+The `Event` and `Behavior` types are at the heart of these systems.
 The `Event` values model changes that happen at single points of time, like a user clicking a button or a timeout expiring. 
-The `Behavior` values model state that has values at all points of time, like the position of a mouse or whether a user has admin permissions on a site.
-The `Behavior`s are created, changed, and queried by `Event`s - and they have an `Applicative` instance so that we can combine them.
+The `Behavior` values model state that have values at all points of time, like the position of a mouse or whether a user has admin permissions on a site.
+The `Behavior`s are created, changed, and queried by `Event`s, and they have an `Applicative` instance so that we can combine them.
 
 This leads to a very different way of dealing with state than most people are used to.
 It's very powerful, as we'll soon see.
 
-So far, the implementations that I have used have not had support for continuous time.
-Instead, they work with a discrete moments time.
-This means that there are some thoughts that we can't really think in this system, but up to this point that hasn't been a problem for me.
+The implementations that I have used work with discrete moments of time and do not have support for continuous time.
+This means that there are some thoughts that we can't really think in these systems, but I've been finding them very useful nonetheless.
 If someone has a library that supports continuous time as well as the above points, I'd be very keen to take a look.
 
 ## What is `reflex`?
@@ -60,9 +61,9 @@ That doesn't sound ideal to a lot of folks.
 It can also be slow to search and to modify.
 
 To work around that, some clever people worked out that they could build a data structure to model the DOM - the virtual or shadow DOM - and operate on that instead.
-The key trick to doing that is to have efficient procedures to find differences between DOMs and to patch them, so that you can translate changes in the virtual DOM into changes in the actual DOM with the least amount of work.
+The key trick to doing that is to have efficient procedures to find differences between DOMs and to patch them, so that you can translate changes in the virtual DOM into changes in the actual DOM while minimizing the amount of work done.
 
-The `react` library - as well as many others - use this, and lots of people are quite enthused by it.
+The `react` library and many other libraries use this idea, and lots of people are quite enthused by it.
 It seems a bit like a functional approach to the problem, which is great.
 If you're struggling to deal with a mutable tree with mutable state at the branches and at the leaves, you'll reach for whatever seems like it'll work.
 
@@ -72,9 +73,9 @@ Some folks have tried to use an even more functional approach, and work with the
 DOM -> DOM
 ```
 
-The problem with that is the assumption that the DOM is stateless.
+The problem there is that it is built on the assumption that the DOM is stateless.
 That assumption is incorrect.
-We only need to look at a text input to see pieces of state - the text in the input, the position of the cursor - that isn't captured in the DOM.
+We only need to look at a text input to see pieces of state that isn't captured in the DOM, like the text in the input and the position of the cursor.
 
 This means that to work with those kind of inputs you have two choices.
 
