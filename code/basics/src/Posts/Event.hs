@@ -27,6 +27,7 @@ import Util.Number
 import Util.Attach
 import Util.Grid
 import Util.SVG
+import qualified Util.Bootstrap as B
 
 eventPostExamples ::
   MonadJSM m =>
@@ -134,7 +135,7 @@ mkParseInput :: MonadWidget t m
              => m (Event t ParseText)
 mkParseInput = do
   tiColour <- textInput $ def & textInputConfig_initialValue .~ "Blue"
-  eClick <- buttonClass "btn btn-default" "Go"
+  eClick <- B.button "Go"
   return $ ParseText <$> current (tiColour ^. textInput_value) <@ eClick
 
 wrapDemo ::
@@ -144,12 +145,12 @@ wrapDemo ::
   (Event t a -> Event t b) ->
   m (Event t a) ->
   m ()
-wrapDemo guest mkIn = divClass "panel panel-default" . divClass "panel-body" $ mdo
+wrapDemo guest mkIn = B.panel $ mdo
   let w = runDemo guest eInput
   _ <- widgetHold w (w <$ eReset)
   (eInput, eReset) <- el "div" $ do
     eInput <- mkIn
-    eReset <- buttonClass "btn btn-default pull-right" "Reset"
+    eReset <- B.buttonClass "pull-right" "Reset"
     return (eInput, eReset)
   return ()
 
@@ -219,7 +220,7 @@ fanDemo eInput =
 demoEither ::
   MonadWidget t m =>
   m ()
-demoEither = divClass "panel panel-default" . divClass "panel-body" $ mdo
+demoEither = B.panel $ mdo
   let
     widget = do
       let
@@ -256,7 +257,7 @@ demoEither = divClass "panel panel-default" . divClass "panel-body" $ mdo
   _ <- widgetHold widget (widget <$ eReset)
   (eInput, eReset) <- el "div" $ do
     eInput <- mkRedBlueInput
-    eReset <- buttonClass "btn btn-default pull-right" "Reset"
+    eReset <- B.buttonClass "pull-right" "Reset"
     return (eInput, eReset)
   return ()
 
@@ -277,8 +278,8 @@ js_alert = error "js_alert: can only be used with GHCJS"
 demoClickMe ::
   MonadWidget t m =>
   m ()
-demoClickMe = divClass "panel panel-default" . divClass "panel-body" $ do
-  eClick <- buttonClass "btn btn-default" "Click Me"
+demoClickMe = B.panel $ do
+  eClick <- B.button "Click Me"
   eOnes <- accum (+) 0 (1 <$ eClick)
   let
     eHundreds = (* 100) <$> eOnes
@@ -288,10 +289,10 @@ demoClickMe = divClass "panel panel-default" . divClass "panel-body" $ do
 demoTick ::
   MonadWidget t m =>
   m ()
-demoTick = divClass "panel panel-default" . divClass "panel-body" $ mdo
+demoTick = B.panel $ mdo
   let
     wInitial = Workflow $ do
-      eNext <- buttonClass "btn btn-default" "Start"
+      eNext <- B.button "Start"
       pure ((), wRunning <$ eNext)
     wRunning = Workflow $ do
       eStop <- demoTick'
@@ -310,10 +311,10 @@ demoTick' = mdo
     ]
 
   (eClick, eTick, eReset) <- el "div" $ do
-    eClick' <- buttonClass "btn btn-default" "Click"
+    eClick' <- B.button "Click"
     now <- liftIO getCurrentTime
     eTick' <- tickLossy 2 now
-    eReset' <- buttonClass "btn btn-default pull-right" "Reset"
+    eReset' <- B.buttonClass "pull-right" "Reset"
     return (Blue <$ eClick', Red <$ eTick', eReset')
 
   dClick <- foldDyn (:) [] .
@@ -473,8 +474,8 @@ demoFizzBuzz ::
   MonadWidget t m =>
   m () ->
   m ()
-demoFizzBuzz w = divClass "panel panel-default" . divClass "panel-body" $ mdo
+demoFizzBuzz w = B.panel $ mdo
   _ <- widgetHold w (w <$ eReset)
   eReset <- el "div" $
-    buttonClass "btn btn-default pull-right" "Reset"
+    B.buttonClass "pull-right" "Reset"
   pure ()

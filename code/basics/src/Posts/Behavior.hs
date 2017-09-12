@@ -15,6 +15,7 @@ import Colour
 import Util.Reflex
 import Util.Attach
 import Util.Grid
+import qualified Util.Bootstrap as B
 
 behaviorPostExamples ::
   MonadJSM m =>
@@ -100,20 +101,20 @@ wrapDemo ::
   (Event t a -> Event t () -> m (Event t b)) ->
   m (Event t a) ->
   m ()
-wrapDemo guest mkIn = divClass "panel panel-default" . divClass "panel-body" $ mdo
+wrapDemo guest mkIn = B.panel $ mdo
   let w = runDemo guest eInput eSample
   _ <- widgetHold w (w <$ eReset)
   (eInput, eSample, eReset) <- el "div" $ do
     eInput <- mkIn
-    eSample <- buttonClass "btn btn-default" "Sample"
-    eReset <- buttonClass "btn btn-default pull-right" "Reset"
+    eSample <- B.button "Sample"
+    eReset <- B.buttonClass "pull-right" "Reset"
     return (eInput, eSample, eReset)
   return ()
 
 gateOut ::
   MonadWidget t m =>
   m (Behavior t Bool)
-gateOut = divClass "panel panel-default" . divClass "panel-body" $ do
+gateOut = B.panel $ do
   text "Allow events to pass through"
 
   cb <- checkbox True def
@@ -123,12 +124,12 @@ gateIn ::
   MonadWidget t m =>
   Behavior t Bool ->
   m ()
-gateIn bGate = divClass "panel panel-default" . divClass "panel-body" $ mdo
+gateIn bGate = B.panel $ mdo
     let w = runDemo (\e _ -> pure e) eInput never
     _ <- widgetHold w (w <$ eReset)
     (eInput, eReset) <- el "div" $ do
       eInput <- mkRedBlueInput
-      eReset <- buttonClass "btn btn-default pull-right" "Reset"
+      eReset <- B.buttonClass "pull-right" "Reset"
       return (gate bGate eInput, eReset)
     pure ()
 
@@ -169,14 +170,14 @@ wrapDemo2 ::
   (Event t a -> Event t a -> Event t () -> m (Event t b)) ->
   m (Event t a) ->
   m ()
-wrapDemo2 guest mkIn = divClass "panel panel-default" . divClass "panel-body" $ mdo
+wrapDemo2 guest mkIn = B.panel $ mdo
   let w = runDemo2 guest eInput1 eInput2 eSample
   _ <- widgetHold w (w <$ eReset)
   (eInput1, eInput2, eSample, eReset) <- el "div" $ do
     eInput1 <- mkIn
     eInput2 <- mkIn
-    eSample <- buttonClass "btn btn-default" "Sample"
-    eReset <- buttonClass "btn btn-default pull-right" "Reset"
+    eSample <- B.button "Sample"
+    eReset <- B.buttonClass "pull-right" "Reset"
     return (eInput1, eInput2, eSample, eReset)
   return ()
 

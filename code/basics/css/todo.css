@@ -1,0 +1,64 @@
+
+.hide {
+    display: none;
+}
+
+.hide input {
+    display: none;
+}
+
+.hide button {
+    display: none;
+}
+
+.completed {
+    text-decoration: line-through;
+}
+
+.removed {
+    color: red;
+}
+
+.todo {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: column;
+}
+
+.todo-list {
+	  margin: 0;
+	  padding: 0;
+	  list-style: none;
+    line-height: 2em;
+    display: block;
+}
+
+.todo-item {
+    position: relative;
+	  font-size: 24px;
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+}
+
+.todo-item input[type=checkbox] {
+    margin-right: 10px;
+    display: flex;
+}
+
+.todo-item button {
+    margin-left: 10px;
+    align-self: flex-end;
+}
+
+.add-item {
+    position: relative;
+	  font-size: 24px;
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: column;
+}
+
+.add-item div {
+    display: flex;
+}

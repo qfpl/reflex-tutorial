@@ -14,6 +14,7 @@ import GHCJS.DOM.Types (MonadJSM)
 
 import Util.Attach
 import Util.Reflex
+import qualified Util.Bootstrap as B
 
 recursiveDoPostExamples ::
   MonadJSM m =>
@@ -39,12 +40,12 @@ mkCounter ::
   MonadWidget t m =>
   (Event t () -> Event t () -> m (Dynamic t Int)) ->
   m (Dynamic t Int)
-mkCounter network = divClass "panel panel-default" . divClass "panel-body" $ mdo
+mkCounter network = B.panel $ mdo
   el "div" $
     display dCount
 
   (eAdd, eClear) <- el "span" $
-    (,) <$> buttonClass "btn btn-default" "Add" <*> buttonClass "btn btn-default" "Clear"
+    (,) <$> B.button "Add" <*> B.button "Clear"
 
   dCount <- network eAdd eClear
 
@@ -115,11 +116,11 @@ loopCounter ::
   ) =>
   (Event t () -> m (Dynamic t Int)) ->
   m ()
-loopCounter counterFn = divClass "panel panel-default" . divClass "panel-body" $ mdo
+loopCounter counterFn = B.panel $ mdo
   el "div" $
     display dCount
 
-  eAdd <- buttonClass "btn btn-default" "Add"
+  eAdd <- B.button "Add"
   dCount <- counterFn eAdd
 
   pure ()
@@ -172,7 +173,7 @@ counterExample2 dLimit dStep =
 bigExample ::
   MonadWidget t m =>
   m ()
-bigExample = divClass "panel panel-default" . divClass "panel-body" $ do
+bigExample = B.panel $ do
   dLimit <- el "div" $ do
     text "Limit"
     counterExample1 5

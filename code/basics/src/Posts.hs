@@ -9,6 +9,7 @@ import Posts.Event (eventPostExamples)
 import Posts.Behavior (behaviorPostExamples)
 import Posts.Dynamic (dynamicPostExamples)
 import Posts.RecursiveDo (recursiveDoPostExamples)
+import Posts.Dom (domPostExamples)
 
 import Util.Attach
 import Util.Grid
@@ -21,3 +22,4 @@ posts = do
   behaviorPostExamples
   dynamicPostExamples
   recursiveDoPostExamples
+  domPostExamples

@@ -17,6 +17,7 @@ import Colour
 import Util.Attach
 import Util.Reflex
 import Util.Grid
+import qualified Util.Bootstrap as B
 
 dynamicPostExamples ::
   MonadJSM m =>
@@ -34,12 +35,12 @@ dynamicPostExamples = do
 counterExample1 ::
   MonadWidget t m =>
   m ()
-counterExample1 = divClass "panel panel-default" . divClass "panel-body" $ mdo
+counterExample1 = B.panel $ mdo
   el "div" $
     display dCount
 
   eAdd <- el "span" $
-    buttonClass "btn btn-default" "Add"
+    B.button "Add"
 
   dCount <- foldDyn ($) 0 $
       (+ 1) <$ eAdd
@@ -49,13 +50,13 @@ counterExample1 = divClass "panel panel-default" . divClass "panel-body" $ mdo
 counterExample2 ::
   MonadWidget t m =>
   m ()
-counterExample2 = divClass "panel panel-default" . divClass "panel-body" $ mdo
+counterExample2 = B.panel $ mdo
   el "div" $
     display dCount
 
   (eAdd, eClear) <- el "span" $ do
-    eAdd   <- buttonClass "btn btn-default" "Add"
-    eClear <- buttonClass "btn btn-default" "Clear"
+    eAdd   <- B.button "Add"
+    eClear <- B.button "Clear"
     pure (eAdd, eClear)
 
   dCount <- foldDyn ($) 0 . mergeWith (.) $ [
@@ -118,13 +119,13 @@ wrapDemo2 ::
   (Event t a -> Event t a -> m (Event t a, Event t a)) ->
   m (Event t a) ->
   m ()
-wrapDemo2 guest mkIn = divClass "panel panel-default" . divClass "panel-body" $ mdo
+wrapDemo2 guest mkIn = B.panel $ mdo
   let w = runDemo2 guest eInput1 eInput2
   _ <- widgetHold w (w <$ eReset)
   (eInput1, eInput2, eReset) <- el "div" $ do
     eInput1 <- mkIn
     eInput2 <- mkIn
-    eReset <- buttonClass "btn btn-default pull-right" "Reset"
+    eReset <- B.buttonClass "pull-right" "Reset"
     return (eInput1, eInput2, eReset)
   return ()
 
