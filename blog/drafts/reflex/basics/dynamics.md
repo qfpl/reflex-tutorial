@@ -470,5 +470,4 @@ We're still playing with basic examples, but hopefully these examples plus a bit
 
 We now have all the pieces that we need to build an FRP network.
 
-In the next post we'll look at some tools `reflex` provides for making modifications to the graph in response to `Event`s.
-<!--In the [next post](../switching/) we'll look at some tools `reflex` provides for making modifications to the graph in response to `Event`s.-->
+In the [next post](../dom/) we'll start looking at how to create DOM elements using `reflex-dom`.
