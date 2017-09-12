@@ -13,7 +13,7 @@ extra-js: /js/reflex/basics/reflex-basics.min.js, /js/reflex/basics/rx.all.min.j
 
 ## What is an `Event`?
 
-An `Event` in the flavour of FRP is used to represent something that has values of a particular type at various instants of time.
+An `Event` is used to represent something that has values of a particular type at various instants of time.
 
 An `Event` in `reflex` looks like this:
 
@@ -44,6 +44,7 @@ eChanged :: Event t Text
 giving us the current value of a text input every time it is altered.
 
 In both cases we have a single `Event`, but it could fire many times.
+This is likely to be pretty different to what you are used to if you are use to an event-handling system where you need to poll for new events, or where you have to set up or otherwise deal with an event loop.
 
 These points in time aren't measured in sections, but in actions.
 If an externally triggered `Event` happens, a new logical point in time is created for that `Event`, and no other externally triggered `Event`s will be firing at the point in time.
@@ -63,7 +64,7 @@ eOutput :: Event t Colour
 eOutput = eInput
 ```
 
-We often refer to the combination of `Event`s and `Behavior`s as an FRP network, and this is about as simple as it gets.
+We often refer to the combination of `Event`s and `Behavior`s as an FRP network, and this is about as simple as an FRP network gets.
 
 In this case, the only externally triggered `Event`s are the button presses:
 <div id="basics-events-frame"></div>
@@ -75,7 +76,7 @@ We can bring a timer into play, and since the timeout `Event`s are triggered fro
 
 We can create derived `Event`s in more exciting ways than just defining new `Event`s to be equal to existing `Event`s.
 
-There is `Functor` instance for `Event`s, for example:
+There is `Functor` instance for `Event`s:
 ```haskell
 instance Reflex t => Functor (Event t) where ...
 ```
@@ -100,7 +101,7 @@ We'll see `<$` used often in FRP:
 ```
 to map a constant value across a `Functor`.
 
-In the case of `Event`s, it is like we are borrowing the points of time from the `[(t, b)]` interpretation, and then replacing all of the values of `b` with a constant of type `a`.
+In the case of `Event`s, it is like we are borrowing the points of time from the `[(t, b)]` interpretation, and then replacing all of the values of `b` with a constant value of type `a`.
 
 In this case, we'll paint the world blue:
 ```haskell
@@ -194,12 +195,12 @@ There are some other tools in `reflex` for efficiently working with larger sum t
 
 ## When `Event`s collide
 
-We've already seen that can create `Event`s that might be occurring in the same frame as other `Event`s
+We've already seen that we can create `Event`s that might be occurring in the same frame as other `Event`s
 
 That means when we want to work with multiple `Event`s, we need to be able to handle the case where several `Event`s are active in the same frame.
 
 We're going to explore that by working on something that you might have come across this before as part of the game (or programming problem) known as [FizzBuzz](https://en.wikipedia.org/wiki/Fizz_buzz).
-If you haven't come across it before then it would be worth taking a look before we continue.
+If you haven't come across it before then it is worth taking a look before we continue.
 
 Assume we have access to
 ```haskell
@@ -233,7 +234,7 @@ You can see that if you bump `eCount` up far enough:
 
 What can we do about the collisions?
 
-The first thing that we can do is to use the `leftmost` function to assign priorities to `Event`s in the case that they fire simultaneously:
+The simplest thing that we can do is to use the `leftmost` function to assign priorities to `Event`s in the case that they fire simultaneously:
 ```haskell
 leftmost :: [Event t a] -> Event t a
 ```
@@ -256,21 +257,22 @@ The `eFizz` `Event` will fire with the value "Fizz" and the `eBuzz` `Event` will
 
 As a result `eLeft` will fire with the value "Fizz", since `eFizz` was closer to the left of the list that was passed to `leftmost` than `eBuzz`.
 
-In this particular case it won't help us much, but we've already been using `leftmost` in some of our earlier examples.
+It doesn't really help us for this particular problem, but it's worth pointing out that we've already been using `leftmost` in some of our earlier examples.
 When we've seen `eInput` before, it has been built from `Event`s that fire when the "Red" and "Blue" buttons are pressed using leftmost:
 ```haskell
 eInput = leftmost [Red <$ eRed, Blue <$ eBlue]
 ```
 
-That's still not quite what we want for the collisions while we're trying to solve the FizzBuzz problem.
+It is still not what we want for handling the collisions while we're trying to solve the FizzBuzz problem.
 
 We need something a bit more flexible, like the `mergeWith` function:
 ```haskell
 mergeWith :: (a -> a -> a) -> [Event t a] -> Event t a
 ```
-which does a more efficiently version of `foldl1` over the list of `Event`s.
+which does a more efficient version of `foldl1` over the list of `Event`s.
 
-This let's us specify a function to use to combine the values from `Event`s which are firing simultaneously, and so we use `(<>)` to concatentate the `Text` in the `Event`s:
+This lets us specify a function to use to combine the values from `Event`s which are firing simultaneously.
+We will use `(<>)` to concatentate the `Text` in the `Event`s:
 ```haskell
 eMerge :: Event t Text
 eMerge = mergeWith (<>) [eFizz, eBuzz]
@@ -280,11 +282,11 @@ and that seems to work for us when the `Event`s collide:
 
 We can be more concise than that, as `reflex` adds a lot of useful typeclass instances for us.
 
-As an example, we can use this instance:
+This instance:
 ```haskell
 instance Semigroup a => Semigroup (Event t a) where ...
 ```
-to rewrite `eMerge`:
+can be used to simplify `eMerge`:
 ```haskell
 eMerge :: Event t Text
 eMerge = eFizz <> eBuzz
@@ -311,7 +313,7 @@ If we want to remove some simultaneous `Event`s, we can do so with `difference`:
 difference :: Event t a -> Event t b -> Event t a
 ```
 
-Although we need something even more contrived than the regular "FizzBuzz" problem to demonstrate it:
+Although we need a more contrived solution to the "FizzBuzz" problem in order to demonstrate it:
 ```haskell
 eMerge :: Event t Text
 eMerge = eFizz <> eBuzz
@@ -330,7 +332,7 @@ eFizzBuzz = leftmost [eDiff, eMerge]
 
 ## The advantages of semantics-driven abstractions
 
-Why did `reflex` bother doing all of this crazy stuff with simultaneous `Event`s?
+Why did `reflex` bother doing all of this complicated stuff with simultaneous `Event`s?
 They did because it followed from the semantics.
 
 Not everyone does things this way.
