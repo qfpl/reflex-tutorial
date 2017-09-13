@@ -32,6 +32,14 @@ and required:
 - clear denotational semantics
 - support for continuous time
 
+The `Event` and `Behavior` types are at the heart of these systems.
+The `Event` values model changes that happen at single points of time, like a user clicking a button or a timeout expiring. 
+The `Behavior` values model state that have values at all points of time, like the position of a mouse or whether a user has admin permissions on a site.
+The `Behavior`s are created, changed, and queried by `Event`s, and they have an `Applicative` instance so that we can combine them.
+
+This leads to a very different way of dealing with state than most people are used to.
+It's very powerful, as we'll soon see.
+
 The implementations that I prefer usually:
 
 - have `Event` and `Behavior` types
@@ -41,14 +49,6 @@ The implementations that I prefer usually:
 
 These systems give you first-class values that model mutable state, with a built-in and souped-up version of observers.
 The clear denotational semantics mean that abstractions provided by these systems all compose well.
-
-The `Event` and `Behavior` types are at the heart of these systems.
-The `Event` values model changes that happen at single points of time, like a user clicking a button or a timeout expiring. 
-The `Behavior` values model state that have values at all points of time, like the position of a mouse or whether a user has admin permissions on a site.
-The `Behavior`s are created, changed, and queried by `Event`s, and they have an `Applicative` instance so that we can combine them.
-
-This leads to a very different way of dealing with state than most people are used to.
-It's very powerful, as we'll soon see.
 
 The implementations that I have used work with discrete moments of time and do not have support for continuous time.
 This means that there are some thoughts that we can't really think in these systems, but I've been finding them very useful nonetheless.
