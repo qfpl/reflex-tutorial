@@ -36,7 +36,9 @@ dynText :: (PostBuild t m, DomBuilder t m)
         -> m ()
 ```
 
-With those in hand, we can put together a simple `div` with some text in it using:
+As an aside: the `PostBuild` typeclass gives us access to an `Event` which fires when the element is added to the DOM tree, and is handy for setting up initial values and so on.
+
+With the above pieces in hand, we can put together a simple `div` with some text in it using:
 ```haskell
 el "div" $
   text "TODO"
@@ -56,7 +58,7 @@ That's all well and good, but it's very static.
 
 The simplest thing we can add to make things more interactive is a button.
 
-We can add a button to our with `button`:
+We can add a button to our DOM tree with `button`:
 ```haskell
 button :: DomBuilder t m 
        => Text 
@@ -76,7 +78,10 @@ todoItem dText =
 
 <div class="demo" id="examples-dom-todoitem-1"></div>
 
-The simplest thing we can do with the `Event` provided by the button is to use it to modify the text we are displaying.
+This is following some common `reflex` advice about components: start with `Dynamic`s as inputs and `Event`s as outputs.
+We'll come back to this later, and will see when to break those rules, but it's a very useful place to start.
+
+If we want to see something happen when that `Event` is fired, we can use it to modify the text we are displaying.
 
 This gives us a marginally less boring todo item:
 ```haskell
@@ -181,7 +186,8 @@ It pops up in `reflex` code, so it's good to know about.
 
 All of the above functions for producing DOM elements have variants that expose the underlying element.
 
-They all have a prime at the end of their names and return a pair:
+They all have a prime at the end of their names and return a pair.
+For instance:
 ```haskell
 el' :: DomBuilder t m 
     => Text 
@@ -196,6 +202,13 @@ class HasDomEvent t target eventName where
   domEvent :: EventName eventName -> target -> Event t (DomEventType target eventName)
 ```
 to create new `reflex ``Event`s from various DOM events.
+It looks hideous, but it is fairly easy to use.
+
+If we wanted a clickable link we could do something like:
+```haskell
+  (e, _) <- elAttr' "a" ("href" =: "#/clickey") $ text "Click me"
+  domEvent Click e
+```
 
 To extend our previous example, we could clear the "removed" state of our item when the text is double clicked:
 ```haskell
@@ -224,7 +237,7 @@ todoItem dText = elClass "div" "todo-item" $ mdo
 
 ## Checkboxes
 
-There are more complicated inputs than buttons that we might be interested in.
+There are more complicated inputs than buttons.
 
 The simplest step up is a checkbox.
 This gives us a little bit of insight into the design of components in `reflex-dom`.
@@ -281,7 +294,7 @@ checkbox :: MonadWidget t m
          -> m (Checkbox t)
 ```
 
-We're now ready to flesh out our todo item a little bit:
+We're now ready to add a checkbox to our todo item:
 ```haskell
 todoItem :: MonadWidget t m 
          => Dynamic t Text 
@@ -353,7 +366,7 @@ clearComplete dAnyComplete =
 
 <div class="demo" id="examples-dom-clear-complete"></div>
 
-We can also make a component that has a checkbox which causes all todo items to be marked as complete or incomplete, depending on the state of the checkbox
+We can also make a component that has a checkbox which causes all todo items to be marked as complete or incomplete, depending on the state of the checkbox.
 We'll also make this binding bidirectional - if all of the items are marked as complete, the checkbox will become checked, and that ceases to be the case then the checkbox will become unchecked.
 
 ```haskell
@@ -377,9 +390,9 @@ This relies on the fact that `checkboxConfig_setValue` does not cause `checkbox_
 
 We're going to skip ahead, from the simple checkbox to the much more complex text input.
 
-There are other inputs in `reflex-dom`, but these two represent the extremes of complexity.
+There are other inputs in `reflex-dom`, but once you can handle the checkbox and the text input you should be ready to use the other inputs without too much help.
 
-We have a larger configuration data type:
+The text input has a larger configuration data type:
 ```haskell
 data TextInputConfig t = 
   TextInputConfig { 
@@ -456,7 +469,7 @@ addItem = mdo
 
   pure _
 ```
-and by jumping through some type conversion hoops we can create an `Event` that fires when the user pressed enter:
+and by jumping through some type conversion hoops we can create an `Event` that fires when the user presses enter:
 ```haskell
 addItem :: MonadWidget t m 
         => m (Event t Text)
