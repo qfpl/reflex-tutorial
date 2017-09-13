@@ -24,8 +24,11 @@ My claim is that the FRP implementations that are closer to the original idea ar
 We'll have to go a little way down the rabbit hole with the ideas and concepts before I can make a solid case for that.
 
 The original definition of FRP had:
+
 - `Event` and `Behavior` types
+
 and required:
+
 - clear denotational semantics
 - support for continuous time
 
@@ -52,7 +55,7 @@ This means that there are some thoughts that we can't really think in these syst
 If someone has a library that supports continuous time as well as the above points, I'd be very keen to take a look so I can discover what I've been missing out on.
 
 The other interesting thing about the implementations that I tend to like is that they have a kind of phase separation.
-The API that is presented to the user is typically building up a data structure that describes and FRP network and how it will change over time.
+The API that is presented to the user is typically building up a data structure that describes a FRP network and how it will change over time.
 Given that, the library will effectively compile this into an efficient graph of switches and latches, along with all of the memory management required to have it play nice with the garbage collector of their chosen language.
 This means there are opportunities to increase the performance or decrease the memory usage of the system while having relative stable user facing APIs.
 I'm excited about where that might lead.
@@ -113,7 +116,7 @@ My claim is that once you're comfortable with `reflex`:
 - you'll be able to work with mutable trees with mutable state at the branches and at the leaves, in a functional way, with tools that allow your code and your reasoning about the code to compose well
 - you'll be able to make the same alterations to the DOM that the virtual DOM approach does, but without having to do the diffing or patching steps
 
-In the Haskell community we periodically here from people who work with non-functional programming languages and have dived into Haskell, and start to like their work language much less afterwards.
+In the Haskell community we periodically hear from people who work with non-functional programming languages and have dived into Haskell, and start to like their work language much less afterwards.
 There's a bit of a risk of something happening if you're working with some of the other popular libraries and frameworks, but if you have enough Haskell under your belt for this series you have probably accepted and dealt with that risk already.
 
 ## Getting started
