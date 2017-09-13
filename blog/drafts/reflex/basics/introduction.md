@@ -50,9 +50,14 @@ The implementations that I prefer usually:
 These systems give you first-class values that model mutable state, with a built-in and souped-up version of observers.
 The clear denotational semantics mean that abstractions provided by these systems all compose well.
 
-The implementations that I have used work with discrete moments of time and do not have support for continuous time.
-This means that there are some thoughts that we can't really think in these systems, but I've been finding them very useful nonetheless.
-If someone has a library that supports continuous time as well as the above points, I'd be very keen to take a look so I can discover what I've been missing out on.
+The implementations that I have used provide discrete-time FRP rather than continuous-time FRP.
+The difference is similar to the difference between a digital and analog circuit.
+Discrete-time FRP uses `Event`s as the clock that drive the circuit, where continuous-time FRP does not.
+This means that with continuous-time FRP we can manipulate sampling and update rates explicitly, which is very handy when you are working with multimedia.
+It also leads to much simpler denotational semantics than the discrete-time FRP systems have
+
+While this means there are some thoughts we can't express in discrete-time FRP system, I've been finding them very useful nonetheless.
+If someone has a library that supports continuous-time FRP as well as the above points, I'd be very keen to take a look so I can discover what I've been missing out on.
 
 The other interesting thing about the implementations that I tend to like is that they have a kind of phase separation.
 The API that is presented to the user is typically building up a data structure that describes a FRP network and how it will change over time.
