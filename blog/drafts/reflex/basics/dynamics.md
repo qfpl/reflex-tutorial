@@ -34,7 +34,7 @@ This is very useful when we want to update a piece of the DOM.
 A `Dynamic t Text` can be passed from where it was created, through the application, down to a DOM node that needs to display some changing text.
 The `Behavior t Text` takes care of tracking the current state of the text to display, and `reflex-dom` can set up some code to replace the text in the DOM node whenever the `Event` signals that there is a change.
 
-The `reflex` and `reflex-dom` libraries aren't proscriptive about how you structure your application, but the common advice is to pass `Dynamic`s as far down as possible into the code that generates DOM.
+The `reflex` and `reflex-dom` libraries aren't prescriptive about how you structure your application, but the common advice is to pass `Dynamic`s as far down as possible into the code that generates DOM.
 If you follow that advice then you can arrange things so that your code is doing the same changes to the DOM as the various virtual DOM libraries would, but skipping the need to diff and patch the various DOM trees.
 
 There is some reference to building an `Event` and `Behavior` simultaneously in the `reactive-banana` documentation, and it appears in one of the examples, and so I suspect that the idea behind the `Dynamic` is probably lurking in the background or in the folklore of other `Event`-and-`Behavior` FRP systems.
@@ -95,9 +95,8 @@ To do that we're going to build a up a `Dynamic t Int`, which will start at `0` 
 We can use `foldDyn` to get started:
 ```haskell
 counter :: (Reflex t, MonadHold t m, MonadFix m) 
-        => 
-           m (Dynamic t Int)
-counter      =
+        => m (Dynamic t Int)
+counter =
   foldDyn ($) 0 $ 
     _
 ```
@@ -141,13 +140,10 @@ We'll start with what we had before:
 ```haskell
 counter :: (Reflex t, MonadHold t m, MonadFix m) 
         => Event t ()
-        ->
-           m (Dynamic t Int)
-counter eAdd        =
-  foldDyn ($) 0                 $
+        -> m (Dynamic t Int)
+counter eAdd =
+  foldDyn ($) 0 $
       (+ 1)   <$ eAdd
-      
-  
 ```
 and add an `Event` that will fire when "Clear" is pressed:
 ```haskell
@@ -156,10 +152,8 @@ counter :: (Reflex t, MonadHold t m, MonadFix m)
         -> Event t ()
         -> m (Dynamic t Int)
 counter eAdd eClear =
-  foldDyn ($) 0                 $
+  foldDyn ($) 0 $
       (+ 1)   <$ eAdd
-      
-  
 ```
 
 We are planning on creating some buttons to produce these `Event`s, and so the `Event`s won't happen simultaneously.
@@ -248,52 +242,42 @@ and then plumb the results into a revised form of our counter.
 
 We would start with our old counter:
 ```haskell
-
 counter :: (Reflex t, MonadFix m, MonadHold t m) 
-        =>
-           Event t ()
+        => Event t ()
         -> Event t ()
         -> m (Dynamic t Int)
-counter        eAdd eClear =  do
+counter eAdd eClear = do
   dCount <- foldDyn ($) 0 . mergeWith (.) $ [
       (+ 1)   <$ eAdd
     , const 0 <$ eClear
     ]
-    
-    
-    
-    
+
   pure dCount
 ```
 and then pass in the limit:
 ```haskell
-
 counter :: (Reflex t, MonadFix m, MonadHold t m) 
         => Dynamic t Int
         -> Event t ()
         -> Event t ()
         -> m (Dynamic t Int)
-counter dLimit eAdd eClear =  do
+counter dLimit eAdd eClear = do
   dCount <- foldDyn ($) 0 . mergeWith (.) $ [
       (+ 1)   <$ eAdd
     , const 0 <$ eClear
     ]
-    
-    
-    
-    
+
   pure dCount
 ```
 
 We can then check if we are within the limit:
 ```haskell
-
 counter :: (Reflex t, MonadFix m, MonadHold t m) 
         => Dynamic t Int
         -> Event t ()
         -> Event t ()
         -> m (Dynamic t Int)
-counter dLimit eAdd eClear =  do
+counter dLimit eAdd eClear = do
   dCount <- foldDyn ($) 0 . mergeWith (.) $ [
       (+ 1)   <$ eAdd
     , const 0 <$ eClear
@@ -301,18 +285,16 @@ counter dLimit eAdd eClear =  do
     
   let dLimitOK = (<) <$> dCount <*> dLimit
     
-    
   pure dCount
 ```
 and use that to create a version of `eAdd` which only fires if we are within the bounds of the limit:
 ```haskell
-
 counter :: (Reflex t, MonadFix m, MonadHold t m) 
         => Dynamic t Int
         -> Event t ()
         -> Event t ()
         -> m (Dynamic t Int)
-counter dLimit eAdd eClear =  do
+counter dLimit eAdd eClear = do
   dCount <- foldDyn ($) 0 . mergeWith (.) $ [
       (+ 1)   <$ eAdd
     , const 0 <$ eClear
@@ -328,13 +310,12 @@ Now all we have to do is replace the use of `eAdd` in the `foldDyn` with `eAddOK
 
 That is going to look a little weird and fail to compile, due to the cyclic dependency it introduces:
 ```haskell
-
 counter :: (Reflex t, MonadFix m, MonadHold t m) 
         => Dynamic t Int
         -> Event t ()
         -> Event t ()
         -> m (Dynamic t Int)
-counter dLimit eAdd eClear =  do
+counter dLimit eAdd eClear = do
   dCount <- foldDyn ($) 0 . mergeWith (.) $ [
       (+ 1)   <$ eAddOK
     , const 0 <$ eClear

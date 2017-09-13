@@ -485,7 +485,6 @@ addItem = mdo
     isKey k   = (== k) . keyCodeLookup . fromIntegral
     eEnter    = ffilter (isKey Enter) eKeypress
 
-
   pure _
 ```
 
@@ -506,7 +505,6 @@ addItem = mdo
     eEnter    = ffilter (isKey Enter) eKeypress
 
     eAtEnter  = bValue <@ eEnter
-
 
   pure _
 ```
