@@ -278,7 +278,13 @@ instance (Reflex t, IsString a) => IsString (Behavior t a) where ...
 
 ### Aside: some handy helpers for the `Applicative` instance
 
-We can do that last example a little more succinctly with a helper operator which came from `reactive-banana`
+There are a couple of operators that come from `reactive-banana`:
+
+```haskell
+(<@>) :: Reflex t => Behavior t (a -> b) -> Event t a -> Event t b
+(<@)  :: Reflex t => Behavior t       b  -> Event t a -> Event t b
+```
+which we can use to restart the last example a little more succinctly:
 ```haskell
 samplePair eInput1 eInput2 eSample = do
   bColour1 <- hold Blue eInput1
@@ -286,7 +292,17 @@ samplePair eInput1 eInput2 eSample = do
   pure $ (,) <$> bColour1 <*> bColour2 <@ eSample
 ```
 
-Both `<@>` and `<@` are similar to `<*>` and `<*` from `Applicative`.
+These are  similar to the `<*>`:
+```haskell
+(<*>) :: Applicative f => f          (a -> b) -> f       a -> f       b 
+(<@>) :: Reflex t      => Behavior t (a -> b) -> Event t a -> Event t b
+```
+and `<*`:
+```haskell
+(<*)  :: Applicative f => f                b  -> f       a -> f       b
+(<@)  :: Reflex t      => Behavior t       b  -> Event t a -> Event t b
+```
+operators from `Applicative`.
 
 The usual pattern is to chain several `Behavior`s together with `<*>` and to end the chain with `<@>` or `<@` and an `Event`.
 
