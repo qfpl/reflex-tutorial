@@ -56,7 +56,7 @@ If someone has a library that supports continuous time as well as the above poin
 
 The other interesting thing about the implementations that I tend to like is that they have a kind of phase separation.
 The API that is presented to the user is typically building up a data structure that describes a FRP network and how it will change over time.
-Given that, the library will effectively compile this into an efficient graph of switches and latches, along with all of the memory management required to have it play nice with the garbage collector of their chosen language.
+Given that, the library will effectively compile this into an efficient graph of switches and latches, along with all of the memory management required to have it play nicely with the garbage collector of their chosen language.
 This means there are opportunities to increase the performance or decrease the memory usage of the system while having relative stable user facing APIs.
 I'm excited about where that might lead.
 
