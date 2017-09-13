@@ -32,10 +32,12 @@ This is useful for reasons of efficiency.
 
 This is very useful when we want to update a piece of the DOM.
 A `Dynamic t Text` can be passed from where it was created, through the application, down to a DOM node that needs to display some changing text.
-The `Behavior t Text` takes care of tracking the current state of the text to display, and `reflex-dom` can set up some code to replace the text in the DOM node whenever there is a change.
+The `Behavior t Text` takes care of tracking the current state of the text to display, and `reflex-dom` can set up some code to replace the text in the DOM node whenever the `Event` signals that there is a change.
 
 The `reflex` and `reflex-dom` libraries aren't proscriptive about how you structure your application, but the common advice is to pass `Dynamic`s as far down as possible into the code that generates DOM.
 If you follow that advice then you can arrange things so that your code is doing the same changes to the DOM as the various virtual DOM libraries would, but skipping the need to diff and patch the various DOM trees.
+
+There is some reference to building an `Event` and `Behavior` simultaneously in the `reactive-banana` documentation, and it appears in one of the examples, and so I suspect that the idea behind the `Dynamic` is probably lurking in the background or in the folklore of other `Event`-and-`Behavior` FRP systems.
 
 ## Working with `Dynamic`s
 
@@ -68,8 +70,7 @@ holdDyn     :: (Reflex t, MonadHold t m)
             -> Event t a 
             -> m (Dynamic t a)
 ```
-
-There is a variant that lets us fold a function through a series of `Event` firings:
+and there is a variant that lets us fold a function through a series of `Event` firings:
 ```haskell
 foldDyn     :: (Reflex t, MonadHold t m, MonadFix m) 
             => (a -> b -> b) 
@@ -132,9 +133,11 @@ counter eAdd =
 
 <div id="basics-dynamic-counter-1"></div>
 
-Now we'll make some modification to our counter so that we can reset it.
+It is really common in FRP systems like these to deal with `Event`s which have functions for values, which is worth remembering when you're starting out and trying to solve problems like these for the first time.
 
-We start with what we had before:
+Let's modify our counter so that we can reset it.
+
+We'll start with what we had before:
 ```haskell
 counter :: (Reflex t, MonadHold t m, MonadFix m) 
         => Event t ()
@@ -146,7 +149,7 @@ counter eAdd        =
       
   
 ```
-and add an `Event` that will fire when the "Clear" button is pressed:
+and add an `Event` that will fire when "Clear" is pressed:
 ```haskell
 counter :: (Reflex t, MonadHold t m, MonadFix m) 
         => Event t ()
@@ -202,67 +205,7 @@ counter eAdd eClear =
 
 <div id="basics-dynamic-counter-2"></div>
 
-## Removing extraneous updates
-
-Imagine that we constructed a `Dynamic` that keeps track of a pair of `Colour`s:
-```haskell
-dynPair :: (Reflex t, MonadHold t m) 
-        => Event t Colour
-        -> Event t Colour
-        -> m (Dynamic  t (Colour, Colour))
-dynPair eInput1 eInput2 = do
-  dColour1 <- holdDyn Blue eInput1
-  dColour2 <- holdDyn Blue eInput2
-  pure $ (,) <$> dColour1 <*> dColour2
- 
-```
-and in some other part of our application we would like to break that pair apart into a pair of `Dynamic`s:
-```haskell
-splitPair :: Reflex t 
-          => Dynamic t (Colour, Colour)
-          -> (Dynamic t Colour, Dynamic t Colour)
-splitPair dPair =
-  let
-    p1 = fmap fst dPair
-    p2 = fmap snd dPair
-  in
-    (p1, p2)
-```
-
-This probably won't do what we want.
-
-Imagine that the first `Event` passed to `dynPair` never fires.
-Whenever the second `Event` passed to `dynPair` fires, the output `Dynamic` will update.
-If that output is passed through `splitPair` we'll have a pair of `Dynamic`s that are updating, although the first of them will have `Event` firing that don't correspond to a change in state.
-
-This is particularly problematic if we're trying to minimize the number of times we have to update a DOM tree.
-
-We can see that in action here if we click back and forth between "Red" and "Blue" for one set of inputs:
-<div id="basics-dynamic-split-1"></div>
-
-We can solve this by using `holdUniqDyn`:
-```haskell
-holdUniqDyn :: (Reflex t, MonadHold t m, MonadFix m, Eq a) 
-            => Dynamic t a 
-            -> m (Dynamic t a)
-```
-to create a new version of `splitPair`:
-```haskell
-splitPair :: (Reflex t, MonadHold t m, MonadFix m)
-          => Dynamic t (Colour, Colour)
-          -> m (Dynamic t Colour, Dynamic t Colour)
-splitPair dPair =
-  do
-    p1 <- holdUniqDyn (fmap fst dPair)
-    p2 <- holdUniqDyn (fmap snd dPair)
-    pure (p1, p2)
-```
-
-Which does what we want with respect to minimizing unnecessary updates:
-<div id="basics-dynamic-split-2"></div>
-
-This highlights an additional issue with our implementation of `dynPair` - if we clicked the same button over and over, we'd trigger updates even when the state wasn't changing.
-We could potentially address this by using `holdUniqDyn` within `dynPair` itself.
+So far, so good.
 
 ## Bringing `RecursiveDo` into the picture
 
@@ -443,8 +386,9 @@ counter :: (Reflex t, MonadFix m, MonadHold t m)
         -> Event t ()
         -> m (Dynamic t Int)
 counter dSettings eAdd eClear = mdo
-  dLimit <- holdUniqDyn (settingsLimit <$> dSettings)
-  dStep  <- holdUniqDyn (settingsStep <$> dSettings)
+  let 
+    dLimit = settingsLimit <$> dSettings
+    dStep  = settingsStep  <$> dSettings
 
   let check c s l = c + s <= l
       dLimitOK    = check <$> dCount <*> dStep <*> dLimit
@@ -465,6 +409,70 @@ counter (Settings <$> dLimit <*> dStep) eAdd eClear
 <div id="basics-recursiveDo-4"></div>
 
 We're still playing with basic examples, but hopefully these examples plus a bit of imagination are enough to help see the usefulness of building up, passing around and pulling apart first-class values for state management.
+
+## Removing extraneous updates
+
+There is a small trap here when we start decomposing our `Dynamic`s.
+
+Imagine that we constructed a `Dynamic` that keeps track of a pair of `Colour`s:
+```haskell
+dynPair :: (Reflex t, MonadHold t m) 
+        => Event t Colour
+        -> Event t Colour
+        -> m (Dynamic  t (Colour, Colour))
+dynPair eInput1 eInput2 = do
+  dColour1 <- holdDyn Blue eInput1
+  dColour2 <- holdDyn Blue eInput2
+  pure $ (,) <$> dColour1 <*> dColour2
+ 
+```
+and in some other part of our application we would like to break that pair apart into a pair of `Dynamic`s:
+```haskell
+splitPair :: Reflex t 
+          => Dynamic t (Colour, Colour)
+          -> (Dynamic t Colour, Dynamic t Colour)
+splitPair dPair =
+  let
+    p1 = fmap fst dPair
+    p2 = fmap snd dPair
+  in
+    (p1, p2)
+```
+
+This probably won't do what we want.
+
+Imagine that the first `Event` passed to `dynPair` never fires.
+Whenever the second `Event` passed to `dynPair` fires, the output `Dynamic` will update.
+If that output is passed through `splitPair` we'll have a pair of `Dynamic`s that are updating, although the first of them will have `Event` firing that don't correspond to a change in state.
+
+This is particularly problematic if we're trying to minimize the number of times we have to update a DOM tree.
+
+We can see that in action here if we click back and forth between "Red" and "Blue" for one set of inputs:
+<div id="basics-dynamic-split-1"></div>
+
+We can solve this by using `holdUniqDyn`:
+```haskell
+holdUniqDyn :: (Reflex t, MonadHold t m, MonadFix m, Eq a) 
+            => Dynamic t a 
+            -> m (Dynamic t a)
+```
+to create a new version of `splitPair`:
+```haskell
+splitPair :: (Reflex t, MonadHold t m, MonadFix m)
+          => Dynamic t (Colour, Colour)
+          -> m (Dynamic t Colour, Dynamic t Colour)
+splitPair dPair =
+  do
+    p1 <- holdUniqDyn (fmap fst dPair)
+    p2 <- holdUniqDyn (fmap snd dPair)
+    pure (p1, p2)
+```
+
+Which does what we want with respect to minimizing unnecessary updates:
+<div id="basics-dynamic-split-2"></div>
+
+This highlights an additional issue with our implementation of `dynPair` - if we clicked the same button over and over, we'd trigger updates even when the state wasn't changing.
+If this was important to us we could address this by using `holdUniqDyn` within `dynPair` itself.
 
 ## Next up
 
