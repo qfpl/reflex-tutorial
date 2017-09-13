@@ -27,14 +27,11 @@ and we can think of it as being like a function from time to values:
 t -> a
 ```
 
-We are working with a discrete-time FRP system, and so this function is going to be piecewise-linear, with any transitions happening when `Event`s occur.
+We are working with a discrete-time FRP system and so this function is going to be piecewise-linear, with any transitions happening when `Event`s occur.
+We are already using `Event`s as our logical clock, and so we will use `Event`s to build up our time-varying `Behavior`s and we will use `Event`s to sample `Behavior`s.
 
-Externally-triggered `Event`s give us our logical clock, and so we use `Event`s to build up our time-varying `Behavior`s.
-
-The functions that we've seen so far are pure functions.
-Given the same inputs they will respond with the same outputs, and they'll behave the same way in every frame.
-
-We'll start to see various typeclass constraints appearing when we're doing something that is dependent on which frame we are in, or something that is going to introduce a change to the processing of future frames.
+We're going to be using `Behavior`s for working with state in the system.
+They are a very different way of handling state than the `State` monad, but you get used to them pretty quickly once you start writing some code with them.
 
 ## Getting started with `Behavior`s
 
@@ -49,7 +46,7 @@ hold :: MonadHold t m
 ```
 
 This takes an initial value and an `Event` as input.
-The `Behavior` starts has the initial value as its value until the first firing of the `Event`.
+The `Behavior` uses the initial value until the first firing of the input `Event`.
 After that, the `Behavior` has the value the `Event` had at the last time it fired.
 
 The use of the `MonadHold` typeclass constraint indicates that we're doing something that will have an effect on the behavior of the FRP network in future frames.
@@ -77,8 +74,18 @@ tag :: Reflex t
 ```
 
 Here we are taking a `Behavior` and an `Event` that we're using just to get hold of reference points of time.
-We massage things so that the reference `Event` fires whenever we are interested in the value of the `Behavior`, and 
-the output `Event` will fire at the same time but with the value of the `Behavior` at the times the `Event` is firing.
+We massage things so that the reference `Event` fires whenever we are interested in the value of the `Behavior`.
+The output `Event` will fire at the same time but with the value of the `Behavior` at the times the `Event` is firing.
+
+If we are viewing `Behavior t a` as being equivalent to `t -> a` and `Event t b` as being equivalent to `[(t, b)]`, then we have something like
+```haskell
+pseudotag :: Reflex t 
+          => (t -> a)
+          -> [(t, b)]
+          -> [(t, a)]
+pseudotag b e = 
+  fmap (\(t, _) -> (t, b t)) e
+```
 
 As an aside: notice that the `tag` function doesn't have a `MonadHold` typeclass constraint.
 Since `Behavior`s have values at all points of time this will behave the same way - but with different values - in every frame where the input `Event` fires.
@@ -189,6 +196,9 @@ It can be pretty handy to create a `Behavior` somewhere in your application:
 and pass that value around through your application until it is used somewhere else in your application to filter `Event`s:
 <div id="basics-behaviors-gateIn"></div>
 
+This is our first demonstration of `Behavior`s as first-class values for managing state
+We can pass in and out of functions, we can store them in data types, we can do what we like with them.
+
 This is half of what I think makes `Behavior`s exciting as a method of state management.
 
 ## Interesting instances
@@ -232,8 +242,7 @@ sampleAlwaysBlue eInput eSample =
 
 <div id="basics-behaviors-sampleAlwaysBlue"></div>
 
-We can use `<*>` to combine `Behavior`s.
-So not only do we have first-class values for managing state, we can use the `Applicative` instance to compose them.
+We can use `<*>` to compose `Behavior`s, which is almost as exciting as the fact that they are first-class values.
 
 Our first brush with this idea is pretty simple:
 ```haskell
@@ -251,7 +260,12 @@ samplePair eInput1 eInput2 eSample = do
 
 <div id="basics-behaviors-samplePair"></div>
 
-but we can do some really good things with it.
+but we can do so much more with this idea. 
+
+We'll cover some of that as we go, but as a teaser it might be worth thinking about what you could do with something like:
+```haskell
+sequence :: Map k (Behavior t v) -> Behavior t (Map k v)
+```
 
 In addition to this, `reflex` wants to be your friend and so provides all kinds of other instances that you might find a use for:
 
@@ -278,8 +292,8 @@ The usual pattern is to chain several `Behavior`s together with `<*>` and to end
 
 If we have
 ```haskell
-f :: a -> b -> c -> d
-g :: a -> b -> d
+f  :: a -> b -> c -> d
+g  :: a -> b -> d
 b1 :: Behavior t a
 b2 :: Behavior t b
 e3 :: Event t c

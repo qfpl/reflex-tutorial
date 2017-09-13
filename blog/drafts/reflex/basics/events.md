@@ -95,6 +95,21 @@ eOutput = flipColour <$> eInput
 
 <div id="basics-events-flipper"></div>
 
+There is flipped version of `fmap` in `reflex`, called `ffor`:
+```haskell
+eOutput :: Event t Colour
+eOutput = ffor eInput flipColour
+```
+which some people use with the `LambdaCase` language extension:
+```haskell
+{-# LANGUAGE LambdaCase #-}
+eOutput :: Event t Colour
+eOutput = ffor eInput $ \case
+            Red -> Blue
+            Blue -> Red
+```
+which you might prefer.
+
 We'll see `<$` used often in FRP:
 ```haskell
 (<$) :: Functor f => a -> f b -> f a
@@ -197,7 +212,7 @@ There are some other tools in `reflex` for efficiently working with larger sum t
 
 We've already seen that we can create `Event`s that might be occurring in the same frame as other `Event`s
 
-That means when we want to work with multiple `Event`s, we need to be able to handle the case where several `Event`s are active in the same frame.
+That means when we want to work with multiple `Event`s, we need to be able to handle the case where several of the `Event`s are firing in the same frame.
 
 We're going to explore that by working on something that you might have come across this before as part of the game (or programming problem) known as [FizzBuzz](https://en.wikipedia.org/wiki/Fizz_buzz).
 If you haven't come across it before then it is worth taking a look before we continue.
@@ -257,21 +272,22 @@ The `eFizz` `Event` will fire with the value "Fizz" and the `eBuzz` `Event` will
 
 As a result `eLeft` will fire with the value "Fizz", since `eFizz` was closer to the left of the list that was passed to `leftmost` than `eBuzz`.
 
-It doesn't really help us for this particular problem, but it's worth pointing out that we've already been using `leftmost` in some of our earlier examples.
-When we've seen `eInput` before, it has been built from `Event`s that fire when the "Red" and "Blue" buttons are pressed using leftmost:
+It isn't what we're looking for right now, but it's worth pointing out that we've already been using `leftmost` in some of our earlier examples.
+When we've seen `eInput` before it has been built from `Event`s that fire when the "Red" and "Blue" buttons are pressed using leftmost:
 ```haskell
 eInput = leftmost [Red <$ eRed, Blue <$ eBlue]
 ```
 
-It is still not what we want for handling the collisions while we're trying to solve the FizzBuzz problem.
-
-We need something a bit more flexible, like the `mergeWith` function:
+For the "FizzBuzz" collisions we need something a bit more flexible.
+The `mergeWith` function:
 ```haskell
 mergeWith :: (a -> a -> a) -> [Event t a] -> Event t a
 ```
-which does a more efficient version of `foldl1` over the list of `Event`s.
+is what we need.
 
-This lets us specify a function to use to combine the values from `Event`s which are firing simultaneously.
+It lets us specify a function to use to combine the values from `Event`s which are firing simultaneously.
+The combination is effectively a `foldl1` over the `Event`s which are firing.
+
 We will use `(<>)` to concatentate the `Text` in the `Event`s:
 ```haskell
 eMerge :: Event t Text
@@ -308,7 +324,9 @@ eFizzBuzz = leftmost [eMerge , eCountText]
 
 <div id="basics-events-fizzbuzz"></div>
 
-If we want to remove some simultaneous `Event`s, we can do so with `difference`:
+and that solves the "FizzBuzz" problem.
+
+If we want to remove some simultaneously occurring `Event`s, we can do so with `difference`:
 ```haskell
 difference :: Event t a -> Event t b -> Event t a
 ```
@@ -332,7 +350,7 @@ eFizzBuzz = leftmost [eDiff, eMerge]
 
 ## The advantages of semantics-driven abstractions
 
-Why did `reflex` bother doing all of this complicated stuff with simultaneous `Event`s?
+Why did `reflex` bother specifying how to deal with simultaneous `Event`s?
 They did because it followed from the semantics.
 
 Not everyone does things this way.
@@ -365,7 +383,7 @@ Let's see how that goes, by clicking this two or three times:
 
 Whoops!  We're seeing intermediate state - something referred to as "glitching" - where we didn't expect it.
 
-The equivalent `reflex` code - using some things we haven't seen yet - looks like this:
+The equivalent `reflex` code looks like this:
 ```haskell
   button <- getElementById "reflex-button"
   eClick <- domEvent Click button
@@ -378,6 +396,7 @@ The equivalent `reflex` code - using some things we haven't seen yet - looks lik
 
   alertEvent show eSum
 ```
+although it is using some things we haven't introduced yet.
 
 It behaves as we would expect:
 <div id="basics-events-clickMe"></div>
