@@ -105,7 +105,7 @@ There are two ways libraries tend to work with those kind of inputs.
 You can have local state, like `react` does.
 This mean you have a mutable tree with mutable state at the branches and at the leaves, but the tree has a different type and granularity to what you had with the DOM.
 
-The alternative is to pull out the state you are interested in from all through the tree, and to put it back in to the same places when you are rendering the DOM.
+The alternative is to extract all of the state that you are interested in from the DOM tree, manage and change it, and then use it to restore the state during the next update to the DOM tree.
 This gives you another mutable tree with mutable state at the branches and at the leaves which you layer over your DOM in your event loop.
 
 This might be a big global object, or you might be able to scope it a little more tightly to where you are using the state.
