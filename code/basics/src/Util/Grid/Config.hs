@@ -24,5 +24,5 @@ makeLenses ''GridConfig
 
 defaultGridConfig :: GridConfig
 defaultGridConfig =
-  GridConfig 5 15 40 150 30
+  GridConfig 5 12 40 150 30
 
