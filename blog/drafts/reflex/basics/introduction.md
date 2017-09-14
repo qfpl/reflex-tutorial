@@ -48,7 +48,6 @@ The implementations that I prefer usually:
 - have come up with APIs to greatly reduce the risk of introducing space or time leaks
 
 These systems give you first-class values that model mutable state, with a built-in and souped-up version of observers.
-The clear denotational semantics mean that abstractions provided by these systems all compose well.
 
 The implementations that I have used provide discrete-time FRP rather than continuous-time FRP.
 The difference is similar to the difference between a digital and analog circuit.
@@ -72,13 +71,17 @@ Documentation is probably the biggest gap with these systems at the moment, alth
 The `reflex` library is an implementation of an FRP library that satisfies all of the preferences that I listed above.
 It is also highly performant and has had some great work done around its usability.
 
-You can use `reflex` to write code via either GHC and GHCJS, although there has been a focus on using it to create web front-ends via GHCJS the `reflex-dom` companion library.
+You can use `reflex` to write code via either GHC and GHCJS, although there has been a focus on using it to create web front-ends via GHCJS and the `reflex-dom` companion library.
 
 There is support for writing new back-ends as well, and so you can use it in other places where having a better model of mutable state might be handy, such as:
 
 - command line applications
 - servers
 - SDL applications
+
+It is worth noting that the `reflex` implementation has been written so that it could be extended to support continuous-time FRP.
+My understanding is that there haven't been any pressing use cases presented to motivate that work.
+
 
 We'll take a look at that support later on, but for now we'll be focusing on using `reflex` to create web front-ends.
 
@@ -149,6 +152,19 @@ and if we want to compile it with GHC:
 ```
 
 We'll look at using Nix to do much fancier things later on in this series.
+
+## Acknowledgements
+
+This series had a dramatic increase in quality after I shared it around with some folks and asked for some feedback.
+
+George Wilson and Sean Chalmers from QFPL and Jack Kelly from Data61 helped a lot with the proof reading.
+
+I asked the #reflex-frp IRC channel on Freenode if anyone would like to provide feedback, and Isto Aho answered the call in a big way.
+He provided help of high quantity and quality; with proof reading, with suggestions for improving the flow of the writing, with suggestions for the higher level narrative.
+
+Ryan Trinkle, Cale Gibbard, Doug Beardsley and many others have also helped me to understand much more of `reflex` from questions answered and discussions had in that room.
+
+The lesson is: don't hesitate to ask for help on #reflex-frp.
 
 ## Next up
 

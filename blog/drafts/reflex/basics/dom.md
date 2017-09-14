@@ -420,7 +420,7 @@ data TextInput t =
     }
 ```
 
-The initial value is part of the configuration data type now, so we can add these the page with a slightly simpler function:
+The initial value is part of the configuration data type now, so we can add these to the page with a slightly simpler function:
 ```haskell
 textInput :: MonadWidget t m
           => TextInputConfig t 

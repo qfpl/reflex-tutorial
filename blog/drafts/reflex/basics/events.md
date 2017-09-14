@@ -47,7 +47,7 @@ In both cases we have a single `Event`, but it could fire many times.
 This is likely to be pretty different to what you are used to if you are use to an event-handling system where you need to poll for new events, or where you have to set up or otherwise deal with an event loop.
 
 These points in time aren't measured in sections, but in actions.
-If an externally triggered `Event` happens, a new logical point in time is created for that `Event`, and no other externally triggered `Event`s will be firing at the point in time.
+If an externally triggered `Event` happens, a new logical point in time is created for that `Event`, and no other externally triggered `Event`s will be firing at that point in time.
 
 These are the observable points of time of the system.
 In `reflex` these are often referred to as _frames_.
@@ -100,7 +100,7 @@ There is flipped version of `fmap` in `reflex`, called `ffor`:
 eOutput :: Event t Colour
 eOutput = ffor eInput flipColour
 ```
-which some people use with the `LambdaCase` language extension:
+which is often used with the `LambdaCase` language extension:
 ```haskell
 {-# LANGUAGE LambdaCase #-}
 eOutput :: Event t Colour
@@ -144,7 +144,7 @@ isRed :: Colour -> Bool
 isRed Red  = True
 isRed Blue = False
 ```
-and test is out:
+and test it out:
 ```haskell
 eOutput :: Event t Colour
 eOutput = ffilter isRed eInput
@@ -221,7 +221,7 @@ Assume we have access to
 ```haskell
 eCount :: Event t Int
 ```
-which is increasing over time, and we have these function lying around:
+which is increasing over time, and we have these functions lying around:
 ```haskell
 div3 :: Int -> Bool
 div3 x = 
@@ -330,8 +330,9 @@ If we want to remove some simultaneously occurring `Event`s, we can do so with `
 ```haskell
 difference :: Event t a -> Event t b -> Event t a
 ```
+The output is the same as the first input `Event`, except firing of the `Event` are suppressed in all of the frames in which the second `Event` fires.
 
-Although we need a more contrived solution to the "FizzBuzz" problem in order to demonstrate it:
+We need a more contrived solution to the "FizzBuzz" problem in order to demonstrate it:
 ```haskell
 eMerge :: Event t Text
 eMerge = eFizz <> eBuzz
@@ -355,7 +356,7 @@ They did because it followed from the semantics.
 
 Not everyone does things this way.
 
-The Manning book on FRP uses something like this snippet of RxJS to demonstrate the problem.
+The [Manning book on FRP](https://www.manning.com/books/functional-reactive-programming) uses something like this snippet of RxJS to demonstrate the problem.
 
 ```javascript
 var button = document.getElementById("rxjs-button");
