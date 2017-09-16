@@ -1,6 +1,6 @@
 ---
 title: Dynamics
-date: 2017-09-04
+date: 2017-09-21
 authors: dlaing
 project: reflex
 extra-css: /css/reflex/basics/grid-light.css
@@ -78,13 +78,40 @@ foldDyn     :: (Reflex t, MonadHold t m, MonadFix m)
             -> Event t a 
             -> m (Dynamic t b)
 ```
-which we'll often be using with the function application operator - `($)`:
+which we'll often be using with the function application operator:
+```haskell
+($) :: (c -> d) -> c -> d
+```
+
+In order to unify:
+```haskell
+($) :: (c -> d) -> c -> d
+```
+and:
+```haskell
+       a        -> b  -> b
+```
+we need `c ~ d`.
+
+We then have:
+```haskell
+($) :: (c -> c) -> c -> c
+```
+being unified with:
+```haskell
+       a        -> b  -> b
+```
+and so `a ~ (c -> c)` and `b ~ c`.
+
+After the dust settles, we have:
 ```haskell
 foldDyn ($) :: (Reflex t, MonadHold t m, MonadFix m) 
             => c 
             -> Event t (c -> c)
             -> m (Dynamic t c)
 ```
+
+The `MonadFix` constraint is being used because `foldDyn` uses value recursion internally.
 
 ## An example of using `Dynamic`s
 
@@ -133,6 +160,7 @@ counter eAdd =
 <div id="basics-dynamic-counter-1"></div>
 
 It is really common in FRP systems like these to deal with `Event`s which have functions for values, which is worth remembering when you're starting out and trying to solve problems like these for the first time.
+It can seem really strange at first but you will get comfortable with it if you practice for a while and try to remember that functions are values too.
 
 Let's modify our counter so that we can reset it.
 
@@ -349,6 +377,8 @@ counter dLimit eAdd eClear = mdo
 If you play around with this:
 <div id="basics-recursiveDo-3"></div>
 you'll see that it works, and that it is linked to the `limit` widget above.
+
+If we hadn't needed the `MonadFix` constraint in order to use `foldDyn`, we would need it now in order to use `mdo`.
 
 We could take this further, and create a data type to manage the settings:
 ```haskell

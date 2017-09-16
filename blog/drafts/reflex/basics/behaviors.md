@@ -1,6 +1,6 @@
 ---
 title: Behaviors
-date: 2017-09-03
+date: 2017-09-20
 authors: dlaing
 project: reflex
 extra-css: /css/reflex/basics/grid-light.css
@@ -159,7 +159,8 @@ If we have a click around on this, we'll see how different it is to what we had 
 <div id="basics-behaviors-sample"></div>
 
 At the point we called `sample`, `bColour` could only have the value `Blue`, and so that's what we get as the output.
-This becomes handy later on, but for now it's enough to know that it exist and that it may not be the thing that you want.
+Later on we'll come across components with similarities to `hold`, that work with an initial pure value and an `Event` for tracking updates.
+If we want these things to synchronize with a `Behavior`, then `sample` is one way to grab an appropriate initial value.
 
 There a few other functions for reading from `Behavior`s that are worth knowing about:
 ```haskell
@@ -262,10 +263,12 @@ samplePair eInput1 eInput2 eSample = do
 
 but we can do so much more with this idea. 
 
-We'll cover some of that as we go, but as a teaser it might be worth thinking about what you could do with something like:
+We'll cover some of that as we go, but as a teaser it might be worth thinking about the things you could do with something like:
 ```haskell
 sequence :: Map k (Behavior t v) -> Behavior t (Map k v)
 ```
+
+If you had a `Behavior t Bool` that was tracking the state of every checkbox on a settings page, you could use `sequence` to gather them all into a single `Behavior`.
 
 In addition to this, `reflex` wants to be your friend and so provides all kinds of other instances that you might find a use for:
 

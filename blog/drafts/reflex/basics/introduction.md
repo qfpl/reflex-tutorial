@@ -1,6 +1,6 @@
 ---
 title: An introduction to reflex
-date: 2017-09-01
+date: 2017-09-18
 authors: dlaing
 project: reflex
 ---
@@ -82,8 +82,8 @@ There is support for writing new back-ends as well, and so you can use it in oth
 It is worth noting that the `reflex` implementation has been written so that it could be extended to support continuous-time FRP.
 My understanding is that there haven't been any pressing use cases presented to motivate that work.
 
-
-We'll take a look at that support later on, but for now we'll be focusing on using `reflex` to create web front-ends.
+We'll take a look at that support later on, but for now we'll be focusing on using `reflex` to create web front-ends, where it is used to create and manipulate the DOM.
+The approach that `reflex` and `reflex-dom` uses here is different enough from the currently popular approaches that it's worth saying a little bit about those before we continue.
 
 ### Aside: What is the virtual DOM?
 

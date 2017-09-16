@@ -1,6 +1,6 @@
 ---
 title: Working with the DOM
-date: 2017-09-05
+date: 2017-09-22
 authors: dlaing
 project: reflex
 extra-css: /css/reflex/basics/grid-light.css, /css/reflex/basics/todo.css
@@ -80,6 +80,8 @@ todoItem dText =
 
 This is following some common `reflex` advice about components: start with `Dynamic`s as inputs and `Event`s as outputs.
 We'll come back to this later, and will see when to break those rules, but it's a very useful place to start.
+
+It also introduces `MonadWidget`, which is a constraint synonym for a long list of typeclasses that are often used when created components that will be tanslated to parts of a DOM tree.
 
 If we want to see something happen when that `Event` is fired, we can use it to modify the text we are displaying.
 
@@ -235,6 +237,8 @@ todoItem dText = elClass "div" "todo-item" $ mdo
 
 <div class="demo" id="examples-dom-todoitem-5"></div>
 
+We can use this to add support for any of the usual DOM events to our widgets.
+
 ## Checkboxes
 
 There are more complicated inputs than buttons.
@@ -276,15 +280,6 @@ and to accessing fields of the resulting data type:
 ```haskell
   eComplete = cb ^. checkbox_change
 ```
-
-There is some subtlety in the relationship between `checkboxConfig_setValue`, `checkbox_value` and `checkbox_change`.
-
-- `checkbox_change` fires when the user has clicked on the checkbox and caused its state to change
-- `checkboxConfig_setValue` is for programmatic changes to the state of the checkbox
-- `checkbox_value` reflects the current state of the checkbox, regardless of which of the above have caused the change
-
-It's worth remembering that, otherwise you might accidentally use `updated _checkbox_value` in place of `_checkbox_change` and cause a causality loop.
-(Causality loops are at least as bad as you think they are.)
 
 The two data types are linked together with a function that lays the checkbox out in the DOM tree - in this case it also has an argument for the initial state of the checkbox:
 ```haskell
@@ -383,8 +378,6 @@ markAllComplete dAllComplete = do
 ```
 
 <div class="demo" id="examples-dom-mark-all-complete"></div>
-
-This relies on the fact that `checkboxConfig_setValue` does not cause `checkbox_change` to fire - otherwise we'd end up with the potential for a causality loop.
 
 ## Text inputs
 
