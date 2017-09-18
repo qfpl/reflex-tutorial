@@ -81,7 +81,7 @@ todoItem dText =
 This is following some common `reflex` advice about components: start with `Dynamic`s as inputs and `Event`s as outputs.
 We'll come back to this later, and will see when to break those rules, but it's a very useful place to start.
 
-It also introduces `MonadWidget`, which is a constraint synonym for a long list of typeclasses that are often used when created components that will be tanslated to parts of a DOM tree.
+It also introduces `MonadWidget`, which is a constraint synonym for a long list of typeclasses that are often used when created components that will be translated to parts of a DOM tree.
 
 If we want to see something happen when that `Event` is fired, we can use it to modify the text we are displaying.
 

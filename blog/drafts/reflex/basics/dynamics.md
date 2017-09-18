@@ -454,7 +454,7 @@ This probably won't do what we want.
 
 Imagine that the first `Event` passed to `dynPair` never fires.
 Whenever the second `Event` passed to `dynPair` fires, the output `Dynamic` will update.
-If that output is passed through `splitPair` we'll have a pair of `Dynamic`s that are updating, although the first of them will have `Event` firing that don't correspond to a change in state.
+If that output is passed through `splitPair` we'll have a pair of `Dynamic`s that are updating, although the first of these will have an `Event` firing that doesn't correspond to a change in state.
 
 This is particularly problematic if we're trying to minimize the number of times we have to update a DOM tree.
 
