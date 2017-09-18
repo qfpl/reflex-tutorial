@@ -203,7 +203,7 @@ class HasDomEvent t target eventName where
   type DomEventType target eventName :: *
   domEvent :: EventName eventName -> target -> Event t (DomEventType target eventName)
 ```
-to create new `reflex ``Event`s from various DOM events.
+to create new `reflex` `Event`s from various DOM events.
 It looks hideous, but it is fairly easy to use.
 
 If we wanted a clickable link we could do something like:
