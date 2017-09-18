@@ -83,6 +83,7 @@ There could be multiple sources of these `Event`s and the `Behavior` is being us
 Since `Behavior`s have values at all points in time, that means there is always an `Event` which is selected.
 The `switch` function is giving us access to the `Event` that is selected by the `Behavior`.
 
+<div id="examples-switch-count"></div>
 
 ## Dynamic modifications to the DOM
 

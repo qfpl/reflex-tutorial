@@ -22,6 +22,7 @@ library
                      , Posts.Behavior 
                      , Posts.Dynamic
                      , Posts.RecursiveDo
+                     , Posts.Switch
                      , Posts.Dom
                      , Colour
                      , Util.SVG
