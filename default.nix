@@ -11,6 +11,7 @@ in
     installPhase = ''
       mkdir -p $out
       ln -sv ${blog}/drafts $out/drafts
+      ln -sv ${blog}/posts $out/posts
 
       mkdir -p $out/js/
       ln -sv ${code}/js/reflex $out/js/reflex

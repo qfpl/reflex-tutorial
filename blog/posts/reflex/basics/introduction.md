@@ -170,4 +170,5 @@ The lesson is: don't hesitate to ask for help on #reflex-frp.
 
 As I've mentioned, there are two main types at the heart of the more powerful FRP libraries: `Event`s and `Behavior`s.
 
-In the [next post](../events/) will start by looking at `Event`s.
+In the next post we will start by looking at `Event`s.
+<!--In the [next post](../events/) we will start by looking at `Event`s.-->
