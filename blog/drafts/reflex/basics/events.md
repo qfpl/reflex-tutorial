@@ -407,6 +407,13 @@ It behaves as we would expect:
 There may be ways to patch up the RxJS code, and maybe they have already happened.
 The RxJS library isn't designed starting with semantics though, and so the risk is that there are more glitches waiting to be found, and that patching could go on for a long time.
 
+## Playing along at home
+
+If you want to test out your understanding of `Event`s, there is an `Event`-themed exercise [here](../exercises/exercise-1/).
+
+The goal is to introduce the problem that we'll be iterating on throughout the exercises in this series - building up a HTML vending machine.
+It doesn't use everything in this post, but it should be a good bite-sized piece to get you warmed up for the exercises that will follow.
+
 ## Next up
 
 `Event`s are only half of the FRP picture.
