@@ -132,9 +132,13 @@ There's a bit of a risk of something happening if you're working with some of th
 The easiest way to install the `reflex` library is via the `reflex-platform`:
 ```
 > git clone https://github.com/reflex-frp/reflex-platform
+> cd reflex-platform
+> ./try-reflex
 ```
+although you should make sure to read the OS compatibility notes in the `reflex-platform` README if they apply to you.
 
-This uses Nix behind the scenes to set things up, so we don't have to jump through any hoops to set up GHCJS and things like that.
+The `reflex-platform` uses Nix behind the scenes to set things up, so we don't have to jump through any hoops to set up GHCJS and things like that.
+The `./try-reflex` script should install Nix and setup the binary caches for you, which will save you lots of time (although it may not feel like it the first time this runs).
 
 For the most part we don't need to know any Nix to make use of this, because `reflex-platform` comes with some handy shell scripts.
 
