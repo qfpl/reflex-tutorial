@@ -3,6 +3,7 @@ let
 
   blog = import ./blog {};
   code = import ./code/basics {};
+  exercises = import ./code/exercises {};
 in
   pkgs.stdenv.mkDerivation rec {
     name = "reflex-tutorial";
@@ -13,11 +14,13 @@ in
       ln -sv ${blog}/drafts $out/drafts
       ln -sv ${blog}/posts $out/posts
 
-      mkdir -p $out/js/
-      ln -sv ${code}/js/reflex $out/js/reflex
+      mkdir -p $out/js/reflex
+      ln -sv ${code}/js/reflex/basics $out/js/reflex/basics
+      ln -sv ${exercises}/js/reflex/basics-exercises $out/js/reflex/basics-exercises
 
-      mkdir -p $out/css
-      ln -sv ${code}/css/reflex $out/css/reflex
+      mkdir -p $out/css/reflex
+      ln -sv ${code}/css/reflex/basics $out/css/reflex/basics
+      ln -sv ${exercises}/css/reflex/basics-exercises $out/css/reflex/basics-exercises
     '';
 
     phases = ["installPhase"];
