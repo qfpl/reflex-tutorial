@@ -30,7 +30,7 @@ host ::
   MonadWidget t m =>
   Ex01Fn t ->
   m ()
-host fn = divClass "container" $ mdo
+host fn = B.panel $ divClass "container" $ mdo
 
   input <- do
       eCarrot <- productWidget carrot
@@ -45,7 +45,7 @@ host fn = divClass "container" $ mdo
                 , const 0  <$ eRefund
                 ]
       divClass "col-md-3" $
-        text "Supplied:"
+        text "Money inserted:"
       divClass "col-md-1" $
         dynText $ ("$" <>) . Text.pack . show <$> dMoney
       eAdd <- divClass "col-md-1" $

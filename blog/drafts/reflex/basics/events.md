@@ -1,6 +1,6 @@
 ---
 title: Events
-date: 2017-09-19
+date: 2017-09-20
 authors: dlaing
 project: reflex
 extra-css: /css/reflex/basics/grid-light.css
@@ -65,6 +65,8 @@ eOutput = eInput
 ```
 
 We often refer to the combination of `Event`s and `Behavior`s as an FRP network, and this is about as simple as an FRP network gets.
+
+(The simplest FRP network would probably just be `never`, which is the `Event` that never fires, but we don't need that just yet)
 
 In this case, the only externally triggered `Event`s are the button presses:
 <div id="basics-events-frame"></div>

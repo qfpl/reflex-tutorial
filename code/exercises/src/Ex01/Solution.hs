@@ -45,7 +45,7 @@ ex01 money (Inputs eCarrot eCelery eCucumber eRefund) =
 attachEx01 ::
   JSM ()
 attachEx01 =
-  attachId_ "ex01" $ 
+  attachId_ "ex01" $
     host ex01
 
 #ifndef ghcjs_HOST_OS

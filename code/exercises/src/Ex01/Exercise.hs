@@ -32,6 +32,6 @@ ex01 money (Inputs eCarrot eCelery eCucumber eRefund) =
 go ::
   IO ()
 go =
-  run $ 
+  run $
     host ex01
 #endif

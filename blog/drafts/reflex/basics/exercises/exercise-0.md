@@ -1,5 +1,5 @@
 ---
-title: A first exercise
+title: "Reflex exercises: Getting started"
 date: 2017-09-19
 authors: dlaing
 project: reflex
