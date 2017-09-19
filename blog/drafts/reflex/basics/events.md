@@ -53,7 +53,7 @@ These are the observable points of time of the system.
 In `reflex` these are often referred to as _frames_.
 The documentation around the `sodium` library sometimes refers to them as _transactions_.
 
-If you're familiar with "event sourcing", this linearization of event occurrences might seem familiar. 
+If you're familiar with ["event sourcing"](https://martinfowler.com/eaaDev/EventSourcing.html), this linearization of event occurrences might seem familiar. 
 
 We can have multiple `Event`s happening in the same frame though, although only one of them will be happening due to something external to the system.
 
