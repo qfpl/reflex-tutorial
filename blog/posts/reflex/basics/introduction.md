@@ -157,6 +157,8 @@ and if we want to compile it with GHC:
 
 We'll look at using Nix to do much fancier things later on in this series.
 
+If you want to test out this setup and some associated tooling, we have an [exercise](../exercises/exercise-0/) for just that purpose.
+
 ## Acknowledgements
 
 This series had a dramatic increase in quality after I shared it around with some folks and asked for some feedback.
