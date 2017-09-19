@@ -65,6 +65,8 @@ This is still fairly new technology, I'm new to using it, and I'm not sure if wh
 For any of the above reasons, you might have to restart the script or manually reload the tab from time to time.
 I'll try to make this more reliable over time.
 
+There might be some worrying looking output in the terminal that is running the script, along the lines of `threadWait: invalid argument (Bad file descriptor)` or `ConnectionClosed`, but those messages usually won't cause trouble.
+
 ## The goal
 
 The goal of this exercise was to get you comfortable with the workflow, but some people might need more than that to feel a sense of accomplishment.
