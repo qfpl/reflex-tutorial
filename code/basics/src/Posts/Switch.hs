@@ -2,6 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE RankNTypes #-}
 module Posts.Switch (
     switchPostExamples
   ) where
@@ -29,8 +30,10 @@ switchPostExamples ::
   MonadJSM m =>
   m ()
 switchPostExamples = do
-  attachId_ "examples-switch-count" $
-    switchCount
+  attachId_ "examples-switch-count-1" $
+    switchCount leftInput1 rightInput1
+  attachId_ "examples-switch-count-2" $
+    switchCount leftInput2 rightInput2
 
   attachId_ "examples-switch-colour-1" $
     switchColourExample switchColour1
@@ -64,36 +67,86 @@ switchPostExamples = do
   attachId_ "examples-switch-workflow-2"
     workflowExample2
 
-countNetwork ::
+type SwitchCountInput t m =
   ( Reflex t
   , MonadHold t m
   ) =>
   Event t () ->
   Event t () ->
   Event t () ->
+  m (Event t ())
+
+leftInput1 :: SwitchCountInput t m
+leftInput1 eAdd eSwitchL eSwitchR = do
+  beAddL <- hold eAdd . leftmost $ [
+              eAdd  <$ eSwitchL
+            , never <$ eSwitchR
+            ]
+  pure (switch beAddL)
+
+leftInput2 :: SwitchCountInput t m
+leftInput2 eAdd eSwitchL eSwitchR =
+  switchPromptly eAdd . leftmost $ [
+    eAdd  <$ eSwitchL
+  , never <$ eSwitchR
+  ]
+
+rightInput1 :: SwitchCountInput t m
+rightInput1 eAdd eSwitchL eSwitchR = do
+  beAddR <- hold never . leftmost $ [
+              eAdd  <$ eSwitchR
+            , never <$ eSwitchL
+            ]
+  pure (switch beAddR)
+
+rightInput2 :: SwitchCountInput t m
+rightInput2 eAdd eSwitchL eSwitchR =
+  switchPromptly never . leftmost $ [
+    eAdd  <$ eSwitchR
+  , never <$ eSwitchL
+  ]
+
+countBlock ::
+  MonadWidget t m =>
+  Dynamic t Text ->
+  Event t () ->
+  m (Event t ())
+countBlock dLabel eAdd =
+  divClass "col-md-6" $ do
+    eSwitch <- button "Select"
+
+    divClass "center-block" $
+      dynText dLabel
+
+    dCount <- foldDyn ($) 0 $
+              (+ 1) <$ eAdd
+
+    divClass "center-block" $
+      display dCount
+
+    pure eSwitch
+
+mkCountNetwork ::
+  ( Reflex t
+  , MonadHold t m
+  ) =>
+  SwitchCountInput t m ->
+  SwitchCountInput t m ->
+  Event t () ->
+  Event t () ->
+  Event t () ->
   m (Event t (), Event t ())
-countNetwork eAdd eSwitch1 eSwitch2 = do
-  bAdd1 <- hold eAdd . leftmost $ [
-             eAdd  <$ eSwitch1
-           , never <$ eSwitch2
-           ]
-  let
-    eAdd1 = switch bAdd1
-
-  bAdd2 <- hold never . leftmost $ [
-             eAdd  <$ eSwitch2
-           , never <$ eSwitch1
-           ]
-
-  let
-    eAdd2 = switch bAdd2
-
-  pure (eAdd1, eAdd2)
+mkCountNetwork mkLeft mkRight eAdd eSwitchL eSwitchR = do
+  eAddL <- mkLeft  eAdd eSwitchL eSwitchR
+  eAddR <- mkRight eAdd eSwitchL eSwitchR
+  pure (eAddL, eAddR)
 
 switchCount ::
   MonadWidget t m =>
+  SwitchCountInput t m ->
+  SwitchCountInput t m ->
   m ()
-switchCount = B.panel . reset . divClass "container" $ mdo
+switchCount mkLeft mkRight = B.panel . reset . divClass "container" $ mdo
   let
     selected =
       "Selected"
@@ -101,60 +154,23 @@ switchCount = B.panel . reset . divClass "container" $ mdo
       "Not selected"
 
   divClass "row" $ mdo
-    eSwitch1 <- divClass "col-md-6" $ do
-      eSwitch1 <- button "Select"
+    (eAddL, eAddR) <- mkCountNetwork mkLeft mkRight eAdd eSwitchL eSwitchR
 
-      dLabel1 <- holdDyn selected .
-                 leftmost $ [
-                     selected    <$ eSwitch1
-                   , notSelected <$ eSwitch2
-                   ]
-
-      divClass "center-block" $
-        dynText dLabel1
-
-      bAdd1 <- hold eAdd .
+    dLabelL <- holdDyn selected .
                leftmost $ [
-                   eAdd  <$ eSwitch1
-                 , never <$ eSwitch2
-                 ]
-      let eAdd1 = switch bAdd1
+                  selected    <$ eSwitchL
+                , notSelected <$ eSwitchR
+                ]
 
-      dCount1 <- foldDyn ($) 0 $
-                 (+ 1) <$ eAdd1
-
-      divClass "center-block" $
-        display dCount1
-
-      pure eSwitch1
-
-    eSwitch2 <- divClass "col-md-6" $ do
-      eSwitch2 <- button "Select"
-
-      dLabel2 <- holdDyn notSelected .
-                 leftmost $ [
-                     selected    <$ eSwitch2
-                   , notSelected <$ eSwitch1
-                   ]
-
-      divClass "center-block" $
-        dynText dLabel2
-
-      bAdd2 <- hold never .
+    dLabelR <- holdDyn notSelected .
                leftmost $ [
-                   eAdd  <$ eSwitch2
-                 , never <$ eSwitch1
-                 ]
+                  selected    <$ eSwitchR
+                , notSelected <$ eSwitchL
+                ]
 
-      let eAdd2 = switch bAdd2
+    eSwitchL <- countBlock dLabelL eAddL
+    eSwitchR <- countBlock dLabelR eAddR
 
-      dCount2 <- foldDyn ($) 0 $
-                 (+ 1) <$ eAdd2
-
-      divClass "center-block" $
-        display dCount2
-
-      pure eSwitch2
     pure ()
 
   eAdd <- divClass "row" . divClass "col-md-offset-3 col-md-6" $ do

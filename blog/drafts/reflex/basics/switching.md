@@ -83,7 +83,63 @@ There could be multiple sources of these `Event`s and the `Behavior` is being us
 Since `Behavior`s have values at all points in time, that means there is always an `Event` which is selected.
 The `switch` function is giving us access to the `Event` that is selected by the `Behavior`.
 
-<div id="examples-switch-count"></div>
+<div id="examples-switch-count-1"></div>
+
+```haskell
+leftInput :: (Reflex t, MonadHold t m) 
+          => Event t () 
+          -> Event t () 
+          -> Event t () 
+          -> m (Event t ())
+leftInput eAdd eSwitchL eSwitchR = do
+  beAddL <- hold eAdd . leftmost $ [
+              eAdd  <$ eSwitchL
+            , never <$ eSwitchR
+            ]
+  pure (switch beAddL)
+```
+
+```haskell
+rightInput :: (Reflex t, MonadHold t m) 
+          => Event t () 
+          -> Event t () 
+          -> Event t () 
+          -> m (Event t ())
+rightInput eAdd eSwitchL eSwitchR = do
+  beAddR <- hold never . leftmost $ [
+              eAdd  <$ eSwitchR
+            , never <$ eSwitchL
+            ]
+  pure (switch beAddR)
+```
+
+```haskell
+leftInput :: (Reflex t, MonadHold t m) 
+          => Event t () 
+          -> Event t () 
+          -> Event t () 
+          -> m (Event t ())
+leftInput eAdd eSwitchL eSwitchR =
+  switchPromptly eAdd . leftmost $ [
+    eAdd  <$ eSwitchL
+  , never <$ eSwitchR
+  ]
+```
+
+```haskell
+rightInput :: (Reflex t, MonadHold t m) 
+          => Event t () 
+          -> Event t () 
+          -> Event t () 
+          -> m (Event t ())
+rightInput eAdd eSwitchL eSwitchR =
+  switchPrompty never . leftmost $ [
+    eAdd  <$ eSwitchR
+  , never <$ eSwitchL
+  ]
+```
+
+<div id="examples-switch-count-2"></div>
 
 ## Dynamic modifications to the DOM
 
