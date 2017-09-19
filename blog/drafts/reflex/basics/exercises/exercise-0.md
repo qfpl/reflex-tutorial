@@ -7,7 +7,7 @@ extra-css: /css/reflex/basics-exercises/solutions/ex00.css
 extra-js: /js/reflex/basics-exercises/solutions.min.js
 ---
 
-## Getting set up with 
+## Getting set up
 
 Checkout a copy of the [reflex platform](https://github.com/reflex-frp/reflex-platform), read any OS compatibility notes from the README that apply to you, and then run the `./try-reflex` script to install Nix for you.
 This should also setup the binary caches for you, which will save you lots of time (although it may not feel like it the first time this runs).
