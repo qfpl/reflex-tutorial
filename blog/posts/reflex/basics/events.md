@@ -418,4 +418,5 @@ It doesn't use everything in this post, but it should be a good bite-sized piece
 
 `Event`s are only half of the FRP picture.
 
-In the [next post](../behaviors/) we'll look at their partner - `Behavior`s.
+In the next post we'll look at their partner - `Behavior`s.
+<!--In the [next post](../behaviors/) we'll look at their partner - `Behavior`s.-->
