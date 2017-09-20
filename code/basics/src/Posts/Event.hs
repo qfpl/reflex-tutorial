@@ -337,10 +337,10 @@ layoutPair ::
   m a ->
   m a
 layoutPair label mLabel = do
-  el "row" $ do
-    elClass "div" "col-md-3" . el "pre" $
+  el "tr" $ do
+    el "td" . el "pre" $
       text label
-    elClass "div" "col-md-3" . el "pre" $
+    el "td" . el "pre" $
       mLabel
 
 wrapPairs ::
@@ -348,7 +348,7 @@ wrapPairs ::
   m a ->
   m a
 wrapPairs =
-  el "container"
+  el "table"
 
 fizzBuzzPart ::
   MonadWidget t m =>
