@@ -1,5 +1,6 @@
 { mkDerivation, base, common, containers, data-default, ghcjs-dom
-, lens, mtl, reflex, reflex-dom-core, stdenv, text, time
+, grid, jsaddle, lens, mtl, reflex, reflex-dom-core, stdenv, text
+, time
 }:
 mkDerivation {
   pname = "basics";
@@ -8,8 +9,8 @@ mkDerivation {
   isLibrary = true;
   isExecutable = true;
   libraryHaskellDepends = [
-    base common containers data-default ghcjs-dom lens mtl reflex
-    reflex-dom-core text time
+    base common containers data-default ghcjs-dom grid jsaddle lens mtl
+    reflex reflex-dom-core text time
   ];
   license = stdenv.lib.licenses.bsd3;
 }

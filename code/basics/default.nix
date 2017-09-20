@@ -17,9 +17,8 @@ let
 
   haskellPackages = reflex-platform.${compiler}.override {
     overrides = (self: super: {
-      ghc = super.ghc // { withPackages = super.ghc.withHoogle; };
-      ghcWithPackages = self.ghc.withPackages;
       common = pkgs.haskell.lib.dontHaddock (import ../common { inherit compiler; });
+      grid = pkgs.haskell.lib.dontHaddock (import ../grid { inherit compiler; });
     });
   };
 
@@ -38,7 +37,6 @@ let
 
       cd $out/bin/reflex-basics.jsexe
       closure-compiler all.js --compilation_level=ADVANCED_OPTIMIZATIONS --isolation_mode=IIFE --assume_function_wrapper --jscomp_off="*" --externs=all.js.externs > $out/js/reflex/basics/reflex-basics.min.js
-      rm -Rf $out/bin/reflex-basics.jsexe
       rm -Rf $out/bin
 
       cd $out/js/reflex/basics
@@ -50,17 +48,10 @@ let
     '';
   };
 
-  adjust-for-ghc = drv: {
-    executableSystemDepends = [
-      reflex-platform.${compiler}.ghcid
-      # (pkgs.callPackage (import ./tools/nix-tags-haskell) {})
-    ];
-  };
-
-  adjust =
+  adjust = drv:
     if compiler == "ghcjs"
-    then adjust-for-ghcjs
-    else adjust-for-ghc;
+    then adjust-for-ghcjs drv
+    else drv;
 
   basics = pkgs.haskell.lib.overrideCabal (haskellPackages.callPackage ./basics.nix {}) adjust;
 in

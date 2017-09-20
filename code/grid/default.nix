@@ -14,6 +14,13 @@ let
 
   reflex-platform = import sources.reflex-platform {};
   pkgs = reflex-platform.nixpkgs.pkgs;
-  common = reflex-platform.${compiler}.callPackage ./common.nix {};
+
+  haskellPackages = reflex-platform.${compiler}.override {
+    overrides = (self: super: rec {
+      common = pkgs.haskell.lib.dontHaddock (import ../common { inherit compiler; });
+    });
+  };
+
+  grid = haskellPackages.callPackage ./grid.nix {};
 in
-  common
+  grid
