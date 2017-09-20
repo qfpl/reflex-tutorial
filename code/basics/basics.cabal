@@ -38,10 +38,10 @@ library
                      , grid >= 0.1 && < 0.2
   hs-source-dirs:      src
   if impl(ghcjs -any)
-    ghc-options:       -Wall -dedupe
+    ghc-options:       -Wall -O2 -dedupe
     cpp-options:       -DGHCJS_BROWSER
   else
-    ghc-options:       -Wall
+    ghc-options:       -Wall -O2
   default-language:    Haskell2010
 
 executable reflex-basics
@@ -51,6 +51,6 @@ executable reflex-basics
   build-depends:       base >=4.9 && <4.10
                      , basics
   hs-source-dirs:      exe
-  ghc-options:         -Wall -dedupe
+  ghc-options:         -Wall -O2 -dedupe
   cpp-options:         -DGHCJS_BROWSER
   default-language:    Haskell2010
