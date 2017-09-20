@@ -338,9 +338,9 @@ layoutPair ::
   m a
 layoutPair label mLabel = do
   el "row" $ do
-    elClass "div" "col-md-6" . el "pre" $
+    elClass "div" "col-md-3" . el "pre" $
       text label
-    elClass "div" "col-md-6" . el "pre" $
+    elClass "div" "col-md-3" . el "pre" $
       mLabel
 
 wrapPairs ::
