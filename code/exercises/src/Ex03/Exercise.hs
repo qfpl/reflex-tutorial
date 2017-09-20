@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-module Ex02.Exercise where
+module Ex03.Exercise where
 
 import Reflex
 
@@ -7,14 +7,14 @@ import Reflex
 import Util.Run
 #endif
 
-import Ex02.Common
-import Ex02.Run
+import Ex03.Common
+import Ex03.Run
 
-ex02 ::
+ex03 ::
   Reflex t =>
   Inputs t ->
   Outputs t
-ex02 (Inputs bMoney eCarrot eCelery eCucumber eRefund) =
+ex03 (Inputs bMoney bSelected eBuy eRefund) =
   let
     eVend =
       never
@@ -32,5 +32,5 @@ go ::
   IO ()
 go =
   run $
-    host ex02
+    host ex03
 #endif

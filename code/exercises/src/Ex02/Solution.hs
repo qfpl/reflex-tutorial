@@ -29,24 +29,27 @@ ex02 (Inputs bMoney eCarrot eCelery eCucumber eRefund) =
         , celery   <$ eCelery
         , cucumber <$ eCucumber
         ]
+
     checkEnough money p =
       let
         cost = pCost p
       in
-        if cost <= money 
+        if cost <= money
         then Just p
         else Nothing
     eSale =
       attachWithMaybe checkEnough bMoney eProduct
+
     checkNotEnough money p =
       let
         cost = pCost p
       in
-        if cost > money 
-        then Just () 
+        if cost > money
+        then Just ()
         else Nothing
     eNotEnoughMoney =
       attachWithMaybe checkNotEnough bMoney eProduct
+
     eVend =
       pName <$> eSale
     eSpend =
@@ -59,7 +62,7 @@ ex02 (Inputs bMoney eCarrot eCelery eCucumber eRefund) =
 attachEx02 ::
   JSM ()
 attachEx02 =
-  attachId_ "ex02" $ 
+  attachId_ "ex02" $
     host ex02
 
 #ifndef ghcjs_HOST_OS

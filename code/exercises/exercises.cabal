@@ -28,6 +28,12 @@ library
     , Ex02.Common
     , Ex02.Solution
     , Ex02.Run
+    , Ex03.Common
+    , Ex03.Solution
+    , Ex03.Run
+    , Ex04.Common
+    , Ex04.Solution
+    , Ex04.Run
     , Util.Attach
     , Util.Reflex
     , Util.Bootstrap

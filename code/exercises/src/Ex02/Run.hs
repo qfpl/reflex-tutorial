@@ -28,7 +28,7 @@ productWidget p = divClass "row" $ do
 
 host ::
   MonadWidget t m =>
-  Ex01Fn t ->
+  Ex02Fn t ->
   m ()
 host fn = divClass "container" $ mdo
 
@@ -45,7 +45,7 @@ host fn = divClass "container" $ mdo
                 , const 0  <$ eRefund
                 ]
       divClass "col-md-3" $
-        text "Supplied:"
+        text "Money inserted:"
       divClass "col-md-1" $
         dynText $ ("$" <>) . Text.pack . show <$> dMoney
       eAdd <- divClass "col-md-1" $
