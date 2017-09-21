@@ -116,8 +116,6 @@ host fn = B.panel $ divClass "container" $ mdo
     divClass "col-md-3" $
       text "Change:"
     divClass "col-md-1" $
-      text ""
-    divClass "col-md-1" $
       dynText $ moneyDisplay <$> dChange
     divClass "col-md-1" $
       B.button "Refund"
@@ -127,8 +125,6 @@ host fn = B.panel $ divClass "container" $ mdo
   divClass "row" $ do
     divClass "col-md-3" $
       text "Tray:"
-    divClass "col-md-1" $
-      text ""
     divClass "col-md-1" $
       dynText dVend
     divClass "col-md-1" $
