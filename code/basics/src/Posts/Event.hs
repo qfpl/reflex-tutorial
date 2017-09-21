@@ -33,18 +33,20 @@ eventPostExamples ::
   MonadJSM m =>
   m ()
 eventPostExamples = do
+  let
+    gc = defaultGridConfig
   attachId_ "basics-events-frame" $
-    wrapDemo id mkRedBlueInput
+    wrapDemo gc id mkRedBlueInput
   attachId_ "basics-events-tick"
     demoTick
   attachId_ "basics-events-flipper" $
-    wrapDemo flipper mkRedBlueInput
+    wrapDemo gc flipper mkRedBlueInput
   attachId_ "basics-events-blue" $
-    wrapDemo blue mkRedBlueInput
+    wrapDemo gc blue mkRedBlueInput
   attachId_ "basics-events-red" $
-    wrapDemo red mkRedBlueInput
+    wrapDemo gc red mkRedBlueInput
   attachId_ "basics-events-parse" $
-    wrapDemo (parse . fmap unParseText) mkParseInput
+    wrapDemo gc (parse . fmap unParseText) mkParseInput
   attachId_ "basics-events-either"
     demoEither
   attachId_ "basics-events-clickMe"
@@ -104,14 +106,10 @@ red eInput =
 newtype ParseText = ParseText { unParseText :: Text }
 
 instance Square ParseText where
-  mkSquare gc y x c =
-    let
-      attrs =
-        "class" =: "grid-square" <>
-        "fill" =: "gray" <>
-        standardAttrs gc y x
-    in
-      svgAttr "rect" attrs $ pure ()
+  mkSquareAttrs gc y x _ = pure $
+    "class" =: "grid-square" <>
+    "fill" =: "gray" <>
+    standardAttrs gc y x
 
 parseColour :: Text
             -> Maybe Colour
@@ -142,11 +140,12 @@ wrapDemo ::
   ( MonadWidget t m
   , Square a
   , Square b) =>
+  GridConfig ->
   (Event t a -> Event t b) ->
   m (Event t a) ->
   m ()
-wrapDemo guest mkIn = B.panel $ mdo
-  let w = runDemo guest eInput
+wrapDemo gc guest mkIn = B.panel $ mdo
+  let w = runDemo gc guest eInput
   _ <- widgetHold w (w <$ eReset)
   (eInput, eReset) <- el "div" $ do
     eInput <- mkIn
@@ -159,10 +158,11 @@ runDemo ::
   , Square a
   , Square b
   ) =>
+  GridConfig ->
   (Event t a -> Event t b) ->
   Event t a ->
   m ()
-runDemo guest eInput = do
+runDemo gc guest eInput = do
 
   let
     eOutput =
@@ -180,8 +180,7 @@ runDemo guest eInput = do
                 , Nothing <$ eInput
                 ]
 
-  drawGrid
-    defaultGridConfig
+  drawGrid gc
     [ Row "eInput" 1 dInputs
     , Row "eOutput" 3 dOutputs
     ]
@@ -189,14 +188,10 @@ runDemo guest eInput = do
 data UnitSquare = UnitSquare
 
 instance Square UnitSquare where
-  mkSquare gc y x c =
-    let
-      attrs =
-        "class" =: "grid-square" <>
-        "fill" =: "gray" <>
-        standardAttrs gc y x
-    in
-      svgAttr "rect" attrs $ pure ()
+  mkSquareAttrs gc y x _ = pure $
+    "class" =: "grid-square" <>
+    "fill" =: "gray" <>
+    standardAttrs gc y x
 
 splitColour :: Colour
             -> Either () ()

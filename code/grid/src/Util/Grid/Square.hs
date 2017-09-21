@@ -3,7 +3,6 @@
 module Util.Grid.Square (
     Square(..)
   , standardAttrs
-  , drawGridEventSquare
   ) where
 
 import Data.Monoid ((<>))
@@ -37,43 +36,37 @@ standardAttrs gc y x =
     "stroke-width" =: "1"
 
 class Square a where
+  mkSquareAttrs :: Reflex t
+                => GridConfig
+                -> Int -- y
+                -> Int -- x
+                -> Dynamic t a
+                -> Dynamic t (Map Text Text)
+
   mkSquare :: MonadWidget t m
            => GridConfig
            -> Int -- y
            -> Int -- x
-           -> a
+           -> Dynamic t a
            -> m ()
+  mkSquare gc y x da =
+    svgDynAttr "rect" (mkSquareAttrs gc y x da) $
+      pure ()
 
 instance Square () where
-  mkSquare gc y x _ =
-    let
-      attrs =
-        "class" =: "grid-square" <>
-        "fill" =: "gray" <>
-        standardAttrs gc y x
-    in
-      svgAttr "rect" attrs $ pure ()
+  mkSquareAttrs gc y x _ = pure $
+    "class" =: "grid-square" <>
+    "fill" =: "gray" <>
+    standardAttrs gc y x
 
 instance Square a => Square (Maybe a) where
-  mkSquare gc y x Nothing =
+  mkSquareAttrs gc y x da =
     let
-      attrs =
+      f Nothing = pure $
         "fill" =: "none" <>
         "stroke" =: "none" <>
         standardAttrs gc y x
+      f (Just a) =
+        mkSquareAttrs gc y x (pure a)
     in
-      svgAttr "rect" attrs $ pure ()
-  mkSquare gc y x (Just a) =
-    mkSquare gc y x a
-
-drawGridEventSquare ::
-  ( MonadWidget t m
-  , Square a
-  ) =>
-  GridConfig ->
-  Int ->
-  Int ->
-  Dynamic t (Maybe a) ->
-  m (Event t ())
-drawGridEventSquare gc y x dValue = do
-  dyn $ mkSquare gc y x <$> dValue
+      da >>= f

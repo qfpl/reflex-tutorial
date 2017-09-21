@@ -76,7 +76,7 @@ drawGridEventSquares gc row dValues = do
   let
     tidy = Map.fromList . zip [0..] . reverse . take (_gcColumns gc)
     dTidy = tidy <$> dValues
-  _ <- listViewWithKey dTidy (drawGridEventSquare gc row)
+  _ <- listWithKey dTidy (mkSquare gc row)
   pure ()
 
 width :: GridConfig -> Text

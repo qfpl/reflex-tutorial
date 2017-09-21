@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies #-}
 module Colour where
 
 import Data.Monoid ((<>))
@@ -26,21 +27,22 @@ flipColour Blue =
   Red
 
 instance Square Colour where
-  mkSquare gc y x c =
+  mkSquareAttrs gc y x c =
     let
       mkFill Red =
-        "red"
+        "fill" =: "red"
       mkFill Blue =
-        "blue"
+        "fill" =: "blue"
       attrs =
         "class" =: "grid-square" <>
-        "fill" =: mkFill c <>
         standardAttrs gc y x
     in
-      svgAttr "rect" attrs $ pure ()
+      (mkFill <$> c) <> pure attrs
 
 instance Square (Colour, Colour) where
-  mkSquare gc y x (c1, c2) =
+  mkSquareAttrs _ _ _ _ =
+    pure mempty
+  mkSquare gc y x dPair =
     let
       s =
         Text.pack . show $ _gcSquareSize gc
@@ -59,26 +61,22 @@ instance Square (Colour, Colour) where
         "height" =: s <>
         "stroke-width" =: "1"
       mkFill Red =
-        "red"
+        "fill" =: "red"
       mkFill Blue =
-        "blue"
-      leftAttrs =
-        "fill" =: mkFill c1 <>
-        "x" =: sx1 <>
-        baseAttrs
-      leftHalf =
-        svgAttr "rect" leftAttrs $
+        "fill" =: "blue"
+      leftAttrs c1 =
+        (mkFill <$> c1) <> pure ("x" =: sx1 <> baseAttrs)
+      leftHalf c1 =
+        svgDynAttr "rect" (leftAttrs c1) $
           pure ()
-      rightAttrs =
-        "fill" =: mkFill c2 <>
-        "x" =: sx2 <>
-        baseAttrs
-      rightHalf =
-        svgAttr "rect" rightAttrs $
+      rightAttrs c2 =
+        (mkFill <$> c2) <> pure ("x" =: sx2 <> baseAttrs)
+      rightHalf c2 =
+        svgDynAttr "rect" (rightAttrs c2) $
           pure ()
     in do
-      leftHalf
-      rightHalf
+      leftHalf (fst <$> dPair)
+      rightHalf (snd <$> dPair)
 
 mkRedBlueInput :: MonadWidget t m
                => m (Event t Colour)
