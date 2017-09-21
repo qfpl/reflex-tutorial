@@ -2,12 +2,12 @@
 , compiler ? "ghc"
 }:
 let
-  inherit (nixpkgs) pkgs;
   reflex-platform = import ./reflex-platform.nix;
+  pkgs = reflex-platform.nixpkgs.pkgs;
   drv = import ./. { inherit reflex-platform compiler; };
   drvWithTools = pkgs.haskell.lib.addBuildDepends drv 
     [ pkgs.cabal-install 
-      pkgs.haskellPackages.ghcid
+      reflex-platform.ghc.ghcid
     ];
 in
   drvWithTools.env
