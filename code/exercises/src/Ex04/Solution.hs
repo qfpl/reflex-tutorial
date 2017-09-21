@@ -30,29 +30,29 @@ ex04 (Inputs bMoney bCarrot bCelery bCucumber bSelected eBuy eRefund) =
   let
     stockSingleton s =
       Map.singleton (pName . sProduct $ s) s
-    bStock =
+    bmStock =
       foldMap (fmap stockSingleton) [bCarrot, bCelery, bCucumber]
     eSelected =
-      fmapMaybe id $
-      Map.lookup <$> bSelected <*> bStock <@ eBuy
+      fmapMaybe id (Map.lookup <$> bSelected <*> bmStock <@ eBuy)
 
-    filterQuantity p =
-      fmap sProduct .
-      ffilter (p . sQuantity)
+    checkItemOutOfStock s =
+      sQuantity s == 0
     eItemOutOfStock =
-      filterQuantity (== 0) eSelected
-    eItemInStock =
-      filterQuantity (> 0) eSelected
+      ItemOutOfStock <$ ffilter checkItemOutOfStock eSelected
 
-    filterCost p e =
-      fmap snd .
-      ffilter fst $
-      (\m pr -> (p m pr, pr)) <$> bMoney <@> e
-
+    checkNotEnoughMoney money s =
+      money < (pCost . sProduct $ s)
     eNotEnoughMoney =
-      filterCost (\m p -> m < pCost p) eItemInStock
+      NotEnoughMoney <$ ffilter id (checkNotEnoughMoney <$> bMoney <@> eSelected)
+
+    eError =
+      leftmost [
+        eItemOutOfStock
+      , eNotEnoughMoney
+      ]
+
     eSale =
-      filterCost (\m p -> m >= pCost p) eItemInStock
+      sProduct <$> difference eSelected eError
 
     eVend =
       pName <$> eSale
@@ -60,11 +60,6 @@ ex04 (Inputs bMoney bCarrot bCelery bCucumber bSelected eBuy eRefund) =
       pCost <$> eSale
     eChange =
       bMoney <@ eRefund
-    eError =
-      leftmost [
-        ItemOutOfStock <$ eItemOutOfStock
-      , NotEnoughMoney <$ eNotEnoughMoney
-      ]
   in
     Outputs eVend eSpend eChange eError
 

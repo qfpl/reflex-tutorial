@@ -29,10 +29,13 @@ ex01 money (Inputs eCarrot eCelery eCucumber eRefund) =
         , celery   <$ eCelery
         , cucumber <$ eCucumber
         ]
-    eSale =
-      ffilter ((money >=) . pCost) eProduct
+
     eNotEnoughMoney =
       () <$ ffilter ((money <) . pCost) eProduct
+
+    eSale =
+      difference eProduct eNotEnoughMoney
+
     eVend =
       pName <$> eSale
     eSpend =

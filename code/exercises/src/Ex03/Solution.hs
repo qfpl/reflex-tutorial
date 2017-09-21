@@ -30,21 +30,23 @@ ex03 (Inputs bMoney bSelected eBuy eRefund) =
   let
     productSingleton p =
       Map.singleton (pName p) (pure p)
-    bProduct =
-      sequence . foldMap productSingleton $ [carrot, celery, cucumber]
+    mbProduct =
+      foldMap productSingleton [carrot, celery, cucumber]
+    bmProduct =
+      sequence mbProduct
     eSelected =
-      fmapMaybe id $
-      Map.lookup <$> bSelected <*> bProduct <@ eBuy
+      fmapMaybe id (Map.lookup <$> bSelected <*> bmProduct <@ eBuy)
 
-    filterCost p e =
-      fmap snd .
-      ffilter fst $
-      (\m pr -> (p m pr, pr)) <$> bMoney <@> e
-
+    checkNotEnoughMoney money p =
+      money < pCost p
     eNotEnoughMoney =
-      filterCost (\m p -> m < pCost p) eSelected
+      NotEnoughMoney <$ ffilter id (checkNotEnoughMoney <$> bMoney <@> eSelected)
+
+    eError =
+      eNotEnoughMoney
+
     eSale =
-      filterCost (\m p -> m >= pCost p) eSelected
+      difference eSelected eError
 
     eVend =
       pName <$> eSale
@@ -52,8 +54,6 @@ ex03 (Inputs bMoney bSelected eBuy eRefund) =
       pCost <$> eSale
     eChange =
       bMoney <@ eRefund
-    eError =
-      NotEnoughMoney <$ eNotEnoughMoney
   in
     Outputs eVend eSpend eChange eError
 

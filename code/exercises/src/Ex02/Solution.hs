@@ -30,25 +30,13 @@ ex02 (Inputs bMoney eCarrot eCelery eCucumber eRefund) =
         , cucumber <$ eCucumber
         ]
 
-    checkEnough money p =
-      let
-        cost = pCost p
-      in
-        if cost <= money
-        then Just p
-        else Nothing
-    eSale =
-      attachWithMaybe checkEnough bMoney eProduct
-
-    checkNotEnough money p =
-      let
-        cost = pCost p
-      in
-        if cost > money
-        then Just ()
-        else Nothing
+    checkNotEnoughMoney money p =
+      money < pCost p
     eNotEnoughMoney =
-      attachWithMaybe checkNotEnough bMoney eProduct
+      () <$ ffilter id (checkNotEnoughMoney <$> bMoney <@> eProduct)
+
+    eSale =
+      difference eProduct eNotEnoughMoney
 
     eVend =
       pName <$> eSale
