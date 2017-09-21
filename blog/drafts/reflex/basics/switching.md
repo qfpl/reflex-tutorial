@@ -54,7 +54,8 @@ join :: Dynamic  t (Dynamic  t a)
 
 There are other functions that also provide higher-order FRP functionality such as:
 ```haskell
-switch        :: Behavior t (Event t    a)
+switch        :: Reflex t
+              => Behavior t (Event t    a)
               ->             Event t    a
 
 switcher      :: (Reflex t, MonadHold t m) 
@@ -74,7 +75,8 @@ It can be handy to think of a [railroad switch](https://en.wikipedia.org/wiki/Ra
 
 We'll focus on `switch` for a while to motivate higher-order FRP:
 ```haskell
-switch        :: Behavior t (Event t    a)
+switch        :: Reflex t 
+              => Behavior t (Event t    a)
               ->             Event t    a
 ```
 
@@ -83,7 +85,93 @@ There could be multiple sources of these `Event`s and the `Behavior` is being us
 Since `Behavior`s have values at all points in time, that means there is always an `Event` which is selected.
 The `switch` function is giving us access to the `Event` that is selected by the `Behavior`.
 
+This time, we're going to look at the example before we look at the code:
+
 <div id="examples-switch-count-1"></div>
+
+```haskell
+leftInput :: (Reflex t, MonadHold t m) 
+          => Event t () 
+          -> Event t () 
+          -> Event t () 
+          -> m (Event t ())
+leftInput eAdd eSwitchL eSwitchR = do
+  -- beAddL :: Behavior t (Event t ())
+  beAddL <- _
+  pure (switch beAddL)
+```
+
+```haskell
+leftInput :: (Reflex t, MonadHold t m) 
+          => Event t () 
+          -> Event t () 
+          -> Event t () 
+          -> m (Event t ())
+leftInput eAdd eSwitchL eSwitchR = do
+  -- beAddL :: Behavior t (Event t ())
+  beAddL <- hold _initial _change
+  pure (switch beAddL)
+```
+
+```haskell
+hold :: MonadHold t m
+     => a
+     -> Event t a
+     -> m (Behavior t a)
+```
+
+`a ~ Event t b`
+
+```haskell
+hold :: MonadHold t m
+     => Event t b
+     -> Event t (Event t b)
+     -> m (Behavior t (Event t b))
+```
+
+```haskell
+leftInput :: (Reflex t, MonadHold t m) 
+          => Event t () 
+          -> Event t () 
+          -> Event t () 
+          -> m (Event t ())
+leftInput eAdd eSwitchL eSwitchR = do
+  -- beAddL   :: Behavior t (Event t ())
+  -- _initial :: Event    t ()
+  -- _change  :: Event    t (Event t ())
+  beAddL <- hold _initial _event
+  pure (switch beAddL)
+```
+
+```haskell
+leftInput :: (Reflex t, MonadHold t m) 
+          => Event t () 
+          -> Event t () 
+          -> Event t () 
+          -> m (Event t ())
+leftInput eAdd eSwitchL eSwitchR = do
+  -- beAddL  :: Behavior t (Event t ())
+  -- _change :: Event    t (Event t ())
+  beAddL <- hold eAdd _change
+  pure (switch beAddL)
+```
+
+```haskell
+leftInput :: (Reflex t, MonadHold t m) 
+          => Event t () 
+          -> Event t () 
+          -> Event t () 
+          -> m (Event t ())
+leftInput eAdd eSwitchL eSwitchR = do
+  -- beAddL       :: Behavior t (Event t ())
+  -- _changeLeft  :: Event    t ()
+  -- _changeRight :: Event    t ()
+  beAddL <- hold eAdd . leftmost $ [
+              _changeLeft  <$ eSwitchL
+            , _changeRight <$ eSwitchR
+            ]
+  pure (switch beAddL)
+```
 
 ```haskell
 leftInput :: (Reflex t, MonadHold t m) 
@@ -99,6 +187,7 @@ leftInput eAdd eSwitchL eSwitchR = do
   pure (switch beAddL)
 ```
 
+Switch the "Add" clicks towards the counter on the right hand side is very similar:
 ```haskell
 rightInput :: (Reflex t, MonadHold t m) 
           => Event t () 
@@ -106,6 +195,7 @@ rightInput :: (Reflex t, MonadHold t m)
           -> Event t () 
           -> m (Event t ())
 rightInput eAdd eSwitchL eSwitchR = do
+  -- beAddR :: Behavior t (Event t ())
   beAddR <- hold never . leftmost $ [
               eAdd  <$ eSwitchR
             , never <$ eSwitchL
@@ -113,6 +203,14 @@ rightInput eAdd eSwitchL eSwitchR = do
   pure (switch beAddR)
 ```
 
+We can do this a little more directly using `switchPromptly`:
+```haskell
+switchPrompty :: (Reflex t, MonadHold t m) 
+              =>             Event t    a
+              -> Event t    (Event t    a)
+              -> m          (Event t    a)
+```
+resulting in:
 ```haskell
 leftInput :: (Reflex t, MonadHold t m) 
           => Event t () 
@@ -125,7 +223,7 @@ leftInput eAdd eSwitchL eSwitchR =
   , never <$ eSwitchR
   ]
 ```
-
+and
 ```haskell
 rightInput :: (Reflex t, MonadHold t m) 
           => Event t () 
@@ -139,6 +237,7 @@ rightInput eAdd eSwitchL eSwitchR =
   ]
 ```
 
+The resulting widget still behaves the same way:
 <div id="examples-switch-count-2"></div>
 
 ## Dynamic modifications to the DOM
