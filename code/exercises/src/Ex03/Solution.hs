@@ -6,9 +6,6 @@ module Ex03.Solution (
 
 import Language.Javascript.JSaddle (JSM)
 
-import Data.Monoid ((<>))
-
-import Data.Map (Map)
 import qualified Data.Map as Map
 
 import Reflex
@@ -28,25 +25,34 @@ ex03 ::
   Outputs t
 ex03 (Inputs bMoney bSelected eBuy eRefund) =
   let
+    -- We put our products in a list:
+    products =
+      [carrot, celery, cucumber]
+    -- We write a helper function to get from a `Product` to a `Map Text (Behavior t Product)`
     productSingleton p =
       Map.singleton (pName p) (pure p)
+    -- We use this helper to turn our products into a `Map` and then combine the `Map`s, using `foldMap`:
     mbProduct =
-      foldMap productSingleton [carrot, celery, cucumber]
+      foldMap productSingleton products
+    -- We have a `Map` of `Behavior`s that we want to turn into a `Behavior` of `Map`s,
+    -- so we use `sequence`:
     bmProduct =
       sequence mbProduct
-    eSelected =
-      fmapMaybe id (Map.lookup <$> bSelected <*> bmProduct <@ eBuy)
+    -- We use `(<@)` here to run `Map.lookup` with the values of `bSelected` and `bmProduct` at
+    -- the times that `eBuy` fires:
+    emProduct =
+      Map.lookup <$> bSelected <*> bmProduct <@ eBuy
+    -- Finally, we use `fmapMaybe id` to filter out the `Nothing` values and removing the `Just` constructor:
+    eProduct =
+      fmapMaybe id emProduct
 
     checkNotEnoughMoney money p =
       money < pCost p
-    eNotEnoughMoney =
-      NotEnoughMoney <$ ffilter id (checkNotEnoughMoney <$> bMoney <@> eSelected)
-
     eError =
-      eNotEnoughMoney
+      NotEnoughMoney <$ ffilter id (checkNotEnoughMoney <$> bMoney <@> eProduct)
 
     eSale =
-      difference eSelected eError
+      difference eProduct eError
 
     eVend =
       pName <$> eSale

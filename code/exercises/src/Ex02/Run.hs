@@ -53,13 +53,19 @@ host fn = divClass "container" $ mdo
       pure dMoney
 
   let
-    Outputs eVend eSpend eChange eNotEnoughMoney = fn input
+    Outputs eVend eSpend eChange eError = fn input
+    eErrorText = errorText <$> eError
 
   eRefund <- divClass "row" $ do
     divClass "col-md-3" $
       text "Change:"
     divClass "col-md-1" $ do
-      dChange <- holdDyn 0 . leftmost $ [eChange, 0 <$ updated dMoney, 0 <$ eNotEnoughMoney]
+      dChange <- holdDyn 0 .
+                 leftmost $ [
+                   eChange
+                 , 0 <$ updated dMoney
+                 , 0 <$ eError
+                 ]
       dynText $ ("$" <>) . Text.pack . show <$> dChange
     divClass "col-md-1" $
       B.button "Refund"
@@ -68,7 +74,12 @@ host fn = divClass "container" $ mdo
     divClass "col-md-3" $
       text "Tray:"
     divClass "col-md-1" $ do
-      dVend <- holdDyn "" . leftmost $ [eVend, "" <$ updated dMoney, "Insufficient funds" <$ eNotEnoughMoney]
+      dVend <- holdDyn "" .
+               leftmost $ [
+                 eVend
+               , "" <$ updated dMoney
+               , eErrorText
+               ]
       dynText dVend
     divClass "col-md-1" $
       text ""

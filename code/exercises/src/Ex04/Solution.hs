@@ -6,9 +6,6 @@ module Ex04.Solution (
 
 import Language.Javascript.JSaddle (JSM)
 
-import Data.Monoid ((<>))
-
-import Data.Map (Map)
 import qualified Data.Map as Map
 
 import Reflex
@@ -28,31 +25,44 @@ ex04 ::
   Outputs t
 ex04 (Inputs bMoney bCarrot bCelery bCucumber bSelected eBuy eRefund) =
   let
+    -- This time we have a list of `Behavior t Stock`:
+    bStocks =
+      [bCarrot, bCelery, bCucumber]
+    -- which means we have a slightly different helper function:
     stockSingleton s =
       Map.singleton (pName . sProduct $ s) s
+   -- that gets used in a slightly different way:
     bmStock =
-      foldMap (fmap stockSingleton) [bCarrot, bCelery, bCucumber]
-    eSelected =
-      fmapMaybe id (Map.lookup <$> bSelected <*> bmStock <@ eBuy)
+      foldMap (fmap stockSingleton) bStocks
+    emStock =
+      Map.lookup <$> bSelected <*> bmStock <@ eBuy
+    eStock =
+      fmapMaybe id emStock
 
+    -- We add a check to see if there is stock remaining:
     checkItemOutOfStock s =
       sQuantity s == 0
     eItemOutOfStock =
-      ItemOutOfStock <$ ffilter checkItemOutOfStock eSelected
+      ItemOutOfStock <$ ffilter checkItemOutOfStock eStock
 
+    -- and adapt the money check to work with `Stock`:
     checkNotEnoughMoney money s =
       money < (pCost . sProduct $ s)
     eNotEnoughMoney =
-      NotEnoughMoney <$ ffilter id (checkNotEnoughMoney <$> bMoney <@> eSelected)
+      NotEnoughMoney <$ ffilter id (checkNotEnoughMoney <$> bMoney <@> eStock)
 
+    -- Now we have multiple errors, so we combine them.
+    -- They could both occur at once, so we give priority to "Item Out Of Stock",
+    -- in the hope that we can still make the sale:
     eError =
       leftmost [
         eItemOutOfStock
       , eNotEnoughMoney
       ]
 
+    -- We pass the sale through if no error occurred, stripping the quantity information off as we go:
     eSale =
-      sProduct <$> difference eSelected eError
+      sProduct <$> difference eStock eError
 
     eVend =
       pName <$> eSale

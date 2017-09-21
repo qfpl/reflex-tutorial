@@ -22,10 +22,10 @@ ex03 (Inputs bMoney bSelected eBuy eRefund) =
       never
     eChange =
       never
-    eNotEnoughMoney =
+    eError =
       never
   in
-    Outputs eVend eSpend eChange eNotEnoughMoney
+    Outputs eVend eSpend eChange eError
 
 #ifndef ghcjs_HOST_OS
 go ::

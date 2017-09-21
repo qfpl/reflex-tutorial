@@ -4,7 +4,6 @@ module Ex03.Run (
     host
   ) where
 
-import Control.Monad.Fix (MonadFix)
 import Data.Monoid ((<>))
 
 import Data.Text (Text)
@@ -85,16 +84,20 @@ host fn = divClass "container" $ mdo
         B.button "Add money"
       pure dMoney
 
-
   let
     Outputs eVend eSpend eChange eError = fn input
-    eNotEnoughMoney = ffilter (== NotEnoughMoney) eError
+    eErrorText = errorText <$> eError
 
   eRefund <- divClass "row" $ do
     divClass "col-md-3" $
       text "Change:"
     divClass "col-md-1" $ do
-      dChange <- holdDyn 0 . leftmost $ [eChange, 0 <$ updated dMoney, 0 <$ eNotEnoughMoney]
+      dChange <- holdDyn 0 .
+                 leftmost $ [
+                   eChange
+                 , 0 <$ updated dMoney
+                 , 0 <$ eError
+                 ]
       dynText $ ("$" <>) . Text.pack . show <$> dChange
     divClass "col-md-1" $
       B.button "Refund"
@@ -107,7 +110,7 @@ host fn = divClass "container" $ mdo
                leftmost $ [
                  eVend
                , "" <$ updated dMoney
-               , "Insufficient funds" <$ eNotEnoughMoney
+               , eErrorText
                ]
       dynText dVend
     divClass "col-md-1" $

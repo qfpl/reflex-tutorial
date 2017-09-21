@@ -32,20 +32,27 @@ ex02 (Inputs bMoney eCarrot eCelery eCucumber eRefund) =
 
     checkNotEnoughMoney money p =
       money < pCost p
-    eNotEnoughMoney =
-      () <$ ffilter id (checkNotEnoughMoney <$> bMoney <@> eProduct)
+    {-
+    We use `(<@>)` here to run `checkNotEnoughMoney` with the value of `bMoney` and `eProduct` at
+    the times that `eProduct` fires.
+
+    After that we filter the `Event` as before, and then we add our `Error` value onto the `Event`.
+    -}
+    eError =
+      NotEnoughMoney <$ ffilter id (checkNotEnoughMoney <$> bMoney <@> eProduct)
 
     eSale =
-      difference eProduct eNotEnoughMoney
+      difference eProduct eError
 
     eVend =
       pName <$> eSale
     eSpend =
       pCost <$> eSale
+    -- We can use `(<@)` or `tag` here to sample `bMoney` when the "Refund" button is pressed
     eChange =
       bMoney <@ eRefund
   in
-    Outputs eVend eSpend eChange eNotEnoughMoney
+    Outputs eVend eSpend eChange eError
 
 attachEx02 ::
   JSM ()

@@ -7,6 +7,8 @@ module Ex02.Common (
   , cucumber
   , Inputs(..)
   , Outputs(..)
+  , Error(..)
+  , errorText
   , Ex02Fn
   ) where
 
@@ -20,7 +22,7 @@ data Product =
   Product {
     pName :: Text
   , pCost :: Money
-  }
+  } deriving (Eq, Ord, Show)
 
 carrot ::
   Product
@@ -51,8 +53,18 @@ data Outputs t =
     oeVend           :: Event t Text
   , oeSpend          :: Event t Money
   , oeChange         :: Event t Money
-  , oeNotEnoughMoney :: Event t ()
+  , oeNotEnoughMoney :: Event t Error
   }
+
+data Error =
+    NotEnoughMoney
+  deriving (Eq, Ord, Show)
+
+errorText ::
+  Error ->
+  Text
+errorText NotEnoughMoney =
+  "Insufficient funds"
 
 type Ex02Fn t = Inputs t -> Outputs t
 
