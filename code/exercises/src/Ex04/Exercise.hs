@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP #-}
 module Ex04.Exercise where
 
+import qualified Data.Map as Map
+
 import Reflex
 
 #ifndef ghcjs_HOST_OS

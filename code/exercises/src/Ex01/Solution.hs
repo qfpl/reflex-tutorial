@@ -47,7 +47,8 @@ ex01 money (Inputs eCarrot eCelery eCucumber eRefund) =
     -- We write predicate to check whether there isn't enough in the machine for a given product:
     checkNotEnoughMoney p =
       money < pCost p
-    -- and we use that to along with `ffilter` to create our error `Event`:
+    -- and we use that to along with `ffilter` to create our error `Event`, and we tag it with `()`
+    -- so that the types work out:
     eNotEnoughMoney =
       () <$ ffilter checkNotEnoughMoney eProduct
 

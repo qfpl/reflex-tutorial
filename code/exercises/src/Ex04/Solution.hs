@@ -68,6 +68,7 @@ ex04 (Inputs bMoney bCarrot bCelery bCucumber bSelected eBuy eRefund) =
       pName <$> eSale
     eSpend =
       pCost <$> eSale
+
     eChange =
       bMoney <@ eRefund
   in

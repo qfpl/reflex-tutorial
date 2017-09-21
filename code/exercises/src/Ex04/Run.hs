@@ -62,7 +62,7 @@ host ::
   MonadWidget t m =>
   Ex04Fn t ->
   m ()
-host fn = divClass "container" $ mdo
+host fn = B.panel $ divClass "container" $ mdo
   dCarrotStock <- mkStock 5 carrot eVend
   dCeleryStock <- mkStock 5 celery eVend
   dCucumberStock <- mkStock 5 cucumber eVend
@@ -124,8 +124,7 @@ host fn = divClass "container" $ mdo
 
   let
     Outputs eVend eSpend eChange eError = fn input
-    eItemOutOfStock = ffilter (== ItemOutOfStock) eError
-    eNotEnoughMoney = ffilter (== NotEnoughMoney) eError
+    eErrorText = errorText <$> eError
 
   eRefund <- divClass "row" $ do
     divClass "col-md-3" $
@@ -133,7 +132,12 @@ host fn = divClass "container" $ mdo
     divClass "col-md-1" $
       text ""
     divClass "col-md-1" $ do
-      dChange <- holdDyn 0 . leftmost $ [eChange, 0 <$ updated dMoney, 0 <$ eNotEnoughMoney]
+      dChange <- holdDyn 0 .
+                 leftmost $ [
+                   eChange
+                 , 0 <$ updated dMoney
+                 , 0 <$ eError
+                 ]
       dynText $ ("$" <>) . Text.pack . show <$> dChange
     divClass "col-md-1" $
       B.button "Refund"
@@ -148,8 +152,7 @@ host fn = divClass "container" $ mdo
                leftmost $ [
                  eVend
                , "" <$ updated dMoney
-               , "Item out of stock" <$ eItemOutOfStock
-               , "Insufficient funds" <$ eNotEnoughMoney
+               , eErrorText
                ]
       dynText dVend
     divClass "col-md-1" $

@@ -43,7 +43,7 @@ host ::
   MonadWidget t m =>
   Ex03Fn t ->
   m ()
-host fn = divClass "container" $ mdo
+host fn = B.panel $ divClass "container" $ mdo
 
   input <- mdo
       eCarrot <-

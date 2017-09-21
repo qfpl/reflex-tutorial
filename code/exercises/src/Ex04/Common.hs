@@ -7,8 +7,9 @@ module Ex04.Common (
   , celery
   , cucumber
   , Inputs(..)
-  , Error(..)
   , Outputs(..)
+  , Error(..)
+  , errorText
   , Ex04Fn
   ) where
 
@@ -56,11 +57,6 @@ data Inputs t =
   , ieRefund   :: Event t ()
   }
 
-data Error =
-    NotEnoughMoney
-  | ItemOutOfStock
-  deriving (Eq, Ord, Show)
-
 data Outputs t =
   Outputs {
     oeVend   :: Event t Text
@@ -68,6 +64,19 @@ data Outputs t =
   , oeChange :: Event t Money
   , oeError  :: Event t Error
   }
+
+data Error =
+    NotEnoughMoney
+  | ItemOutOfStock
+  deriving (Eq, Ord, Show)
+
+errorText ::
+  Error ->
+  Text
+errorText NotEnoughMoney =
+  "Insufficient funds"
+errorText ItemOutOfStock =
+  "Item out of stock"
 
 type Ex04Fn t = Inputs t -> Outputs t
 

@@ -48,6 +48,7 @@ ex02 (Inputs bMoney eCarrot eCelery eCucumber eRefund) =
       pName <$> eSale
     eSpend =
       pCost <$> eSale
+
     -- We can use `(<@)` or `tag` here to sample `bMoney` when the "Refund" button is pressed
     eChange =
       bMoney <@ eRefund

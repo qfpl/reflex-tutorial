@@ -50,10 +50,10 @@ data Inputs t =
 
 data Outputs t =
   Outputs {
-    oeVend           :: Event t Text
-  , oeSpend          :: Event t Money
-  , oeChange         :: Event t Money
-  , oeNotEnoughMoney :: Event t Error
+    oeVend   :: Event t Text
+  , oeSpend  :: Event t Money
+  , oeChange :: Event t Money
+  , oeError  :: Event t Error
   }
 
 data Error =

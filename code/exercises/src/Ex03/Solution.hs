@@ -58,6 +58,7 @@ ex03 (Inputs bMoney bSelected eBuy eRefund) =
       pName <$> eSale
     eSpend =
       pCost <$> eSale
+
     eChange =
       bMoney <@ eRefund
   in
