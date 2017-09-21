@@ -50,30 +50,72 @@ mkStock ::
   Int ->
   Product ->
   Event t Text ->
-  m (Dynamic t Int)
-mkStock i p e =
+  m (Dynamic t Stock)
+mkStock i p e = mdo
   let
-    n = pName p
-  in
-    foldDyn ($) i $
-      subtract 1 <$ ffilter (== n) e
+    dNonZero = (0 <) <$> dQuantity
+    eSub     = gate (current dNonZero) e
+  dQuantity <- foldDyn ($) i $ 
+    subtract 1 <$ ffilter (== (pName p)) eSub
+  pure $ Stock p <$> dQuantity
+
+changeDisplay ::
+  ( Reflex t
+  , MonadFix m
+  , MonadHold t m
+  ) =>
+  Outputs t ->
+  m (Dynamic t Int)
+changeDisplay (Outputs eVend eSpend eChange eError) = 
+  holdDyn 0 .  leftmost $ [
+      eChange
+    , 0 <$ eSpend
+    , 0 <$ eError
+    ]
+
+vendDisplay ::
+  ( Reflex t
+  , MonadFix m
+  , MonadHold t m
+  ) =>
+  Outputs t ->
+  m (Dynamic t Text)
+vendDisplay (Outputs eVend eSpend eChange eError) = 
+  holdDyn "" .  leftmost $ [
+     eVend
+   , ""        <$  eSpend
+   , errorText <$> eError
+   ]
+
+data MoneyInputs t =
+  MoneyInputs {
+    mieAdd    :: Event t ()
+  , mieSpend  :: Event t Money
+  , mieRefund :: Event t ()
+  }
+
+trackMoney ::
+  ( Reflex t
+  , MonadFix m
+  , MonadHold t m
+  ) =>
+  MoneyInputs t ->
+  m (Dynamic t Money)
+trackMoney (MoneyInputs eAdd eSpend eRefund) = 
+  foldDyn ($) 0 . mergeWith (.) $ [
+      (+ 1)    <$  eAdd
+    , flip (-) <$> eSpend
+    , const 0  <$  eRefund
+    ]
 
 host ::
   MonadWidget t m =>
   Ex04Fn t ->
   m ()
 host fn = B.panel $ divClass "container" $ mdo
-  dCarrotStock <- mkStock 5 carrot eVend
-  dCeleryStock <- mkStock 5 celery eVend
-  dCucumberStock <- mkStock 5 cucumber eVend
-
-  let
-    dCarrot =
-      Stock carrot <$> dCarrotStock
-    dCelery =
-      Stock celery <$> dCeleryStock
-    dCucumber =
-      Stock cucumber <$> dCucumberStock
+  dCarrot   <- mkStock 5 carrot   eVend
+  dCelery   <- mkStock 5 celery   eVend
+  dCucumber <- mkStock 5 cucumber eVend
 
   input <- mdo
       eCarrot <-
@@ -105,26 +147,24 @@ host fn = B.panel $ divClass "container" $ mdo
       divClass "col-md-1" $
         B.button "Buy"
 
-  dMoney <- divClass "row" $ mdo
-      dMoney <- foldDyn ($) 0 . mergeWith (.) $ [
-                  (+ 1)    <$ eAdd
-                , flip (-) <$> eSpend
-                , const 0  <$ eRefund
-                ]
+  eAdd <- divClass "row" $ do
       divClass "col-md-3" $
         text "Money inserted:"
       divClass "col-md-1" $
         text ""
       divClass "col-md-1" $
         dynText $ ("$" <>) . Text.pack . show <$> dMoney
-      eAdd <- divClass "col-md-1" $
+      divClass "col-md-1" $
         B.button "Add money"
-      pure dMoney
 
+  dMoney <- trackMoney $ MoneyInputs eAdd eSpend eRefund
 
   let
-    Outputs eVend eSpend eChange eError = fn input
-    eErrorText = errorText <$> eError
+    outputs = fn input
+    eVend   = oeVend outputs
+    eSpend  = oeSpend outputs
+
+  dChange <- changeDisplay outputs
 
   eRefund <- divClass "row" $ do
     divClass "col-md-3" $
@@ -132,15 +172,11 @@ host fn = B.panel $ divClass "container" $ mdo
     divClass "col-md-1" $
       text ""
     divClass "col-md-1" $ do
-      dChange <- holdDyn 0 .
-                 leftmost $ [
-                   eChange
-                 , 0 <$ updated dMoney
-                 , 0 <$ eError
-                 ]
       dynText $ ("$" <>) . Text.pack . show <$> dChange
     divClass "col-md-1" $
       B.button "Refund"
+
+  dVend <- vendDisplay outputs
 
   divClass "row" $ do
     divClass "col-md-3" $
@@ -148,12 +184,6 @@ host fn = B.panel $ divClass "container" $ mdo
     divClass "col-md-1" $
       text ""
     divClass "col-md-1" $ do
-      dVend <- holdDyn "" .
-               leftmost $ [
-                 eVend
-               , "" <$ updated dMoney
-               , eErrorText
-               ]
       dynText dVend
     divClass "col-md-1" $
       text ""
