@@ -3,6 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Posts.Event (
     eventPostExamples
   ) where
@@ -106,10 +107,16 @@ red eInput =
 newtype ParseText = ParseText { unParseText :: Text }
 
 instance Square ParseText where
-  mkSquareAttrs gc y x _ = pure $
-    "class" =: "grid-square" <>
-    "fill" =: "gray" <>
-    standardAttrs gc y x
+  mkSquareAttrs gc y x da =
+    let
+      mkAttr Nothing =
+        "fill" =: "none" <>
+        "stroke" =: "none"
+      mkAttr (Just _) =
+        "fill" =: "gray" <>
+        "class" =: "grid-square"
+    in
+      (mkAttr <$> da) <> pure (standardAttrs gc y x)
 
 parseColour :: Text
             -> Maybe Colour
@@ -167,14 +174,17 @@ runDemo gc guest eInput = do
   let
     eOutput =
       guest eInput
+    acc :: c -> [c] -> [c]
+    acc x xs =
+      take (_gcColumns gc) (x : xs)
 
-  dInputs <- foldDyn (:) [] .
+  dInputs <- foldDyn acc [] .
              leftmost $ [
                  Just <$> eInput
                , Nothing <$ eOutput
                ]
 
-  dOutputs <- foldDyn (:) [] .
+  dOutputs <- foldDyn acc [] .
               leftmost $ [
                   Just <$> eOutput
                 , Nothing <$ eInput
@@ -188,10 +198,16 @@ runDemo gc guest eInput = do
 data UnitSquare = UnitSquare
 
 instance Square UnitSquare where
-  mkSquareAttrs gc y x _ = pure $
-    "class" =: "grid-square" <>
-    "fill" =: "gray" <>
-    standardAttrs gc y x
+  mkSquareAttrs gc y x da =
+    let
+      mkAttr Nothing =
+        "fill" =: "none" <>
+        "stroke" =: "none"
+      mkAttr (Just _) =
+        "fill" =: "gray" <>
+        "class" =: "grid-square"
+    in
+      (mkAttr <$> da) <> pure (standardAttrs gc y x)
 
 splitColour :: Colour
             -> Either () ()

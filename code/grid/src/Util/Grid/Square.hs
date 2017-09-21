@@ -40,33 +40,27 @@ class Square a where
                 => GridConfig
                 -> Int -- y
                 -> Int -- x
-                -> Dynamic t a
+                -> Dynamic t (Maybe a)
                 -> Dynamic t (Map Text Text)
 
   mkSquare :: MonadWidget t m
            => GridConfig
            -> Int -- y
            -> Int -- x
-           -> Dynamic t a
+           -> Dynamic t (Maybe a)
            -> m ()
   mkSquare gc y x da =
     svgDynAttr "rect" (mkSquareAttrs gc y x da) $
       pure ()
 
 instance Square () where
-  mkSquareAttrs gc y x _ = pure $
-    "class" =: "grid-square" <>
-    "fill" =: "gray" <>
-    standardAttrs gc y x
-
-instance Square a => Square (Maybe a) where
-  mkSquareAttrs gc y x da =
+  mkSquareAttrs gc y x da = 
     let
-      f Nothing = pure $
+      mkAttr Nothing =
         "fill" =: "none" <>
-        "stroke" =: "none" <>
-        standardAttrs gc y x
-      f (Just a) =
-        mkSquareAttrs gc y x (pure a)
+        "stroke" =: "none"
+      mkAttr (Just _) =
+        "fill" =: "gray" <>
+        "class" =: "grid-square"
     in
-      da >>= f
+      (mkAttr <$> da) <> pure (standardAttrs gc y x)

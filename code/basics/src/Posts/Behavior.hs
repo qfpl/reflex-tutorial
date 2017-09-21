@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Posts.Behavior (
     behaviorPostExamples
   ) where
@@ -21,26 +22,29 @@ behaviorPostExamples ::
   MonadJSM m =>
   m ()
 behaviorPostExamples = do
+  let
+    gc = defaultGridConfig
+
   attachId_ "basics-behaviors-sample" $
-    wrapDemo sampleBlue mkRedBlueInput
+    wrapDemo gc sampleBlue mkRedBlueInput
   attachId_ "basics-behaviors-sampleBlue1" $
-    wrapDemo sampleBlue1 mkRedBlueInput
+    wrapDemo gc sampleBlue1 mkRedBlueInput
   attachId_ "basics-behaviors-sampleBlue2" $
-    wrapDemo sampleBlue2 mkRedBlueInput
+    wrapDemo gc sampleBlue2 mkRedBlueInput
 
   mbGate <- attachId "basics-behaviors-gateOut"
     gateOut
   case mbGate of
     Nothing -> pure ()
     Just bGate -> attachId_ "basics-behaviors-gateIn" $
-      gateIn bGate
+      gateIn gc bGate
 
   attachId_ "basics-behaviors-sampleFlipBlue" $
-    wrapDemo sampleFlipBlue mkRedBlueInput
+    wrapDemo gc sampleFlipBlue mkRedBlueInput
   attachId_ "basics-behaviors-sampleAlwaysBlue" $
-    wrapDemo (const $ pure . sampleAlwaysBlue) mkRedBlueInput
+    wrapDemo gc (const $ pure . sampleAlwaysBlue) mkRedBlueInput
   attachId_ "basics-behaviors-samplePair" $
-    wrapDemo2 samplePair mkRedBlueInput
+    wrapDemo2 gc samplePair mkRedBlueInput
 
 sampleBlue :: (Reflex t, MonadHold t m)
             => Event t Colour
@@ -98,11 +102,12 @@ wrapDemo ::
   ( MonadWidget t m
   , Square a
   , Square b) =>
+  GridConfig ->
   (Event t a -> Event t () -> m (Event t b)) ->
   m (Event t a) ->
   m ()
-wrapDemo guest mkIn = B.panel $ mdo
-  let w = runDemo guest eInput eSample
+wrapDemo gc guest mkIn = B.panel $ mdo
+  let w = runDemo gc guest eInput eSample
   _ <- widgetHold w (w <$ eReset)
   (eInput, eSample, eReset) <- el "div" $ do
     eInput <- mkIn
@@ -122,10 +127,11 @@ gateOut = B.panel $ do
 
 gateIn ::
   MonadWidget t m =>
+  GridConfig ->
   Behavior t Bool ->
   m ()
-gateIn bGate = B.panel $ mdo
-    let w = runDemo (\e _ -> pure e) eInput never
+gateIn gc bGate = B.panel $ mdo
+    let w = runDemo gc (\e _ -> pure e) eInput never
     _ <- widgetHold w (w <$ eReset)
     (eInput, eReset) <- el "div" $ do
       eInput <- mkRedBlueInput
@@ -138,40 +144,45 @@ runDemo ::
   , Square a
   , Square b
   ) =>
+  GridConfig ->
   (Event t a -> Event t () -> m (Event t b)) ->
   Event t a ->
   Event t () ->
   m ()
-runDemo guest eInput eSample = do
+runDemo gc guest eInput eSample = do
   eOutput <- guest eInput eSample
 
-  dInputs <- foldDyn (:) [] .
+  let
+    acc :: c -> [c] -> [c]
+    acc x xs =
+      take (_gcColumns gc) (x : xs)
+
+  dInputs <- foldDyn acc [] .
              leftmost $ [
                  Just <$> eInput
                , Nothing <$ eOutput
                ]
 
-  dOutputs <- foldDyn (:) [] .
+  dOutputs <- foldDyn acc [] .
               leftmost $ [
                   Just <$> eOutput
                 , Nothing <$ eInput
                 ]
 
-  drawGrid
-    defaultGridConfig
+  drawGrid gc
     [ Row "eInput" 1 dInputs
     , Row "eOutput" 3 dOutputs
     ]
 
 wrapDemo2 ::
   ( MonadWidget t m
-  , Square a
-  , Square b) =>
-  (Event t a -> Event t a -> Event t () -> m (Event t b)) ->
-  m (Event t a) ->
+  ) =>
+  GridConfig ->
+  (Event t Colour -> Event t Colour -> Event t () -> m (Event t (Colour, Colour))) ->
+  m (Event t Colour) ->
   m ()
-wrapDemo2 guest mkIn = B.panel $ mdo
-  let w = runDemo2 guest eInput1 eInput2 eSample
+wrapDemo2 gc guest mkIn = B.panel $ mdo
+  let w = runDemo2 gc guest eInput1 eInput2 eSample
   _ <- widgetHold w (w <$ eReset)
   (eInput1, eInput2, eSample, eReset) <- el "div" $ do
     eInput1 <- mkIn
@@ -183,32 +194,36 @@ wrapDemo2 guest mkIn = B.panel $ mdo
 
 runDemo2 ::
   ( MonadWidget t m
-  , Square a
-  , Square b
   ) =>
-  (Event t a -> Event t a -> Event t () -> m (Event t b)) ->
-  Event t a ->
-  Event t a ->
+  GridConfig ->
+  (Event t Colour -> Event t Colour -> Event t () -> m (Event t (Colour, Colour))) ->
+  Event t Colour ->
+  Event t Colour ->
   Event t () ->
   m ()
-runDemo2 guest eInput1 eInput2 eSample = do
+runDemo2 gc guest eInput1 eInput2 eSample = do
   eOutput <- guest eInput1 eInput2 eSample
 
-  dInput1 <- foldDyn (:) [] .
+  let
+    acc :: c -> [c] -> [c]
+    acc x xs =
+      take (_gcColumns gc) (x : xs)
+
+  dInput1 <- foldDyn acc [] .
              leftmost $ [
                  Just <$> eInput1
                , Nothing <$ eInput2
                , Nothing <$ eOutput
                ]
 
-  dInput2 <- foldDyn (:) [] .
+  dInput2 <- foldDyn acc [] .
              leftmost $ [
                  Just <$> eInput2
                , Nothing <$ eInput1
                , Nothing <$ eOutput
                ]
 
-  dOutputs <- foldDyn (:) [] .
+  dOutputs <- foldDyn acc [] .
               leftmost $ [
                   Just <$> eOutput
                 , Nothing <$ eInput1

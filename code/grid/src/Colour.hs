@@ -29,15 +29,17 @@ flipColour Blue =
 instance Square Colour where
   mkSquareAttrs gc y x c =
     let
-      mkFill Red =
-        "fill" =: "red"
-      mkFill Blue =
-        "fill" =: "blue"
-      attrs =
-        "class" =: "grid-square" <>
-        standardAttrs gc y x
+      mkFill (Just Red) =
+        "fill" =: "red" <>
+        "class" =: "grid-square"
+      mkFill (Just Blue) =
+        "fill" =: "blue" <>
+        "class" =: "grid-square"
+      mkFill Nothing =
+        "fill" =: "none" <>
+        "stroke" =: "none"
     in
-      (mkFill <$> c) <> pure attrs
+      (mkFill <$> c) <> pure (standardAttrs gc y x)
 
 instance Square (Colour, Colour) where
   mkSquareAttrs _ _ _ _ =
@@ -55,15 +57,19 @@ instance Square (Colour, Colour) where
       halfS =
         Text.pack . show $ _gcSquareSize gc `div` 2
       baseAttrs =
-        "class" =: "grid-square" <>
         "y" =: sy <>
         "width" =: halfS <>
         "height" =: s <>
         "stroke-width" =: "1"
-      mkFill Red =
-        "fill" =: "red"
-      mkFill Blue =
-        "fill" =: "blue"
+      mkFill (Just Red) =
+        "fill" =: "red" <>
+        "class" =: "grid-square"
+      mkFill (Just Blue) =
+        "fill" =: "blue" <>
+        "class" =: "grid-square"
+      mkFill Nothing =
+        "fill" =: "none" <>
+        "stroke" =: "none"
       leftAttrs c1 =
         (mkFill <$> c1) <> pure ("x" =: sx1 <> baseAttrs)
       leftHalf c1 =
@@ -75,8 +81,8 @@ instance Square (Colour, Colour) where
         svgDynAttr "rect" (rightAttrs c2) $
           pure ()
     in do
-      leftHalf (fst <$> dPair)
-      rightHalf (snd <$> dPair)
+      leftHalf (fmap fst <$> dPair)
+      rightHalf (fmap snd <$> dPair)
 
 mkRedBlueInput :: MonadWidget t m
                => m (Event t Colour)
