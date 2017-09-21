@@ -1,6 +1,6 @@
 ---
 title: Behaviors
-date: 2017-09-20
+date: 2017-09-22
 authors: dlaing
 project: reflex
 extra-css: /css/reflex/basics/grid-light.css
@@ -48,6 +48,8 @@ hold :: MonadHold t m
 This takes an initial value and an `Event` as input.
 The `Behavior` uses the initial value until the first firing of the input `Event`.
 After that, the `Behavior` has the value the `Event` had at the last time it fired.
+
+(We'll look at precisely what we mean by "after" in a moment)
 
 The use of the `MonadHold` typeclass constraint indicates that we're doing something that will have an effect on the behavior of the FRP network in future frames.
 Under the hood, `hold` is modifying the FRP network in order to add some state, so we can think of the `MonadHold` context as a builder for an FRP network.
