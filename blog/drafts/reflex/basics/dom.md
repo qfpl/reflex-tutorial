@@ -573,4 +573,4 @@ It's the biggest piece of functionality that we have put together so far, but it
 
 ## Next up
 
-In the next post we'll look at some tools `reflex` provides for making modifications to the graph in response to `Event`s.
+In the [next post](../switching/) we'll look at some tools `reflex` provides for making modifications to the graph in response to `Event`s.
