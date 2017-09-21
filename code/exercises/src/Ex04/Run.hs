@@ -16,6 +16,12 @@ import qualified Util.Bootstrap as B
 
 import Ex04.Common
 
+moneyDisplay ::
+  Money ->
+  Text
+moneyDisplay =
+  ("$" <>) . Text.pack . show
+
 stockWidget ::
   MonadWidget t m =>
   Dynamic t Stock ->
@@ -27,7 +33,7 @@ stockWidget dStock dSelected = divClass "row" $ do
   divClass "col-md-1" $
     dynText $ Text.pack . show . sQuantity <$> dStock
   divClass "col-md-1" $
-    dynText $ ("$" <>) . Text.pack . show . pCost . sProduct <$> dStock
+    dynText $ moneyDisplay . pCost . sProduct <$> dStock
   divClass "col-md-1" $ do
     let
       attrs =
@@ -55,8 +61,8 @@ mkStock i p e = mdo
   let
     dNonZero = (0 <) <$> dQuantity
     eSub     = gate (current dNonZero) e
-  dQuantity <- foldDyn ($) i $ 
-    subtract 1 <$ ffilter (== (pName p)) eSub
+  dQuantity <- foldDyn ($) i $
+    subtract 1 <$ ffilter (== pName p) eSub
   pure $ Stock p <$> dQuantity
 
 changeDisplay ::
@@ -65,8 +71,8 @@ changeDisplay ::
   , MonadHold t m
   ) =>
   Outputs t ->
-  m (Dynamic t Int)
-changeDisplay (Outputs eVend eSpend eChange eError) = 
+  m (Dynamic t Money)
+changeDisplay (Outputs _ eSpend eChange eError) =
   holdDyn 0 .  leftmost $ [
       eChange
     , 0 <$ eSpend
@@ -80,7 +86,7 @@ vendDisplay ::
   ) =>
   Outputs t ->
   m (Dynamic t Text)
-vendDisplay (Outputs eVend eSpend eChange eError) = 
+vendDisplay (Outputs eVend eSpend _ eError) =
   holdDyn "" .  leftmost $ [
      eVend
    , ""        <$  eSpend
@@ -101,7 +107,7 @@ trackMoney ::
   ) =>
   MoneyInputs t ->
   m (Dynamic t Money)
-trackMoney (MoneyInputs eAdd eSpend eRefund) = 
+trackMoney (MoneyInputs eAdd eSpend eRefund) =
   foldDyn ($) 0 . mergeWith (.) $ [
       (+ 1)    <$  eAdd
     , flip (-) <$> eSpend
@@ -153,7 +159,7 @@ host fn = B.panel $ divClass "container" $ mdo
       divClass "col-md-1" $
         text ""
       divClass "col-md-1" $
-        dynText $ ("$" <>) . Text.pack . show <$> dMoney
+        dynText $ moneyDisplay <$> dMoney
       divClass "col-md-1" $
         B.button "Add money"
 
@@ -171,8 +177,8 @@ host fn = B.panel $ divClass "container" $ mdo
       text "Change:"
     divClass "col-md-1" $
       text ""
-    divClass "col-md-1" $ do
-      dynText $ ("$" <>) . Text.pack . show <$> dChange
+    divClass "col-md-1" $
+      dynText $ moneyDisplay <$> dChange
     divClass "col-md-1" $
       B.button "Refund"
 
@@ -183,7 +189,7 @@ host fn = B.panel $ divClass "container" $ mdo
       text "Tray:"
     divClass "col-md-1" $
       text ""
-    divClass "col-md-1" $ do
+    divClass "col-md-1" $
       dynText dVend
     divClass "col-md-1" $
       text ""
