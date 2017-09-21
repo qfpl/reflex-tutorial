@@ -3,6 +3,12 @@
 } :
 let
   pkgs = reflex-platform.nixpkgs.pkgs;
+  
+  haskellPackages = reflex-platform.${compiler}.override {
+    overrides = self: super: {
+      wai-middleware-static = pkgs.haskell.lib.dontCheck (super.wai-middleware-static); 
+    }; 
+  };
 
   adjust-for-ghcjs = drv: {
     executableToolDepends = [pkgs.closurecompiler pkgs.zopfli];
@@ -36,6 +42,6 @@ let
     then adjust-for-ghcjs drv
     else drv;
 
-  exercises = pkgs.haskell.lib.overrideCabal (reflex-platform.${compiler}.callPackage ./exercises.nix {}) adjust;
+  exercises = pkgs.haskell.lib.overrideCabal (haskellPackages.callPackage ./exercises.nix {}) adjust;
 in
   exercises
