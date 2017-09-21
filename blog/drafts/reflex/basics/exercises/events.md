@@ -126,3 +126,4 @@ If you achieve those things, you should get something that behaves like this:
 A single `Event t Product` would be much easier to deal with than the trio of `eCarrot` , `eCelery` and `eCucumber`.
 
 There is a solution in `src/Ex01/Solution.hs`, but it's worth spending a little while on this if you get stuck before you have a look.
+You should definitely look at it when you're done though, because it has comments explaining what I did for my attempt that might be helpful.

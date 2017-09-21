@@ -409,7 +409,7 @@ The RxJS library isn't designed starting with semantics though, and so the risk 
 
 ## Playing along at home
 
-If you want to test out your understanding of `Event`s, there is an `Event`-themed exercise [here](../exercises/exercise-1/).
+If you want to test out your understanding of `Event`s, there is an `Event`-themed exercise [here](../exercises/events/).
 
 The goal is to introduce the problem that we'll be iterating on throughout the exercises in this series - building up a HTML vending machine.
 It doesn't use everything in this post, but it should be a good bite-sized piece to get you warmed up for the exercises that will follow.

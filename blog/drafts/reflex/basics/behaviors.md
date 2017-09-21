@@ -328,6 +328,11 @@ g <$> b1 <*> b2 <@ e3 :: Event t d
 
 This becomes pretty handy when you have a few `Behavior`s in flight at the same time.
 
+## Playing along at home
+
+If you want to test out your understanding of `Behavior`s, there is are `Behavior`-themed exercises [here](../exercises/behaviors/).
+The exercises continue from where the [`Event` exercises](../exercises/events/) left off, so it's probably worth doing them first.
+
 ## Next up
 
 `Event`s and `Behavior`s are the core types of FRP.
