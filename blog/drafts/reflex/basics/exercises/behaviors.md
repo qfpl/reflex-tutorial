@@ -45,7 +45,7 @@ data Outputs t =
 
 Update your solution to the previous exercise so that it takes into account the changes to the inputs and outputs.
 
-You can play with that in a browser by running:
+You can play with this in a browser by running:
 ```
 > nix-shell
 nix-shell> ./ex02.sh
@@ -85,7 +85,7 @@ data Inputs t =
 
 Update your solution to reflect this change.
 
-You can play with that in a browser by running:
+You can play with this in a browser by running:
 ```
 > nix-shell
 nix-shell> ./ex03.sh
@@ -122,7 +122,7 @@ data Stock =
   , sQuantity :: Int
   } deriving (Eq, Ord, Show)
 ```
-and we pass in the stock levels as `Behavior`s:
+and we will pass in the stock levels as `Behavior`s:
 ```haskell
 -- src/Ex04/Common.hs
 data Inputs t =
@@ -148,7 +148,7 @@ data Error =
 
 Update your solution to reflect this change.
 
-You can play with that in a browser by running:
+You can play with this in a browser by running:
 ```
 > nix-shell
 nix-shell> ./ex04.sh
