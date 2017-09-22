@@ -1,0 +1,3 @@
+:set prompt "> "
+:set -isrc
+:load Ex08.Solution

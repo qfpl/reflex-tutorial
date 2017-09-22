@@ -10,6 +10,9 @@ import Ex02.Solution
 import Ex03.Solution
 import Ex04.Solution
 import Ex05.Solution
+import Ex06.Solution
+import Ex07.Solution
+import Ex08.Solution
 
 solutions :: JSM ()
 solutions = do
@@ -19,3 +22,6 @@ solutions = do
   attachEx03
   attachEx04
   attachEx05
+  attachEx06
+  attachEx07
+  attachEx08

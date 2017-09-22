@@ -37,6 +37,15 @@ library
     , Ex05.Common
     , Ex05.Solution
     , Ex05.Run
+    , Ex06.Common
+    , Ex06.Solution
+    , Ex06.Run
+    , Ex07.Common
+    , Ex07.Solution
+    , Ex07.Run
+    , Ex08.Common
+    , Ex08.Solution
+    , Ex08.Run
     , Util.Attach
     , Util.Reflex
     , Util.Bootstrap
