@@ -6,7 +6,7 @@ project: reflex
 extra-js: /js/reflex/basics-exercises/solutions.min.js
 ---
 
-If you haven't done it already, I'd work through [the `Event` exercise](../events/), since this builds on it.
+If you haven't done it already, I'd work through [the `Event` exercise](../events/), since these builds on it.
 
 ## The first change
 
