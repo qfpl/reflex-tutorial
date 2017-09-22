@@ -34,6 +34,9 @@ library
     , Ex04.Common
     , Ex04.Solution
     , Ex04.Run
+    , Ex05.Common
+    , Ex05.Solution
+    , Ex05.Run
     , Util.Attach
     , Util.Reflex
     , Util.Bootstrap
