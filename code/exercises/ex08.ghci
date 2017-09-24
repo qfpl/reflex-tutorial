@@ -1,3 +1,3 @@
 :set prompt "> "
 :set -isrc
-:load Ex08.Solution
+:load Ex08.Exercise
