@@ -332,7 +332,7 @@ This becomes pretty handy when you have a few `Behavior`s in flight at the same 
 
 ## Playing along at home
 
-If you want to test out your understanding of `Behavior`s, there is are `Behavior`-themed exercises [here](../exercises/behaviors/).
+If you want to test out your understanding of `Behavior`s, there are `Behavior`-themed exercises [here](../exercises/behaviors/).
 The exercises continue from where the [`Event` exercises](../exercises/events/) left off, so it's probably worth doing them first.
 
 ## Next up
