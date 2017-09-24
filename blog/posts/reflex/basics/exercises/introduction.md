@@ -48,8 +48,8 @@ to `/etc/nixos/configuration.nix` and then running `sudo nixos-rebuild switch`.
 
 If you're not on NixOS, you can add 
 ```
-binary-caches = [ "https://cache.nixos.org" "https://nixcache.reflex-frp.org" ];
-binary-cache=public-keys = [ "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=" ];
+binary-caches = https://cache.nixos.org https://nixcache.reflex-frp.org 
+binary-cache-public-keys = ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=
 ```
 to `/etc/nix/nix.conf` and you should be good to go.
 
