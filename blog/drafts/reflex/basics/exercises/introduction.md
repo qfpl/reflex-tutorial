@@ -38,6 +38,8 @@ to set up your paths.
 There are some platform-specific notes on the `reflex-platform` page that imply that things might be broken on Arch Linux and things might need some tweaking on Linux Mint.
 
 I've also had to fiddle around to get Nix working on OS X in the past, but runing `try-reflex` and adding the binary caches worked for me when I tried it.
+I have vague memories of using homebrew to install things that were missing from the host environment when I last had trouble, so that might be a useful thing to try.
+Let me know if you have problems and I'll try to find a way to help.
 
 ### Binary cache setup
 
