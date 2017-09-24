@@ -29,6 +29,12 @@ You could also get Nix set up by doing:
 ```
 as per our post on [Getting started with Nix](https://blog.qfpl.io/posts/nix/getting-started-with-nix/).
 
+You'll probably also want to run
+```
+source ~/.nix-profile/etc/profile.d/nix.sh
+```
+to set up your paths.
+
 There are some platform-specific notes on the `reflex-platform` page that imply that things might be broken on Arch Linux and things might need some tweaking on Linux Mint.
 
 I've also had to fiddle around to get `reflex` working on OS X.
