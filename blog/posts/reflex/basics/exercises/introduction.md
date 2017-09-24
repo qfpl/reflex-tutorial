@@ -29,7 +29,7 @@ You could also get Nix set up by doing:
 ```
 as per our post on [Getting started with Nix](https://blog.qfpl.io/posts/nix/getting-started-with-nix/).
 
-You'll probably also want to run
+You'll probably also want to run:
 ```
 source ~/.nix-profile/etc/profile.d/nix.sh
 ```
@@ -44,14 +44,14 @@ I've also had to fiddle around to get Nix working on OS X in the past, but runin
 You probably want to get hold of some of the dependencies in binary form, rather than getting hold of them in source form and building them.
 It'll save you a lot of time.
 
-If you're on NixOS, you can add the `reflex` binary caches by adding 
+If you're on NixOS, you can add the `reflex` binary caches by adding:
 ```
 nix.binaryCaches = [ "https://cache.nixos.org" "https://nixcache.reflex-frp.org" ];
 nix.binaryCachePublicKeys = [ "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=" ];
 ```
 to `/etc/nixos/configuration.nix` and then running `sudo nixos-rebuild switch`.
 
-If you're not on NixOS, you can add 
+If you're not on NixOS, you can add:
 ```
 binary-caches = https://cache.nixos.org https://nixcache.reflex-frp.org 
 binary-cache-public-keys = ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=
