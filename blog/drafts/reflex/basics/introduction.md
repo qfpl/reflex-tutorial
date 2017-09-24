@@ -129,26 +129,16 @@ There's a bit of a risk of something happening if you're working with some of th
 
 ## Getting started
 
-The easiest way to install the `reflex` library is via the `reflex-platform`:
-```
-> git clone https://github.com/reflex-frp/reflex-platform
-> cd reflex-platform
-> ./try-reflex
-```
-although you should make sure to read the OS compatibility notes in the `reflex-platform` README if they apply to you.
+The [`reflex-platform`](https://github.com/reflex-frp/reflex-platform) contains various scripts that makes it easier to get started with `reflex`.
+It uses Nix under the hood, but mostly takes care of that for you.
 
-The `reflex-platform` uses Nix behind the scenes to set things up, so we don't have to jump through any hoops to set up GHCJS and things like that.
-The `./try-reflex` script should install Nix and setup the binary caches for you, which will save you lots of time (although it may not feel like it the first time this runs).
-
-For the most part we don't need to know any Nix to make use of this, because `reflex-platform` comes with some handy shell scripts.
-
-If we have a `cabal` based project lying around that we want to compile with GHCJS, we can use:
+Once we get that going and if we have a `cabal` based project lying around, then we can compile with GHCJS using:
 ```
 > cd my-cabal-project
 > PATH_TO_REFLEX_PLATFORM/work-on ghcjs ./.
 > cabal configure --ghcjs
 ```
-and if we want to compile it with GHC:
+or compile with GHC using:
 ```
 > cd my-cabal-project
 > PATH_TO_REFLEX_PLATFORM/work-on ghc ./.
@@ -157,7 +147,7 @@ and if we want to compile it with GHC:
 
 We'll look at using Nix to do much fancier things later on in this series.
 
-If you want to test out this setup and some associated tooling, we have an [exercise](../exercises/introduction/) for just that purpose.
+If you want to test out this setup and some associated tooling, we have an [exercise](../exercises/introduction/) for the purpose of getting you going.
 
 ## Acknowledgements
 
