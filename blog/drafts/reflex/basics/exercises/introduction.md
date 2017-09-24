@@ -37,8 +37,7 @@ to set up your paths.
 
 There are some platform-specific notes on the `reflex-platform` page that imply that things might be broken on Arch Linux and things might need some tweaking on Linux Mint.
 
-I've also had to fiddle around to get `reflex` working on OS X.
-I'll try again soon and add some notes here once I have some more information on what is going on there.
+I've also had to fiddle around to get Nix working on OS X in the past, but runing `try-reflex` and adding the binary caches worked for me when I tried it.
 
 ### Binary cache setup
 
