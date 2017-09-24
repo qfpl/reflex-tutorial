@@ -485,6 +485,11 @@ Which does what we want with respect to minimizing unnecessary updates:
 This highlights an additional issue with our implementation of `dynPair` - if we clicked the same button over and over, we'd trigger updates even when the state wasn't changing.
 If this was important to us we could address this by using `holdUniqDyn` within `dynPair` itself.
 
+## Playing along at home
+
+If you want to test out your understanding of `Dynamic`s, there are `Dynamic`-themed exercises [here](../exercises/dynamics/).
+The exercises build up incrementally as the series progresses, so it would probably best to do the exercises from the start of the series.
+
 ## Next up
 
 We now have all the pieces that we need to build an FRP network.

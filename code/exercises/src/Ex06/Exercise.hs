@@ -4,6 +4,7 @@ module Ex06.Exercise where
 
 import Control.Monad.Fix (MonadFix)
 
+import Data.Text (Text)
 import qualified Data.Map as Map
 
 import Reflex

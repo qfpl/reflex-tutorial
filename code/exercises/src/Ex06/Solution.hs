@@ -8,6 +8,7 @@ import Language.Javascript.JSaddle (JSM)
 
 import Control.Monad.Fix (MonadFix)
 
+import Data.Text (Text)
 import qualified Data.Map as Map
 
 import Reflex
@@ -67,7 +68,13 @@ ex06 (Inputs dMoney dCarrot dCelery dCucumber dSelected eBuy eRefund) =
 
     eChange =
       current dMoney <@ eRefund
+  -- We start to use a `do` block to build up these `Dynamic`s
   in do
+
+    -- We can get away with `holdDyn` for both of these, and
+    -- then it's just a matter of remember which `Event`s we
+    -- want to involve.
+
     dChange <- holdDyn 0 .  leftmost $ [
         eChange
       , 0 <$ eSpend
@@ -80,7 +87,43 @@ ex06 (Inputs dMoney dCarrot dCelery dCucumber dSelected eBuy eRefund) =
       , errorText <$> eError
       ]
 
+    -- If you're doing the optional extra and breaking these
+    -- out into their own functions, they appear below as
+    -- `changeDisplay` and `vendDisplay`.
+
     pure $ Outputs eVend eSpend eChange eError dChange dVend
+
+changeDisplay ::
+  ( Reflex t
+  , MonadFix m
+  , MonadHold t m
+  ) =>
+  Event t Money ->
+  Event t Money ->
+  Event t Error ->
+  m (Dynamic t Money)
+changeDisplay eSpend eChange eError =
+  holdDyn 0 .  leftmost $ [
+      eChange
+    , 0 <$ eSpend
+    , 0 <$ eError
+    ]
+
+vendDisplay ::
+  ( Reflex t
+  , MonadFix m
+  , MonadHold t m
+  ) =>
+  Event t Text ->
+  Event t Money ->
+  Event t Error ->
+  m (Dynamic t Text)
+vendDisplay eVend eSpend eError =
+  holdDyn "" .  leftmost $ [
+     eVend
+   , ""        <$  eSpend
+   , errorText <$> eError
+   ]
 
 attachEx06 ::
   JSM ()

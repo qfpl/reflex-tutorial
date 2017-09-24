@@ -35,9 +35,14 @@ mkStock ::
   m (Dynamic t Stock)
 mkStock i p e = mdo
   let
+    -- track when we have at least one item in stock
     dNonZero = (0 <) <$> dQuantity
+    -- only pass through vend events when we have stock
     eSub     = gate (current dNonZero) e
+
+  -- We are only ever decreasing the stock by one unit
   dQuantity <- foldDyn ($) i $
+    -- but only when the name matches and we have stock to vend
     subtract 1 <$ ffilter (== pName p) eSub
   pure $ Stock p <$> dQuantity
 
@@ -88,25 +93,70 @@ ex08 (Inputs dCarrot dCelery dCucumber dSelected eAdd eBuy eRefund) = mdo
     eChange =
       current dMoney <@ eRefund
 
+  dMoney  <- trackMoney eAdd eSpend eRefund
+
+  dChange <- changeDisplay eChange eSpend eError
+  dVend   <- vendDisplay eVend eSpend eError
+
+  pure $ Outputs eVend eSpend eChange eError dMoney dChange dVend
+
+trackMoney ::
+  ( Reflex t
+  , MonadFix m
+  , MonadHold t m
+  ) =>
+  Event t () ->
+  Event t Money ->
+  Event t () ->
+  m (Dynamic t Money)
+trackMoney eAdd eSpend eRefund = mdo
+  let
+    isOverspend money price =
+      money < price
+    eOverspend =
+      isOverspend <$> current dMoney <@> eSpend
+    eSpendOK =
+      difference eSpend (ffilter id eOverspend)
+
   dMoney <- foldDyn ($) 0 . mergeWith (.) $ [
       (+ 1)    <$  eAdd
-    , flip (-) <$> eSpend
+    , flip (-) <$> eSpendOK
     , const 0  <$  eRefund
     ]
 
-  dChange <- holdDyn 0 .  leftmost $ [
+  pure dMoney
+
+changeDisplay ::
+  ( Reflex t
+  , MonadFix m
+  , MonadHold t m
+  ) =>
+  Event t Money ->
+  Event t Money ->
+  Event t Error ->
+  m (Dynamic t Money)
+changeDisplay eSpend eChange eError =
+  holdDyn 0 .  leftmost $ [
       eChange
     , 0 <$ eSpend
     , 0 <$ eError
     ]
 
-  dVend <- holdDyn "" .  leftmost $ [
-      eVend
-    , ""        <$  eSpend
-    , errorText <$> eError
-    ]
-
-  pure $ Outputs eVend eSpend eChange eError dMoney dChange dVend
+vendDisplay ::
+  ( Reflex t
+  , MonadFix m
+  , MonadHold t m
+  ) =>
+  Event t Text ->
+  Event t Money ->
+  Event t Error ->
+  m (Dynamic t Text)
+vendDisplay eVend eSpend eError =
+  holdDyn "" .  leftmost $ [
+     eVend
+   , ""        <$  eSpend
+   , errorText <$> eError
+   ]
 
 attachEx08 ::
   JSM ()

@@ -25,12 +25,16 @@ ex05 ::
   Outputs t
 ex05 (Inputs dMoney dCarrot dCelery dCucumber dSelected eBuy eRefund) =
   let
+    -- The typeclass instances that we are using here are available
+    -- for both `Behavior`s and `Dynamic`s, so this is mostly a change
+    -- of variable names
     dStocks =
       [dCarrot, dCelery, dCucumber]
     stockSingleton s =
       Map.singleton (pName . sProduct $ s) s
     dmStock =
       foldMap (fmap stockSingleton) dStocks
+    -- We use `current` to get hold of the `Behavior` here
     emStock =
       Map.lookup <$> current dSelected <*> current dmStock <@ eBuy
     eStock =
@@ -43,6 +47,7 @@ ex05 (Inputs dMoney dCarrot dCelery dCucumber dSelected eBuy eRefund) =
 
     checkNotEnoughMoney money s =
       money < (pCost . sProduct $ s)
+    -- We use `current` to get hold of the `Behavior` here
     eNotEnoughMoney =
       NotEnoughMoney <$ ffilter id (checkNotEnoughMoney <$> current dMoney <@> eStock)
 

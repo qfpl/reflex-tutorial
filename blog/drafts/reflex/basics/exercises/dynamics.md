@@ -9,7 +9,9 @@ extra-js: /js/reflex/basics-exercises/solutions.min.js
 If you haven't done it already, I'd work through [the `Behavior` exercises](../behaviors/), since these builds from there.
 
 None of these exercises will change the overall behavior of our application.
-Instead they'll expose more the application, that was previously being taken care of behind the scenes
+Instead they'll expose more of the application that was previously being taken care of behind the scenes.
+
+You'll probably want to copy pieces of your solutions from exercise to exercise as they progress.
 
 ## The first change
 
@@ -70,7 +72,7 @@ data Outputs t =
   }
 ```
 
-The `odChange` `Dynamic` will show the change issued if change is issued, and will be cleared back to zero whenever anything else happens.
+The `odChange` `Dynamic` will be used to display the change issued from the machine, which will be cleared back to zero whenever anything else happens.
 
 The `odVend` `Dynamic` will show the name of the product that is vended in the event of a successful sale, will show an error message if an error occurred, and will be cleared back to an empty string whenever anything else happens.
 
@@ -81,6 +83,11 @@ errorText :: Error -> Text
 ```
 
 Update your solution to reflect this change.
+
+As an optional extra exercise, you could write the code to create these `Dynamic`s with new top-level functions.
+
+If you do this: which style do you prefer?
+Lots of functions, or inlining everything into one big function?
 
 You can play with this in a browser by running:
 ```
@@ -101,15 +108,13 @@ which should be behaving the same way as everything else on this page.
 
 Both of the `Dynamic`s that you need to produce will hold onto the last value that they've seen.
 
-TODO optional extra
-TODO - separate out the code that builds these dynamics into functions
-
 There is a solution in `src/Ex06/Solution.hs`, which you should look at when you're done or if you give up.
 
 ## The third change
 
-TODO
+The next change is to add the code that manages the amount of money in the machine.
 
+We add in an `Event` which fires when the customer adds a dollar to the machine:
 ```haskell
 data Inputs t =
   Inputs {
@@ -122,7 +127,7 @@ data Inputs t =
   , ieRefund   :: Event t ()
   }
 ```
-
+and we have moved the `Dynamic` tracking the amount of money in the machine from the `Inputs` to the `Outputs`:
 ```haskell
 data Outputs t =
   Outputs {
@@ -137,6 +142,16 @@ data Outputs t =
 ```
 
 Update your solution to reflect this change.
+
+Separate the code for managing the money out into it's own function.
+Make sure that the amount of money can never go negative.
+
+Separating out the function is only one step along the separation-of-concerns axis.
+We could go further and create a `MoneyInputs` type to gather the `Event`s that are used as inputs to the function.
+
+Give that a go if it sounds interesting to you.
+What do you think of it?
+Is being that explicit worth the extra typing for you, or would you rather just solve problems of this size inline and move on?
 
 You can play with this in a browser by running:
 ```
@@ -158,17 +173,42 @@ which should be behaving the same way as everything else on this page.
 There are three `Event`s which will effect the amount of money in the machine.
 Make sure that you deal with them all.
 
-TODO optional extra
-TODO - gate the network so it never goes negative
-TODO - separate it out into another function
-
 There is a solution in `src/Ex07/Solution.hs`, which you should look at when you're done or if you give up.
 
 ## The fourth change
 
-TODO
+You now need to fill out the body of the function which creates the `Dynamic`s for the items in stock:
+```haskell
+-- src/Ex08/Exercise.hs
+mkStock ::
+  ( Reflex t
+  , MonadHold t m
+  , MonadFix m
+  ) =>
+  Int ->
+  Product ->
+  Event t Text ->
+  m (Dynamic t Stock)
+```
 
-Update your solution to reflect this change.
+The function takes an initial stock level, the product to stock, and an `Event` which fires with the name of the product when a product is vended.
+Make sure that you will never end up with a negative quantity of stock.
+
+In case a reminder is helpful, the `Product` and `Stock` data types look like this:
+```haskell
+-- src/Ex08/Common.hs
+data Product =
+  Product {
+    pName :: Text
+  , pCost :: Money
+  }
+
+data Stock =
+  Stock {
+    sProduct  :: Product
+  , sQuantity :: Int
+  }
+```
 
 You can play with this in a browser by running:
 ```
@@ -187,6 +227,6 @@ which should be behaving the same way as everything else on this page.
 
 ### Hints
 
-TODO
+You should have all of the pieces you need for this by now, although it might take more `Event`-wrangling than the previous exercises on this page.
 
 There is a solution in `src/Ex08/Solution.hs`, which you should look at when you're done or if you give up.
