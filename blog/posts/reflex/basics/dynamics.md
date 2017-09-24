@@ -494,4 +494,5 @@ The exercises build up incrementally as the series progresses, so it would proba
 
 We now have all the pieces that we need to build an FRP network.
 
-In the [next post](../dom/) we'll start looking at how to create DOM elements using `reflex-dom`.
+In the next post we'll start looking at how to create DOM elements using `reflex-dom`.
+<!--In the [next post](../dom/) we'll start looking at how to create DOM elements using `reflex-dom`.-->

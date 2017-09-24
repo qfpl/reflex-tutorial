@@ -342,5 +342,4 @@ The exercises continue from where the [`Event` exercises](../exercises/events/) 
 The `reflex` library also has a type that combines the two together.
 This is done for performance reasons, but also nicely encapsulates a pattern from FRP folklore.
 
-In the next post we'll look at the combination of the two - `Dynamic`s.
-<!--In the [next post](../dynamics/) we'll look at the combination of the two - `Dynamic`s.-->
+In the [next post](../dynamics/) we'll look at the combination of the two - `Dynamic`s.
