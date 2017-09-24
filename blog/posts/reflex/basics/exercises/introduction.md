@@ -7,10 +7,53 @@ extra-css: /css/reflex/basics-exercises/solutions/ex00.css
 extra-js: /js/reflex/basics-exercises/solutions.min.js
 ---
 
-## Getting set up
+## Getting set up with Nix
 
-Checkout a copy of the [reflex platform](https://github.com/reflex-frp/reflex-platform), read any OS compatibility notes from the README that apply to you, and then run the `./try-reflex` script to install Nix for you.
-This should also setup the binary caches for you, which will save you lots of time (although it may not feel like it the first time this runs).
+This is all set up with Nix. 
+If you don't have Nix installed, you can get going with the `try-reflex` script from the `reflex-platform` repository:
+```
+> git clone https://github.com/reflex-frp/reflex-platform
+> git checkout b7c00b35
+> cd reflex-platform
+> ./try-reflex
+```
+and then you'll be able to use the `work-on` script later on, which is pretty handy.
+
+(The specific commit is referenced there so that it matched the version of the `reflex-platform` that I used in my Nix files)
+
+You could also get Nix set up by doing:
+```
+> sudo mkdir /nix
+> sudo chown myuser /nix
+> curl https://nixos.org/nix/install | sh
+```
+as per our post on [Getting started with Nix](https://blog.qfpl.io/posts/nix/getting-started-with-nix/).
+
+There are some platform-specific notes on the `reflex-platform` page that imply that things might be broken on Arch Linux and things might need some tweaking on Linux Mint.
+
+I've also had to fiddle around to get `reflex` working on OS X.
+I'll try again soon and add some notes here once I have some more information on what is going on there.
+
+### Binary cache setup
+
+You probably want to get hold of some of the dependencies in binary form, rather than getting hold of them in source form and building them.
+It'll save you a lot of time.
+
+If you're on NixOS, you can add the `reflex` binary caches by adding 
+```
+nix.binaryCaches = [ "https://cache.nixos.org" "https://nixcache.reflex-frp.org" ];
+nix.binaryCachePublicKeys = [ "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=" ];
+```
+to `/etc/nixos/configuration.nix` and then running `sudo nixos-rebuild switch`.
+
+If you're not on NixOS, you can add 
+```
+binary-caches = [ "https://cache.nixos.org" "https://nixcache.reflex-frp.org" ];
+binary-cache=public-keys = [ "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=" ];
+```
+to `/etc/nix/nix.conf` and you should be good to go.
+
+## Getting set up with this tutorial
 
 Once you have done that, or if you have Nix installed and the `reflex` binary caches setup already, check out this repository and open a `nix-shell` in the exercises directory:
 ```
