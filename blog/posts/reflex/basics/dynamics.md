@@ -354,7 +354,7 @@ counter dLimit eAdd eClear = do
 
   pure dCount
 ```
-but we can resolve this by add the `RecursiveDo` language pragma and replacing the the `do` keyword with `mdo`:
+but we can resolve this by adding the `RecursiveDo` language pragma and replacing the the `do` keyword with `mdo`:
 ```haskell
 {-# LANGUAGE RecursiveDo #-}
 counter :: (Reflex t, MonadFix m, MonadHold t m) 
