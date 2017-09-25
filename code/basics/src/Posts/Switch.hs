@@ -412,22 +412,17 @@ workflowExample ::
 workflowExample w = B.panel . elClass "div" "widget-hold-wrapper" $ do
   eSwitch <- el "div" $
     B.button "Switch"
-  dToggle <- toggle True eSwitch
 
   let
-    dNotToggle = not <$> dToggle
-    eShow1  = ffilter id . updated $ dToggle
-    eShow2  = ffilter id . updated $ dNotToggle
-
     wf1 :: Workflow t m (Event t Text)
     wf1 = Workflow $ do
       eText <- textWidget
-      pure (eText, wf2 <$ eShow2)
+      pure (eText, wf2 <$ eSwitch)
 
     wf2 :: Workflow t m (Event t Text)
     wf2 = Workflow $ do
       eText <- w
-      pure (eText, wf1 <$ eShow1)
+      pure (eText, wf1 <$ eSwitch)
 
   deText <- workflow wf1
 
@@ -449,6 +444,9 @@ workflowExample1 ::
   MonadWidget t m =>
   m ()
 workflowExample1 = B.panel . elClass "div" "widget-hold-wrapper" $ mdo
+  eSwitch <- el "div" $
+    B.button "Switch"
+
   let
     wf1 :: Workflow t m (Event t Text)
     wf1 = Workflow $ do
@@ -466,9 +464,6 @@ workflowExample1 = B.panel . elClass "div" "widget-hold-wrapper" $ mdo
       pure (eText, wf1 <$ eSwitch)
 
   deText <- workflow wf1
-
-  eSwitch <- el "div" $
-    B.button "Switch"
 
   let
     eText  = switch . current $ deText

@@ -23,7 +23,7 @@ There are two kinds of switching functions available to us:
 - functions that modify the FRP network in response to input
 - functions that modify the DOM in response to input
 
-We'll cover those one at a time.
+We'll cover these one at a time.
 
 ## Higher-order FRP
 
@@ -232,7 +232,11 @@ switchPrompty :: (Reflex t, MonadHold t m)
               -> Event t    (Event t    a)
               -> m          (Event t    a)
 ```
-resulting in:
+which takes an initial `Event`, along with an `Event` which fires with a new `Event` as the value. 
+The output `Event` starts as the initial `Event`.
+Whenever the outer `Event` of the second input fires, the output switches to the inner `Event` of the second input.
+
+This results in:
 ```haskell
 leftInput :: (Reflex t, MonadHold t m) 
           => Event t () 
@@ -287,7 +291,80 @@ We'd like to switch between displaying these widgets and collect the `Event t Te
 
 Imagine that we are very keen on premature optimization, and we know that modifying the structure of the DOM is slow but modifying attributes on the DOM is fast.
 
-We could solve this problem by hiding elements and gating their outputs based on whether or not they are displayed:
+We could solve this problem by hiding elements and gating their outputs based on whether or not they are displayed.
+
+We start by putting a button on the page:
+```haskell
+hideWidget :: MonadWidget t m 
+           => m ()
+hideWidget = el "div" $ do
+  eSwitch <- el "div" $
+    button "Switch"
+```
+and we track how many times it has been toggled:
+```haskell
+  dToggle <- toggle True eSwitch
+```
+
+This is using a handy helper function from `reflex` in passing:
+```haskell
+toggle :: MonadHold t m 
+       => Bool 
+       -> Event a 
+       -> m (Dynamic Bool)
+```
+to toggle a `Bool` when an `Event` fires.
+
+We also set up a `Dynamic` with the negation of that `Bool`, because it will be handy in a moment:
+```haskell
+  let
+    dNotToggle = not <$> dToggle
+```
+
+We write a helper function to toggle the "hidden" attribute based on a `Bool`:
+```haskell
+    mkHidden False = "hidden" =: ""
+    mkHidden True  = mempty
+```
+which we use to create a pair of `Dynamic` attribute maps:
+```haskell
+    dHide1 = mkHidden <$>    dToggle
+    dHide2 = mkHidden <$> dNotToggle
+```
+
+Now we can wrap our widgets in divs that will be hidden or shown based on how many times the button has been pressed:
+```haskell
+  eText1 <- elDynAttr "div" dHide1
+    textWidget
+
+  eText2 <- elDynAttr "div" dHide2
+    buttonWidget
+```
+
+We need to gate the outputs so that only `Event`s from the currently displayed widget flow through:
+```haskell
+  let
+    eText =
+      leftmost [
+          gate (current    dToggle) eText1
+        , gate (current dNotToggle) eText2
+        ]
+```
+
+That output gets turned into a `Dynamic` so that we can display it, which we clear whenever the "Switch" button is pressed:
+```haskell
+  dText <- holdDyn "" . leftmost $ [
+               eText
+             , "" <$ eSwitch
+             ]
+```
+after which we put it on the page:
+```haskell
+  el "div" $
+    dynText dText
+```
+
+Here it is in one piece:
 ```haskell
 hideWidget :: MonadWidget t m 
            => m ()
@@ -339,15 +416,6 @@ hideWidget = el "div" $ do
     dynText dText
 ```
 
-This is using a handy helper function from `reflex` in passing:
-```haskell
-toggle :: MonadHold t m 
-       => Bool 
-       -> Event a 
-       -> m (Dynamic Bool)
-```
-to toggle a `Bool` when an `Event` fires.
-
 If we click around with this:
 <div id="examples-switch-hide-button"></div>
 we'll see that we're definitely not adding or removing elements from the DOM, because the state of the text input is being maintained across clicks of the "Switch" button.
@@ -359,15 +427,79 @@ This is even more pronounced if we use the timer widget in place of the button w
 
 If want to have freshly laid out widgets every time we click the "Switch" button, we need some new functions.
 
+The first of these is `widgetHold`:
 ```haskell
-widgetHold :: (MonadAdjust t m, MonadHold t m) 
+widgetHold :: (Reflex t, Monad m, MonadAdjust t m) 
            =>               m a 
            ->    Event   t (m a) 
            -> m (Dynamic t    a)
 ```
 
-TODO mention blank
+The first argument is the initial widget to lay out on the page.
+The second argument is an `Event` with the next widget to lay out on the page as its value.
+The values that these widgets return are collected into a `Dynamic`.
+We'll see why you would want this in a moment.
 
+The `MonadAdjust` typeclass is present here so that we can replace pieces of the FRP network.
+
+You might wonder how we managed without this for the switching functions at the beginning of this post.
+If we think of an FRP network as a graph, the earlier switch function were moving edges around between nodes.
+We could completely remove a piece of the graph - with help from the garbage collector - if nothing is connected to it and if we know that nothing will ever be connected to it again, but that is the only way we could effect the nodes via switching.
+For all other cases where we want to add or remove nodes, we need the `MonadAdjust` typeclass to place and connect new nodes when certain `Event`s fire.
+
+In the same way that we have `never` for when we need an `Event` which doesn't fire, we have `blank` for when we need a widget that doesn't display on the page.
+Sometimes that is useful as an initial value for `widgetHold`, but not always.
+
+With all of that out of the way, let us have a look at how we might use `widgetHold`.
+
+We start with the same button and toggling `Dynamic` that we used for `hideWidget`:
+```haskell
+holdWidget :: MonadWidget t m 
+           => m ()
+holdWidget = el "div" $ do
+  eSwitch <- el "div" $
+    button "Switch"
+
+  dToggle <- toggle True eSwitch
+```
+
+To use `widgetHold` we're going to need `Event`s that trigger when we want to change widgets, so we set some up:
+```haskell
+  let
+    eShow1  = ffilter id  . updated $ dToggle
+    eShow2  = ffilter not . updated $ dToggle
+```
+
+Now that we have the pieces in place, we use `widgetHold` to put `textWidget` on the page, and to switch between the two widgets depending on how many times the "Switch" button has been pressed:
+```haskell
+  deText <- widgetHold textWidget . leftmost $ [
+      textWidget   <$ eShow1
+    , buttonWidget <$ eShow2
+    ]
+```
+
+This gives us a `Dynamic t (Event t Text)`, and we want an `Event t Text`.
+
+There is a function with this signature, but it's hardly ever what you want.
+
+In most cases we'll use `switch . current` to make that transition:
+```haskell
+  let
+    eText = switch . current $ deText
+```
+
+At that point we have what we need to display the output on the page as before:
+```haskell
+  dText <- holdDyn "" . leftmost $ [
+               eText
+             , "" <$ eSwitch
+             ]
+
+  el "div" $
+    dynText dText
+```
+
+All together it looks like:
 ```haskell
 holdWidget :: MonadWidget t m 
            => m ()
@@ -383,7 +515,8 @@ holdWidget = el "div" $ do
     -- This will fire when `dToggle` changes to `False`
     eShow2  = ffilter not . updated $ dToggle
 
-  -- Start with `textWidget`
+  -- Builds up a `Dynamic t (Event t Text)`
+  -- Starts with `textWidget`
   deText <- widgetHold textWidget . leftmost $ [
       -- Switch to `textWidget` when `dToggle` change to `True`
       textWidget   <$ eShow1
@@ -413,16 +546,58 @@ and with this:
 
 These are small examples, but the idea gets more useful as you do more adventurous things.
 
-TODO example
-
 If we don't know what we want to use as an initial value for `widgetHold`, we can use `dyn`:
 ```haskell
-dyn        :: (MonadAdjust t m, MonadHold t m) 
+dyn        :: (Reflex t, Monad m, MonadAdjust t m, PostBuild t m) 
            =>    Dynamic t (m a) 
            -> m (Event   t    a)
 ```
+although `widgetHold` is probably a better bet if you have a choice between the two.
 
-TODO comment me
+
+To use it, we would start with something that should look very familiar:
+```haskell
+dynWidget :: MonadWidget t m 
+           => m ()
+dynWidget = el "div" $ do
+  eSwitch <- el "div" $
+    button "Switch"
+
+  dToggle <- toggle True eSwitch
+
+  let
+    eShow1  = ffilter id  . updated $ dToggle
+    eShow2  = ffilter not . updated $ dToggle
+```
+
+We'll build a `Dynamic` of widgets that return `Event t Text`:
+```haskell
+  dWidget <- holdDyn textWidget . leftmost $ [
+      textWidget   <$ eShow1
+    , buttonWidget <$ eShow2
+    ]
+```
+and we'll use `dyn` to collect the outptuts into an `Event t (Event t Text)`:
+```haskell
+  eeText <- dyn dWidget
+```
+
+We can collapse these to an `Event t Text` using `switchPromptly`, using `never` as the inital `Event`:
+```haskell
+  eText  <- switchPromptly never eeText
+```
+and then we proceed as normal:
+```haskell
+  dText <- holdDyn "" . leftmost $ [
+               eText
+             , "" <$ eSwitch
+             ]
+
+  el "div" $
+    dynText dText
+```
+
+All in one place it looks like this:
 ```haskell
 dynWidget :: MonadWidget t m 
            => m ()
@@ -436,12 +611,15 @@ dynWidget = el "div" $ do
     eShow1  = ffilter id  . updated $ dToggle
     eShow2  = ffilter not . updated $ dToggle
 
+  -- Builds up a `Dynamic` of widgets that return `Event t Text`:
   dWidget <- holdDyn textWidget . leftmost $ [
       textWidget   <$ eShow1
     , buttonWidget <$ eShow2
     ]
 
+  -- Using `dyn` on this gives us an `Event t (Event t Text)`:
   eeText <- dyn dWidget
+  -- and we can use `switchPromptly` to turn that into an `Event t Text`:
   eText  <- switchPromptly never eeText
 
   dText <- holdDyn "" . leftmost $ [
@@ -455,6 +633,7 @@ dynWidget = el "div" $ do
 
 ### Using `Workflow`
 
+TODO explain
 ```haskell
 newtype Workflow t m a = Workflow { 
     unWorkflow :: m (a, Event t (Workflow t m a))
@@ -467,27 +646,61 @@ workflow :: (DomBuilder t m, MonadFix m, MonadHold t m)
          -> m (Dynamic t a)
 ```
 
+TODO explain
 ```haskell
 workflowWidget :: MonadWidget t m => m ()
 workflowWidget = el "div" $ do
   eSwitch <- el "div" $
     button "Switch"
-  dToggle <- toggle True eSwitch
+```
 
+```haskell
   let
-    dNotToggle = not <$> dToggle
-    eShow1  = ffilter id . updated $ dToggle
-    eShow2  = ffilter id . updated $ dNotToggle
-
     wf1 :: Workflow t m (Event t Text)
     wf1 = Workflow $ do
       eText <- textWidget
-      pure (eText, wf2 <$ eShow2)
+      pure (eText, wf2 <$ eSwitch)
 
     wf2 :: Workflow t m (Event t Text)
     wf2 = Workflow $ do
       eText <- tickWidget
-      pure (eText, wf1 <$ eShow1)
+      pure (eText, wf1 <$ eSwitch)
+```
+
+```haskell
+  deText <- workflow wf1
+```
+
+```haskell
+  let
+    eText  = switch . current $ deText
+
+  dText <- holdDyn "" . leftmost $ [
+               eText
+             , "" <$ eSwitch
+             ]
+
+  el "div"$
+    dynText dText
+```
+
+TODO comment me
+```haskell
+workflowWidget :: MonadWidget t m => m ()
+workflowWidget = el "div" $ do
+  eSwitch <- el "div" $
+    button "Switch"
+
+  let
+    wf1 :: Workflow t m (Event t Text)
+    wf1 = Workflow $ do
+      eText <- textWidget
+      pure (eText, wf2 <$ eSwitch)
+
+    wf2 :: Workflow t m (Event t Text)
+    wf2 = Workflow $ do
+      eText <- tickWidget
+      pure (eText, wf1 <$ eSwitch)
 
   deText <- workflow wf1
 
@@ -563,4 +776,5 @@ These exercises build up incrementally as the series progresses, so it would pro
 
 ## Next up
 
-In the [next post](../collections/) we'll look at how we manage collections in `reflex`.
+In the next post we'll look at how we manage collections in `reflex`.
+<!--In the [next post](../collections/) we'll look at how we manage collections in `reflex`.-->
