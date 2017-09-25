@@ -429,6 +429,9 @@ If want to have freshly laid out widgets every time we click the "Switch" button
 
 The first of these is `widgetHold`:
 ```haskell
+-- The constraint is actually `DomBuilder t m`, but these are the constraints that
+-- a) are implied by `DomBuilder t m`, and
+-- b) are used by `widgetHold`
 widgetHold :: (Reflex t, Monad m, MonadAdjust t m) 
            =>               m a 
            ->    Event   t (m a) 
@@ -548,7 +551,7 @@ These are small examples, but the idea gets more useful as you do more adventuro
 
 If we don't know what we want to use as an initial value for `widgetHold`, we can use `dyn`:
 ```haskell
-dyn        :: (Reflex t, Monad m, MonadAdjust t m, PostBuild t m) 
+dyn        :: (DomBuilder t m, PostBuild t m) 
            =>    Dynamic t (m a) 
            -> m (Event   t    a)
 ```
@@ -633,44 +636,62 @@ dynWidget = el "div" $ do
 
 ### Using `Workflow`
 
-TODO explain
+We can use a handy piece of functionality to clean this up a little.
+It might look scary at first glance, but we'll get used to it pretty quickly.
+
+A `Workflow` is a `newtype` used to build a graph of widgets that the user will transition through.
+It's the kind of thing you would reach for if you were building a "wizard" in a UI, but it is much more flexible than that.
+
+The `newtype` wraps a widget that returns a pair, containing the result we are interested in and an `Event` which will fire with the next piece of the `Workflow` we want to visit:
 ```haskell
 newtype Workflow t m a = Workflow { 
     unWorkflow :: m (a, Event t (Workflow t m a))
   }
 ```
 
+Once we have that assembled, we can run it with the `workflow` function:
 ```haskell
 workflow :: (DomBuilder t m, MonadFix m, MonadHold t m) 
          => Workflow t m a 
          -> m (Dynamic t a)
 ```
+and it will give us a `Dynamic` that collects the changing result values as the user interacts with the workflow.
 
-TODO explain
+An example will help.
+
+We set up a "Switch button":
 ```haskell
 workflowWidget :: MonadWidget t m => m ()
 workflowWidget = el "div" $ do
   eSwitch <- el "div" $
     button "Switch"
 ```
+and then we start creating pieces of the workflow.
 
+The first piece will lay out the `textWidget` on the page, and will transition to the second piece of the workflow when "Switch" is pressed:
 ```haskell
   let
     wf1 :: Workflow t m (Event t Text)
     wf1 = Workflow $ do
       eText <- textWidget
       pure (eText, wf2 <$ eSwitch)
+```
 
+The second piece will lay out the `tickWidget` on the page, and will transition to the first piece of the workflow when "Switch" is pressed:
+```haskell
     wf2 :: Workflow t m (Event t Text)
     wf2 = Workflow $ do
       eText <- tickWidget
       pure (eText, wf1 <$ eSwitch)
 ```
 
+We don't have to worry about rigging up a toggle `Event` and keeping everything synchronized, we just set up the graph for the user to navigate.
+
+We start the user on the first piece of the workflow:
 ```haskell
   deText <- workflow wf1
 ```
-
+which gives us a `Dynamic t (Event t Text)`, and we know what to do with that:
 ```haskell
   let
     eText  = switch . current $ deText
@@ -684,7 +705,7 @@ workflowWidget = el "div" $ do
     dynText dText
 ```
 
-TODO comment me
+All in one place it looks like:
 ```haskell
 workflowWidget :: MonadWidget t m => m ()
 workflowWidget = el "div" $ do
@@ -692,16 +713,24 @@ workflowWidget = el "div" $ do
     button "Switch"
 
   let
+    -- Setup a piece of a workflow that 
     wf1 :: Workflow t m (Event t Text)
     wf1 = Workflow $ do
+      -- puts a `textWidget on the page`
       eText <- textWidget
+      -- and moves to another piece of the workflow when "Switch" is pressed:
       pure (eText, wf2 <$ eSwitch)
 
+    -- Setup a piece of a workflow that 
     wf2 :: Workflow t m (Event t Text)
     wf2 = Workflow $ do
+      -- puts a `tickWidget` on the page
       eText <- tickWidget
+      -- and moves to another piece of the workflow when "Switch" is pressed:
       pure (eText, wf1 <$ eSwitch)
 
+  -- Run the workflow and get a hold of the `Dynamic` that collects the results 
+  -- of the journey through the workflow
   deText <- workflow wf1
 
   let
