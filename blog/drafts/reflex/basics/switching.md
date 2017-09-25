@@ -1,6 +1,6 @@
 ---
 title: Switching
-date: 2017-09-06
+date: 2017-09-29
 authors: dlaing
 project: reflex
 extra-css: /css/reflex/basics/grid-light.css
@@ -12,20 +12,24 @@ Now we're going to look at how to modify our FRP network in response to user inp
 
 ## What is switching?
 
-Everything we've done so far has involved building up an FRP network.
-Sometimes we want to modify the FRP network in response to `Event`s.
-That is what the various switching functions do.
+Everything we've done so far has involved building up an FRP network that is static.
+The graph of dependencies between `Event`s, `Behavior`s and `Dynamic`s is set up in a particular configuration and it stays in that configuration for the lifetime of the application.
+The same is true of our DOM elements - once we have laid them out on the page, they are there forever.
 
-There are two kinds of switching we can do:
+Sometimes we want to modify the FRP network or the DOM in response to `Event`s, and that is what the various switching functions do.
 
-- we can just rework the FRP network
-- we can rework the FRP network while also modifying or removing some DOM elements
+There are two kinds of switching functions available to us:
+
+- functions that modify the FRP network in response to input
+- functions that modify the DOM in response to input
+
+We'll cover those one at a time.
 
 ## Higher-order FRP
 
-When we want to rework an FRP network, we usually do it via higher-order FRP.
+When we want to modify an FRP network, we do it via higher-order FRP.
 
-We've seen higher-order functions: function which take functions as arguments, like:
+We've probably seen higher-order functions, which is where function which take functions as arguments, like:
 ```haskell
 map   :: (a -> b) 
       -> [a] 
@@ -43,16 +47,18 @@ Higher-order FRP involves an FRP type - one of `Event`, `Behavior` or `Dynamic` 
 
 Some examples turn up due to the fact that `Behavior` and `Dynamic` have `Monad` instances, giving rise to:
 ```haskell
-join :: Behavior t (Behavior t a) 
+join :: Reflex t 
+     => Behavior t (Behavior t a) 
      -> Behavior t a
 ```
 and:
 ```haskell
-join :: Dynamic  t (Dynamic  t a) 
+join :: Reflex t 
+     => Dynamic  t (Dynamic  t a) 
      -> Dynamic  t a
 ```
 
-There are other functions that also provide higher-order FRP functionality such as:
+There are other functions provided by `reflex` that enable higher-order FRP, including:
 ```haskell
 switch        :: Reflex t
               => Behavior t (Event t    a)
@@ -68,7 +74,6 @@ switchPrompty :: (Reflex t, MonadHold t m)
               -> Event t    (Event t    a)
               -> m          (Event t    a)
 ```
-along with a few others.
 
 
 It can be handy to think of a [railroad switch](https://en.wikipedia.org/wiki/Railroad_switch) while you're getting use to these methods.
@@ -81,13 +86,15 @@ switch        :: Reflex t
 ```
 
 We can view a `Behavior t (Event t a)` as an `Event t a` which is varying over time.
-There could be multiple sources of these `Event`s and the `Behavior` is being used to track which `Event` should be used at any given moment in time.
+There could be multiple sources of these `Event`s, and the `Behavior` is being used to track which `Event` should be used at any given moment in time.
 Since `Behavior`s have values at all points in time, that means there is always an `Event` which is selected.
 The `switch` function is giving us access to the `Event` that is selected by the `Behavior`.
 
 This time, we're going to look at the example before we look at the code:
 
 <div id="examples-switch-count-1"></div>
+
+Have a click around until you're comfortable that you know what is going on.
 
 ```haskell
 leftInput :: (Reflex t, MonadHold t m) 
@@ -240,14 +247,259 @@ rightInput eAdd eSwitchL eSwitchR =
 The resulting widget still behaves the same way:
 <div id="examples-switch-count-2"></div>
 
+If you've been paying close attention, you might be wondering if we could have just used `gate` or `ffilter` to do something like this.
+For this example, you certainly could.
+
+The benefits of modifying the FRP network start to come into play once pieces of your network start to consume significant amounts of processing time or memory.
+In those cases, you can use switching to only add those pieces to your FRP network when you need them and to remove them once you no longer need them.
+
+If some piece of the network becomes entirely disconnected from the rest of the network then it is eligible for garbage collection, and so you'll be able to reclaim the memory it was using and rest easy knowing that it isn't hanging around and using up your processing time.
+
 ## Dynamic modifications to the DOM
+
+Imagine that we have three widgets that all return an `Event t Text`.
+
+We have a text widget which fires its `Event` when the user types:
+<div id="examples-switch-demo-text"></div>
+a button widget which fires its `Event` when the user clicks the buttton:
+<div id="examples-switch-demo-button"></div>
+and a tick widget with fires its `Event` every second and doesn't care about the user at all:
+<div id="examples-switch-demo-tick"></div>
+
+We'd like to switch between displaying these widgets and collect the `Event t Text` from whichever widget is being displayed.
 
 ### Faking it by hiding elements
 
+Imagine that we are very keen on premature optimization, and we know that modifying the structure of the DOM is slow but modifying attributes on the DOM is fast.
+
+We could solve this problem by hiding elements and gating their outputs based on whether or not they are displayed:
+```haskell
+hideWidget :: MonadWidget t m 
+           => m ()
+hideWidget = el "div" $ do
+  -- Set up a button to switch between inputs
+  eSwitch <- el "div" $
+    button "Switch"
+
+  -- Toggle a `Bool` when the button is pressed
+  dToggle <- toggle True eSwitch
+
+  let
+    -- Track the opposite state as well
+    dNotToggle = not <$> dToggle
+
+    -- Hide elements based on a `Bool`
+    mkHidden False = "hidden" =: ""
+    mkHidden True  = mempty
+
+    -- Build a Dynamic class based on how 
+    -- many times "Switch" has been pressed
+    dHide1 = mkHidden <$>    dToggle
+    dHide2 = mkHidden <$> dNotToggle
+
+  -- Show the text widget for an even number of presses
+  eText1 <- elDynAttr "div" dHide1
+    textWidget
+
+  -- Show the text widget for an odd number of presses
+  eText2 <- elDynAttr "div" dHide2
+    buttonWidget
+
+  let
+    -- Gate the outputs from the widget so that they don't step on each other
+    eText =
+      leftmost [
+          gate (current    dToggle) eText1
+        , gate (current dNotToggle) eText2
+        ]
+
+  -- Clear the output when switching occurs
+  dText <- holdDyn "" . leftmost $ [
+               eText
+             , "" <$ eSwitch
+             ]
+
+  -- Display the output 
+  el "div" $
+    dynText dText
+```
+
+This is using a handy helper function from `reflex` in passing:
+```haskell
+toggle :: MonadHold t m 
+       => Bool 
+       -> Event a 
+       -> m (Dynamic Bool)
+```
+to toggle a `Bool` when an `Event` fires.
+
+If we click around with this:
+<div id="examples-switch-hide-button"></div>
+we'll see that we're definitely not adding or removing elements from the DOM, because the state of the text input is being maintained across clicks of the "Switch" button.
+
+This is even more pronounced if we use the timer widget in place of the button widget:
+<div id="examples-switch-hide-tick"></div>
+
 ### Switching out elements
 
-TODO if we reroute something in a way that the network can detect is final, it can be garbage collected
+If want to have freshly laid out widgets every time we click the "Switch" button, we need some new functions.
+
+```haskell
+widgetHold :: (MonadAdjust t m, MonadHold t m) 
+           =>               m a 
+           ->    Event   t (m a) 
+           -> m (Dynamic t    a)
+```
+
+```haskell
+dyn        :: (MonadAdjust t m, MonadHold t m) 
+           =>    Dynamic t (m a) 
+           -> m (Event   t    a)
+```
+
+```haskell
+holdWidget :: MonadWidget t m 
+           => m ()
+holdWidget = el "div" $ do
+  eSwitch <- el "div" $
+    button "Switch"
+
+  dToggle <- toggle True eSwitch
+
+  let
+    eShow1  = ffilter id  . updated $ dToggle
+    eShow2  = ffilter not . updated $ dToggle
+
+  deText <- widgetHold textWidget . leftmost $ [
+      textWidget   <$ eShow1
+    , buttonWidget <$ eShow2
+    ]
+
+  let
+    eText = switch . current $ deText
+
+  dText <- holdDyn "" . leftmost $ [
+               eText
+             , "" <$ eSwitch
+             ]
+
+  el "div"$
+    dynText dText
+```
+
+We can see that we are getting freshly laid out DOM elements every time we press "Switch" by playing with this:
+<div id="examples-switch-hold-button"></div>
+and with this:
+<div id="examples-switch-hold-tick"></div>
 
 ### Using `Workflow`
 
+```haskell
+newtype Workflow t m a = Workflow { 
+    unWorkflow :: m (a, Event t (Workflow t m a))
+  }
+```
+
+```haskell
+workflow :: (DomBuilder t m, MonadFix m, MonadHold t m) 
+         => Workflow t m a 
+         -> m (Dynamic t a)
+```
+
+```haskell
+workflowWidget :: MonadWidget t m => m ()
+workflowWidget = el "div" $ do
+  eSwitch <- el "div" $
+    button "Switch"
+  dToggle <- toggle True eSwitch
+
+  let
+    dNotToggle = not <$> dToggle
+    eShow1  = ffilter id . updated $ dToggle
+    eShow2  = ffilter id . updated $ dNotToggle
+
+    wf1 :: Workflow t m (Event t Text)
+    wf1 = Workflow $ do
+      eText <- textWidget
+      pure (eText, wf2 <$ eShow2)
+
+    wf2 :: Workflow t m (Event t Text)
+    wf2 = Workflow $ do
+      eText <- tickWidget
+      pure (eText, wf1 <$ eShow1)
+
+  deText <- workflow wf1
+
+  let
+    eText  = switch . current $ deText
+
+  dText <- holdDyn "" . leftmost $ [
+               eText
+             , "" <$ eSwitch
+             ]
+
+  el "div"$
+    dynText dText
+```
+
+This gives us the same behavior as we had previously:
+
+<div id="examples-switch-workflow-tick"></div>
+
+We can use this to switch between our various widgets in a cycle:
+
+```haskell
+wf1 :: Workflow t m (Event t Text)
+wf1 = Workflow $ do
+  eText <- textWidget
+  pure (eText, wf2 <$ eSwitch)
+
+wf2 :: Workflow t m (Event t Text)
+wf2 = Workflow $ do
+  eText <- buttonWidget
+  pure (eText, wf3 <$ eSwitch)
+
+wf3 :: Workflow t m (Event t Text)
+wf3 = Workflow $ do
+  eText <- tickWidget
+  pure (eText, wf1 <$ eSwitch)
+```
+
+<div id="examples-switch-workflow-1"></div>
+
+or we can give each widget it's own "Next" and "Back" buttons to arrange them more like a traditional wizard:
+
+```haskell
+wf1 :: Workflow t m (Event t Text)
+wf1 = Workflow $ do
+  eText <- textWidget
+  eNext <- el "div" $ button "Next"
+  let eOut = leftmost [eText, "" <$ eNext]
+  pure (eOut, wf2 <$ eNext)
+
+wf2 :: Workflow t m (Event t Text)
+wf2 = Workflow $ do
+  eText <- buttonWidget
+  eBack <- el "div" $ button "Back"
+  eNext <- el "div" $ button "Next"
+  let eOut = leftmost [eText, "" <$ eBack, "" <$ eNext]
+  pure (eOut, leftmost [wf1 <$ eBack, wf3 <$ eNext])
+
+wf3 :: Workflow t m (Event t Text)
+wf3 = Workflow $ do
+  eText <- tickWidget
+  eBack <- el "div" $ button "Back"
+  let eOut = leftmost [eText, "" <$ eBack]
+  pure (eOut, wf2 <$ eBack)
+```
+
+<div id="examples-switch-workflow-2"></div>
+
+## Playing along at home
+
+If you want to test out your understanding of how switching works, there are exercises [here](../exercises/switching/) that might help.
+These exercises build up incrementally as the series progresses, so it would probably best to start the exercises beginning at the start of the series.
+
 ## Next up
+
+In the [next post](../collections/) we'll look at how we manage collections in `reflex`.

@@ -571,6 +571,11 @@ addItem = mdo
 It's the biggest piece of functionality that we have put together so far, but it does what is says on the tin:
 <div class="demo" id="examples-dom-todoitem-8"></div>
 
+## Playing along at home
+
+If you want to test out your understanding of how you can use `reflex-dom` to work with the DOM, there are exercises [here](../exercises/dom/) that might help.
+These exercises build up incrementally as the series progresses, so it would probably best to start the exercises beginning at the start of the series.
+
 ## Next up
 
 In the [next post](../switching/) we'll look at some tools `reflex` provides for making modifications to the graph in response to `Event`s.

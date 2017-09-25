@@ -262,7 +262,7 @@ buttonWidget ::
   MonadWidget t m =>
   m (Event t Text)
 buttonWidget = do
-  eClick <- button "OK"
+  eClick <- B.button "OK"
   pure $ "OK" <$ eClick
 
 tickWidget ::
@@ -277,7 +277,7 @@ tickWidget = do
 demoText ::
   MonadWidget t m =>
   m ()
-demoText = do
+demoText = B.panel $ do
   eText <- textWidget
   dText <- holdDyn "" eText
   el "div" $
@@ -286,7 +286,7 @@ demoText = do
 demoButton ::
   MonadWidget t m =>
   m ()
-demoButton = do
+demoButton = B.panel $ do
   eText <- buttonWidget
   dText <- holdDyn "" eText
   el "div" $
@@ -295,7 +295,7 @@ demoButton = do
 demoTick ::
   MonadWidget t m =>
   m ()
-demoTick = do
+demoTick = B.panel $ do
   eText <- tickWidget
   dText <- holdDyn "" eText
   el "div" $
@@ -305,24 +305,25 @@ hideExample ::
   MonadWidget t m =>
   m (Event t Text) ->
   m ()
-hideExample w = elClass "div" "widget-hold-wrapper" $ do
+hideExample w = B.panel . elClass "div" "widget-hold-wrapper" $ do
   eSwitch <- el "div" $
-    button "Switch"
+    B.button "Switch"
+
   dToggle <- toggle True eSwitch
 
   let
     dNotToggle = not <$> dToggle
 
-    mkHidden False = "hide"
-    mkHidden True  = ""
+    mkHidden False = "hidden" =: ""
+    mkHidden True  = mempty
 
     dHide1 = mkHidden <$>    dToggle
     dHide2 = mkHidden <$> dNotToggle
 
-  eText1 <- elDynClass "div" dHide1 $
+  eText1 <- elDynAttr "div" dHide1 $
     textWidget
 
-  eText2 <- elDynClass "div" dHide2 $
+  eText2 <- elDynAttr "div" dHide2 $
     w
 
   let
@@ -345,15 +346,15 @@ holdExample ::
   MonadWidget t m =>
   m (Event t Text) ->
   m ()
-holdExample w = elClass "div" "widget-hold-wrapper" $ do
+holdExample w = B.panel . elClass "div" "widget-hold-wrapper" $ do
   eSwitch <- el "div" $
-    button "Switch"
+    B.button "Switch"
+
   dToggle <- toggle True eSwitch
 
   let
-    dNotToggle = not <$> dToggle
-    eShow1  = ffilter id . updated $ dToggle
-    eShow2  = ffilter id . updated $ dNotToggle
+    eShow1  = ffilter id  . updated $ dToggle
+    eShow2  = ffilter not . updated $ dToggle
 
   deText <- widgetHold textWidget . leftmost $ [
       textWidget <$ eShow1
@@ -378,9 +379,9 @@ workflowExample ::
   MonadWidget t m =>
   m (Event t Text) ->
   m ()
-workflowExample w = elClass "div" "widget-hold-wrapper" $ do
+workflowExample w = B.panel . elClass "div" "widget-hold-wrapper" $ do
   eSwitch <- el "div" $
-    button "Switch"
+    B.button "Switch"
   dToggle <- toggle True eSwitch
 
   let
@@ -417,7 +418,7 @@ workflowExample1 ::
   forall t m.
   MonadWidget t m =>
   m ()
-workflowExample1 = elClass "div" "widget-hold-wrapper" $ mdo
+workflowExample1 = B.panel . elClass "div" "widget-hold-wrapper" $ mdo
   let
     wf1 :: Workflow t m (Event t Text)
     wf1 = Workflow $ do
@@ -437,7 +438,7 @@ workflowExample1 = elClass "div" "widget-hold-wrapper" $ mdo
   deText <- workflow wf1
 
   eSwitch <- el "div" $
-    button "Switch"
+    B.button "Switch"
 
   let
     eText  = switch . current $ deText
@@ -456,28 +457,28 @@ workflowExample2 ::
   forall t m.
   MonadWidget t m =>
   m ()
-workflowExample2 = elClass "div" "widget-hold-wrapper" $ do
+workflowExample2 = B.panel . elClass "div" "widget-hold-wrapper" $ do
 
   let
     wf1 :: Workflow t m (Event t Text)
     wf1 = Workflow $ do
       eText <- textWidget
-      eNext <- el "div" $ button "Next"
+      eNext <- el "div" $ B.button "Next"
       let eOut = leftmost [eText, "" <$ eNext]
       pure (eOut, wf2 <$ eNext)
 
     wf2 :: Workflow t m (Event t Text)
     wf2 = Workflow $ do
       eText <- buttonWidget
-      eBack <- el "div" $ button "Back"
-      eNext <- el "div" $ button "Next"
+      eBack <- el "div" $ B.button "Back"
+      eNext <- el "div" $ B.button "Next"
       let eOut = leftmost [eText, "" <$ eBack, "" <$ eNext]
       pure (eOut, leftmost [wf1 <$ eBack, wf3 <$ eNext])
 
     wf3 :: Workflow t m (Event t Text)
     wf3 = Workflow $ do
       eText <- tickWidget
-      eBack <- el "div" $ button "Back"
+      eBack <- el "div" $ B.button "Back"
       let eOut = leftmost [eText, "" <$ eBack]
       pure (eOut, wf2 <$ eBack)
 

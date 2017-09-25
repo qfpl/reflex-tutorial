@@ -488,7 +488,7 @@ If this was important to us we could address this by using `holdUniqDyn` within 
 ## Playing along at home
 
 If you want to test out your understanding of `Dynamic`s, there are `Dynamic`-themed exercises [here](../exercises/dynamics/).
-The exercises build up incrementally as the series progresses, so it would probably best to do the exercises from the start of the series.
+These exercises build up incrementally as the series progresses, so it would probably best to start the exercises beginning at the start of the series.
 
 ## Next up
 
