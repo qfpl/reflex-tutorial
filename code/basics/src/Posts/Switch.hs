@@ -51,11 +51,15 @@ switchPostExamples = do
     hideExample buttonWidget
   attachId_ "examples-switch-hold-button" $
     holdExample buttonWidget
+  attachId_ "examples-switch-dyn-button" $
+    dynExample buttonWidget
 
   attachId_ "examples-switch-hide-tick" $
     hideExample tickWidget
   attachId_ "examples-switch-hold-tick" $
     holdExample tickWidget
+  attachId_ "examples-switch-dyn-tick" $
+    dynExample tickWidget
 
   attachId_ "examples-switch-workflow-button" $
     workflowExample buttonWidget
@@ -340,8 +344,6 @@ hideExample w = B.panel . elClass "div" "widget-hold-wrapper" $ do
   el "div" $
     dynText dText
 
-  pure ()
-
 holdExample ::
   MonadWidget t m =>
   m (Event t Text) ->
@@ -369,10 +371,38 @@ holdExample w = B.panel . elClass "div" "widget-hold-wrapper" $ do
              , "" <$ eSwitch
              ]
 
-  el "div"$
+  el "div" $
     dynText dText
 
-  pure ()
+dynExample ::
+  MonadWidget t m =>
+  m (Event t Text) ->
+  m ()
+dynExample w = B.panel . elClass "div" "widget-hold-wrapper" $ do
+  eSwitch <- el "div" $
+    B.button "Switch"
+
+  dToggle <- toggle True eSwitch
+
+  let
+    eShow1  = ffilter id  . updated $ dToggle
+    eShow2  = ffilter not . updated $ dToggle
+
+  dWidget <- holdDyn textWidget . leftmost $ [
+      textWidget <$ eShow1
+    , w          <$ eShow2
+    ]
+
+  eeText <- dyn dWidget
+  eText <- switchPromptly never eeText
+
+  dText <- holdDyn "" . leftmost $ [
+               eText
+             , "" <$ eSwitch
+             ]
+
+  el "div" $
+    dynText dText
 
 workflowExample ::
   forall t m.

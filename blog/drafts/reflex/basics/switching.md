@@ -16,7 +16,7 @@ Everything we've done so far has involved building up an FRP network that is sta
 The graph of dependencies between `Event`s, `Behavior`s and `Dynamic`s is set up in a particular configuration and it stays in that configuration for the lifetime of the application.
 The same is true of our DOM elements - once we have laid them out on the page, they are there forever.
 
-Sometimes we want to modify the FRP network or the DOM in response to `Event`s, and that is what the various switching functions do.
+Sometimes we will want to modify the FRP network or the DOM in response to `Event`s, and that is what the various switching functions do.
 
 There are two kinds of switching functions available to us:
 
@@ -27,7 +27,7 @@ We'll cover those one at a time.
 
 ## Higher-order FRP
 
-When we want to modify an FRP network, we do it via higher-order FRP.
+When we want to modify an FRP network, we do it using higher-order FRP.
 
 We've probably seen higher-order functions, which is where function which take functions as arguments, like:
 ```haskell
@@ -96,6 +96,11 @@ This time, we're going to look at the example before we look at the code:
 
 Have a click around until you're comfortable that you know what is going on.
 
+We're going to zoom in on the function that creates the `Event` that is used as the input to the counter on the left-hand side.
+
+It takes in an `Event` for the "Add" button and both "Select" buttons.
+
+We're going to create a `Behavior t (Event t ())` so that we can use `switch` to get the `Event` that we want out of this:
 ```haskell
 leftInput :: (Reflex t, MonadHold t m) 
           => Event t () 
@@ -108,6 +113,7 @@ leftInput eAdd eSwitchL eSwitchR = do
   pure (switch beAddL)
 ```
 
+We build up our `Behavior` using `hold`:
 ```haskell
 leftInput :: (Reflex t, MonadHold t m) 
           => Event t () 
@@ -119,7 +125,7 @@ leftInput eAdd eSwitchL eSwitchR = do
   beAddL <- hold _initial _change
   pure (switch beAddL)
 ```
-
+which you might recall has this type signature:
 ```haskell
 hold :: MonadHold t m
      => a
@@ -127,15 +133,16 @@ hold :: MonadHold t m
      -> m (Behavior t a)
 ```
 
-`a ~ Event t b`
-
+Since we're calling `switch` like we get an `Event t ()` out of it, this leads to `a ~ Event t ()` in the above, which translates to:
 ```haskell
 hold :: MonadHold t m
-     => Event t b
-     -> Event t (Event t b)
-     -> m (Behavior t (Event t b))
+     => Event t ()
+     -> Event t (Event t ())
+     -> m (Behavior t (Event t ()))
 ```
+for this particular use of `hold`.
 
+We'll make a note of that:
 ```haskell
 leftInput :: (Reflex t, MonadHold t m) 
           => Event t () 
@@ -150,6 +157,7 @@ leftInput eAdd eSwitchL eSwitchR = do
   pure (switch beAddL)
 ```
 
+The "Add" button starts off being routed to the left input, so we'll use that as our initial value for our `Behavior`:
 ```haskell
 leftInput :: (Reflex t, MonadHold t m) 
           => Event t () 
@@ -163,6 +171,9 @@ leftInput eAdd eSwitchL eSwitchR = do
   pure (switch beAddL)
 ```
 
+The `Behavior` is going to be changed whenever either of the "Select" buttons is pressed.
+We use `leftmost` and the `Event`s coming from the "Select" buttons to start building up the other input to `hold`.
+This leaves us with two things to fill in, but we know their types:
 ```haskell
 leftInput :: (Reflex t, MonadHold t m) 
           => Event t () 
@@ -180,6 +191,9 @@ leftInput eAdd eSwitchL eSwitchR = do
   pure (switch beAddL)
 ```
 
+We also know that we want the input from the "Add" button to flow through to the output when the output on the left-hand side is selected, and
+that we want no input to flow through to the output when the output on the right-hand side is selected.
+We have those things at hand:
 ```haskell
 leftInput :: (Reflex t, MonadHold t m) 
           => Event t () 
@@ -193,8 +207,9 @@ leftInput eAdd eSwitchL eSwitchR = do
             ]
   pure (switch beAddL)
 ```
+and we are done.
 
-Switch the "Add" clicks towards the counter on the right hand side is very similar:
+Switching the "Add" clicks towards the output on the right-hand side is very similar:
 ```haskell
 rightInput :: (Reflex t, MonadHold t m) 
           => Event t () 
@@ -351,11 +366,7 @@ widgetHold :: (MonadAdjust t m, MonadHold t m)
            -> m (Dynamic t    a)
 ```
 
-```haskell
-dyn        :: (MonadAdjust t m, MonadHold t m) 
-           =>    Dynamic t (m a) 
-           -> m (Event   t    a)
-```
+TODO mention blank
 
 ```haskell
 holdWidget :: MonadWidget t m 
@@ -367,23 +378,31 @@ holdWidget = el "div" $ do
   dToggle <- toggle True eSwitch
 
   let
+    -- This will fire when `dToggle` changes to `True`
     eShow1  = ffilter id  . updated $ dToggle
+    -- This will fire when `dToggle` changes to `False`
     eShow2  = ffilter not . updated $ dToggle
 
+  -- Start with `textWidget`
   deText <- widgetHold textWidget . leftmost $ [
+      -- Switch to `textWidget` when `dToggle` change to `True`
       textWidget   <$ eShow1
+      -- Switch to `buttonWidget` when `dToggle` change to `False`
     , buttonWidget <$ eShow2
     ]
 
   let
+    -- Collapse the `Dynamic t (Event t Text)` to an `Event t Text`
     eText = switch . current $ deText
 
+  -- Clear the output when switching occurs
   dText <- holdDyn "" . leftmost $ [
                eText
              , "" <$ eSwitch
              ]
 
-  el "div"$
+  -- Display the output
+  el "div" $
     dynText dText
 ```
 
@@ -391,6 +410,48 @@ We can see that we are getting freshly laid out DOM elements every time we press
 <div id="examples-switch-hold-button"></div>
 and with this:
 <div id="examples-switch-hold-tick"></div>
+
+These are small examples, but the idea gets more useful as you do more adventurous things.
+
+TODO example
+
+If we don't know what we want to use as an initial value for `widgetHold`, we can use `dyn`:
+```haskell
+dyn        :: (MonadAdjust t m, MonadHold t m) 
+           =>    Dynamic t (m a) 
+           -> m (Event   t    a)
+```
+
+TODO comment me
+```haskell
+dynWidget :: MonadWidget t m 
+           => m ()
+dynWidget = el "div" $ do
+  eSwitch <- el "div" $
+    button "Switch"
+
+  dToggle <- toggle True eSwitch
+
+  let
+    eShow1  = ffilter id  . updated $ dToggle
+    eShow2  = ffilter not . updated $ dToggle
+
+  dWidget <- holdDyn textWidget . leftmost $ [
+      textWidget   <$ eShow1
+    , buttonWidget <$ eShow2
+    ]
+
+  eeText <- dyn dWidget
+  eText  <- switchPromptly never eeText
+
+  dText <- holdDyn "" . leftmost $ [
+               eText
+             , "" <$ eSwitch
+             ]
+
+  el "div" $
+    dynText dText
+```
 
 ### Using `Workflow`
 
