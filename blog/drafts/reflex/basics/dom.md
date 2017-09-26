@@ -1,6 +1,6 @@
 ---
 title: Working with the DOM
-date: 2017-09-22
+date: 2017-09-27
 authors: dlaing
 project: reflex
 extra-css: /css/reflex/basics/grid-light.css, /css/reflex/basics/todo.css
