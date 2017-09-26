@@ -76,7 +76,7 @@ ex07 (Inputs dCarrot dCelery dCucumber dSelected eAdd eBuy eRefund) = mdo
   -- function called `trackMoney`
   dMoney  <- trackMoney eAdd eSpend eRefund
 
-  dChange <- changeDisplay eChange eSpend eError
+  dChange <- changeDisplay eSpend eChange eError
   dVend   <- vendDisplay eVend eSpend eError
 
   pure $ Outputs eVend eSpend eChange eError dMoney dChange dVend
