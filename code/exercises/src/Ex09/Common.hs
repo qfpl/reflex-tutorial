@@ -10,10 +10,6 @@ module Ex09.Common (
   , Inputs(..)
   , Error(..)
   , errorText
-  , table
-  , row
-  , row_
-  , row'
   , Ex09FnA
   , Ex09FnB
   ) where
@@ -81,72 +77,6 @@ errorText NotEnoughMoney =
   "Insufficient funds"
 errorText ItemOutOfStock =
   "Item out of stock"
-
-table ::
-  MonadWidget t m =>
-  m a ->
-  m a
-table =
-  elClass "table" "table"
-
-row ::
-  MonadWidget t m =>
-  (a -> b -> c -> d -> e) ->
-  m a ->
-  m b ->
-  m c ->
-  m d ->
-  m e
-row f ma mb mc md = el "tr" $ do
-  a <- el "td" ma
-  b <- el "td" mb
-  c <- el "td" mc
-  d <- el "td" md
-  pure $ f a b c d
-
-{-
-table ::
-  MonadWidget t m =>
-  m a ->
-  m a
-table =
-  divClass "container"
-
-row ::
-  MonadWidget t m =>
-  (a -> b -> c -> d -> e) ->
-  m a ->
-  m b ->
-  m c ->
-  m d ->
-  m e
-row f ma mb mc md = divClass "row" $ do
-  a <- divClass "col-md-3" ma
-  b <- divClass "col-md-1" mb
-  c <- divClass "col-md-1" mc
-  d <- divClass "col-md-1" md
-  pure $ f a b c d
--}
-
-row_ ::
-  MonadWidget t m =>
-  m a ->
-  m b ->
-  m c ->
-  m d ->
-  m ()
-row_ =
-  row (\_ _ _ _ -> ())
-
-row' ::
-  MonadWidget t m =>
-  m a ->
-  m b ->
-  m c ->
-  m d ->
-  m d
-row' =
-  row (\_ _ _ d -> d)
 
 type Ex09FnA t m =
   Int ->

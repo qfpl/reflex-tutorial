@@ -26,6 +26,29 @@ import Util.Run
 import Ex09.Common
 import Ex09.Run
 
+mkStock ::
+  ( Reflex t
+  , MonadHold t m
+  , MonadFix m
+
+  ) =>
+  Int ->
+  Product ->
+  Event t Text ->
+  m (Dynamic t Stock)
+mkStock i p e = mdo
+  let
+    -- track when we have at least one item in stock
+    dNonZero = (0 <) <$> dQuantity
+    -- only pass through vend events when we have stock
+    eSub     = gate (current dNonZero) e
+
+  -- We are only ever decreasing the stock by one unit
+  dQuantity <- foldDyn ($) i $
+    -- but only when the name matches and we have stock to vend
+    subtract 1 <$ ffilter (== pName p) eSub
+  pure $ Stock p <$> dQuantity
+
 ex09 ::
   ( MonadWidget t m
   ) =>
@@ -67,15 +90,19 @@ ex09 (Inputs dCarrot dCelery dCucumber dSelected) = mdo
       pName <$> eSale
     eSpend =
       pCost <$> eSale
+    eChange =
+      current dMoney <@ eRefund
 
-  eBuy <-
-    buyRow
-  dMoney  <-
-    moneyRow eSpend eRefund
-  -- could compute eChange from eRefund internally if dMoney was passed in
-  eRefund <-
-    changeRow dMoney eSpend eError
-  vendRow eVend eSpend eError
+  eBuy    <- buyRow
+
+  dMoney  <- trackMoney eAdd eSpend eRefund
+  eAdd    <- moneyRow dMoney
+
+  dChange <- changeDisplay eSpend eChange eError
+  eRefund <- changeRow dChange
+
+  dVend   <- vendDisplay eVend eSpend eError
+  vendRow dVend
 
   pure eVend
 
@@ -83,41 +110,74 @@ buyRow ::
   MonadWidget t m =>
   m (Event t ())
 buyRow =
-  row'
-    (pure ())
-    (pure ())
-    (pure ())
-    (B.button "Buy")
-
-mkStock ::
-  ( Reflex t
-  , MonadHold t m
-  , MonadFix m
-  ) =>
-  Int ->
-  Product ->
-  Event t Text ->
-  m (Dynamic t Stock)
-mkStock i p e = mdo
-  let
-    -- track when we have at least one item in stock
-    dNonZero = (0 <) <$> dQuantity
-    -- only pass through vend events when we have stock
-    eSub     = gate (current dNonZero) e
-
-  -- We are only ever decreasing the stock by one unit
-  dQuantity <- foldDyn ($) i $
-    -- but only when the name matches and we have stock to vend
-    subtract 1 <$ ffilter (== pName p) eSub
-  pure $ Stock p <$> dQuantity
+  el "tr" $ do
+    el "td" $
+      pure ()
+    el "td" $
+      pure ()
+    el "td" $
+      pure ()
+    el "td" $
+      button "Buy"
 
 moneyRow ::
   ( MonadWidget t m
   ) =>
+  Dynamic t Money ->
+  m (Event t ())
+moneyRow dMoney =
+  el "tr" $ do
+    el "td" $
+      text "Money inserted:"
+    el "td" $
+      pure ()
+    el "td" $
+      dynText $ moneyDisplay <$> dMoney
+    el "td" $
+      button "Add money"
+
+changeRow ::
+  ( MonadWidget t m
+  ) =>
+  Dynamic t Money ->
+  m (Event t ())
+changeRow dChange =
+  el "tr" $ do
+    el "td" $
+      text "Change:"
+    el "td" $
+      pure ()
+    el "td" $
+      dynText $ moneyDisplay <$> dChange
+    el "td" $
+      button "Refund"
+
+vendRow ::
+  ( MonadWidget t m
+  ) =>
+  Dynamic t Text ->
+  m ()
+vendRow dVend = do
+  el "tr" $ do
+    el "td" $
+      text "Tray:"
+    el "td" $
+      pure ()
+    el "td" $
+      pure ()
+    el "td" $
+      dynText dVend
+
+trackMoney ::
+  ( Reflex t
+  , MonadFix m
+  , MonadHold t m
+  ) =>
+  Event t () ->
   Event t Money ->
   Event t () ->
   m (Dynamic t Money)
-moneyRow eSpend eRefund = mdo
+trackMoney eAdd eSpend eRefund = mdo
   let
     isOverspend money price =
       money < price
@@ -132,58 +192,40 @@ moneyRow eSpend eRefund = mdo
     , const 0  <$  eRefund
     ]
 
-  eAdd <- row'
-    (text "Money inserted:")
-    (pure ())
-    (dynText $ moneyDisplay <$> dMoney)
-    (B.button "Add money")
-
   pure dMoney
 
-changeRow ::
-  ( MonadWidget t m
+changeDisplay ::
+  ( Reflex t
+  , MonadFix m
+  , MonadHold t m
   ) =>
-  Dynamic t Money ->
+  Event t Money ->
   Event t Money ->
   Event t Error ->
-  m (Event t ())
-changeRow dMoney eSpend eError = mdo
-  let
-    eChange =
-      current dMoney <@ eRefund
-
-  dChange <- holdDyn 0 .  leftmost $ [
+  m (Dynamic t Money)
+changeDisplay eSpend eChange eError =
+  holdDyn 0 .  leftmost $ [
       eChange
     , 0 <$ eSpend
     , 0 <$ eError
     ]
 
-  eRefund <- row'
-    (text "Change:")
-    (pure ())
-    (dynText $ moneyDisplay <$> dChange)
-    (B.button "Refund")
-
-  pure eRefund
-
-vendRow ::
-  ( MonadWidget t m
+vendDisplay ::
+  ( Reflex t
+  , MonadFix m
+  , MonadHold t m
   ) =>
   Event t Text ->
   Event t Money ->
   Event t Error ->
-  m ()
-vendRow eVend eSpend eError = do
-  dVend <- holdDyn "" .  leftmost $ [
+  m (Dynamic t Text)
+vendDisplay eVend eSpend eError =
+  holdDyn "" .  leftmost $ [
      eVend
    , ""        <$  eSpend
    , errorText <$> eError
    ]
-  row_
-    (text "Tray:")
-    (pure ())
-    (pure ())
-    (dynText dVend)
+
 
 attachEx09 ::
   JSM ()
