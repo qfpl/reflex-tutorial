@@ -592,7 +592,7 @@ todoItem (TodoItemConfig iComplete iText) =
 switchTodoItemExample ::
   MonadWidget t m =>
   m ()
-switchTodoItemExample = reset $ do
+switchTodoItemExample = B.panel . reset $ do
   _ <- el "div" $ todoItem $ TodoItemConfig False "TODO"
   pure ()
 
