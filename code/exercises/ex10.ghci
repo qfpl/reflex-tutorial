@@ -1,0 +1,3 @@
+:set prompt "> "
+:set -isrc
+:load Ex10.Solution

@@ -73,10 +73,7 @@ host mkStock fn = B.panel . table $ mdo
           dCucumber
           dSelected
 
-  outputs <- fn input
-  let
-    eVend   = oeVend outputs
-
+  eVend <- fn input
 
   pure ()
 

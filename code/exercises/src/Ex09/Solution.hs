@@ -30,7 +30,7 @@ ex09 ::
   ( MonadWidget t m
   ) =>
   Inputs t ->
-  m (Outputs t)
+  m (Event t Text)
 ex09 (Inputs dCarrot dCelery dCucumber dSelected) = mdo
   let
     dStocks =
@@ -68,19 +68,16 @@ ex09 (Inputs dCarrot dCelery dCucumber dSelected) = mdo
     eSpend =
       pCost <$> eSale
 
-    eChange =
-      current dMoney <@ eRefund
-
   eBuy <-
     buyRow
   dMoney  <-
     moneyRow eSpend eRefund
   -- could compute eChange from eRefund internally if dMoney was passed in
   eRefund <-
-    changeRow eSpend eChange eError
+    changeRow dMoney eSpend eError
   vendRow eVend eSpend eError
 
-  pure $ Outputs eVend
+  pure eVend
 
 buyRow ::
   MonadWidget t m =>
@@ -146,21 +143,28 @@ moneyRow eSpend eRefund = mdo
 changeRow ::
   ( MonadWidget t m
   ) =>
-  Event t Money ->
+  Dynamic t Money ->
   Event t Money ->
   Event t Error ->
   m (Event t ())
-changeRow eSpend eChange eError = do
+changeRow dMoney eSpend eError = mdo
+  let
+    eChange =
+      current dMoney <@ eRefund
+
   dChange <- holdDyn 0 .  leftmost $ [
       eChange
     , 0 <$ eSpend
     , 0 <$ eError
     ]
-  row'
+
+  eRefund <- row'
     (text "Change:")
     (pure ())
     (dynText $ moneyDisplay <$> dChange)
     (B.button "Refund")
+
+  pure eRefund
 
 vendRow ::
   ( MonadWidget t m

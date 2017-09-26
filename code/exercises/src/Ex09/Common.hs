@@ -8,7 +8,6 @@ module Ex09.Common (
   , celery
   , cucumber
   , Inputs(..)
-  , Outputs(..)
   , Error(..)
   , errorText
   , table
@@ -70,11 +69,6 @@ data Inputs t =
   , ibSelected :: Dynamic t Text
   }
 
-data Outputs t =
-  Outputs {
-    oeVend   :: Event t Text
-  }
-
 data Error =
     NotEnoughMoney
   | ItemOutOfStock
@@ -88,6 +82,29 @@ errorText NotEnoughMoney =
 errorText ItemOutOfStock =
   "Item out of stock"
 
+table ::
+  MonadWidget t m =>
+  m a ->
+  m a
+table =
+  elClass "table" "table"
+
+row ::
+  MonadWidget t m =>
+  (a -> b -> c -> d -> e) ->
+  m a ->
+  m b ->
+  m c ->
+  m d ->
+  m e
+row f ma mb mc md = el "tr" $ do
+  a <- el "td" ma
+  b <- el "td" mb
+  c <- el "td" mc
+  d <- el "td" md
+  pure $ f a b c d
+
+{-
 table ::
   MonadWidget t m =>
   m a ->
@@ -109,6 +126,7 @@ row f ma mb mc md = divClass "row" $ do
   c <- divClass "col-md-1" mc
   d <- divClass "col-md-1" md
   pure $ f a b c d
+-}
 
 row_ ::
   MonadWidget t m =>
@@ -138,5 +156,5 @@ type Ex09FnA t m =
 
 type Ex09FnB t m =
   Inputs t ->
-  m (Outputs t)
+  m (Event t Text)
 
