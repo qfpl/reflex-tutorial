@@ -10,6 +10,10 @@ extra-js: /js/reflex/basics/reflex-basics.min.js
 [Previously](../dom/) we looked at how to use `reflex-dom` to put DOM elements on a page.
 Now we're going to look at how to modify our FRP network in response to user input.
 
+<div id="examples-switch-flip-1"></div>
+
+<div id="examples-switch-flip-2"></div>
+
 ## What is switching?
 
 Everything we've done so far has involved building up an FRP network that is static.
@@ -232,9 +236,10 @@ switchPromptly :: (Reflex t, MonadHold t m)
                -> Event t    (Event t    a)
                -> m          (Event t    a)
 ```
-which takes an initial `Event`, along with an `Event` which fires with a new `Event` as the value. 
-The output `Event` starts as the initial `Event`.
-Whenever the outer `Event` of the second input fires, the output switches to the inner `Event` of the second input.
+The first argument is the initial `Event` to use as the output.
+The second argument consists of an outer `Event` and an inner `Event`.
+The outer `Event` fires to it indicate that the output should switch.
+It switches to the value of the inner `Event` until such time that the outer `Event` fires again.
 
 This results in:
 ```haskell
@@ -797,6 +802,10 @@ wf3 = Workflow $ do
 ```
 
 <div id="examples-switch-workflow-2"></div>
+
+## A more involved example
+
+<div id="examples-switch-todo"></div>
 
 ## Playing along at home
 

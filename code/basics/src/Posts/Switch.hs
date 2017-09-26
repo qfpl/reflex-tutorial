@@ -8,6 +8,7 @@ module Posts.Switch (
   ) where
 
 import Control.Monad (void)
+import Data.Monoid ((<>))
 
 import Control.Lens
 
@@ -25,51 +26,6 @@ import Util.Grid
 import Util.Reset
 import qualified Util.Bootstrap as B
 import Colour
-
-switchPostExamples ::
-  MonadJSM m =>
-  m ()
-switchPostExamples = do
-  attachId_ "examples-switch-count-1" $
-    switchCount leftInput1 rightInput1
-  attachId_ "examples-switch-count-2" $
-    switchCount leftInput2 rightInput2
-
-  attachId_ "examples-switch-colour-1" $
-    switchColourExample switchColour1
-  attachId_ "examples-switch-colour-2" $
-    switchColourExample switchColour2
-
-  attachId_ "examples-switch-demo-text" $
-    demoText
-  attachId_ "examples-switch-demo-button" $
-    demoButton
-  attachId_ "examples-switch-demo-tick" $
-    demoTick
-
-  attachId_ "examples-switch-hide-button" $
-    hideExample buttonWidget
-  attachId_ "examples-switch-hold-button" $
-    holdExample buttonWidget
-  attachId_ "examples-switch-dyn-button" $
-    dynExample buttonWidget
-
-  attachId_ "examples-switch-hide-tick" $
-    hideExample tickWidget
-  attachId_ "examples-switch-hold-tick" $
-    holdExample tickWidget
-  attachId_ "examples-switch-dyn-tick" $
-    dynExample tickWidget
-
-  attachId_ "examples-switch-workflow-button" $
-    workflowExample buttonWidget
-  attachId_ "examples-switch-workflow-tick" $
-    workflowExample tickWidget
-
-  attachId_ "examples-switch-workflow-1"
-    workflowExample1
-  attachId_ "examples-switch-workflow-2"
-    workflowExample2
 
 type SwitchCountInput t m =
   ( Reflex t
@@ -244,7 +200,7 @@ switchColourExample guest = el "div" $ mdo
   (eOut1, eOut2) <- guest eSwitch1 eSwitch2 eInput
 
   dOut1 <- foldDyn (:) [] . leftmost $ [
-      Just <$> eOut1
+      Just <$> eOut1 
     , Nothing <$ eOut2
     ]
 
@@ -518,3 +474,172 @@ workflowExample2 = B.panel . elClass "div" "widget-hold-wrapper" $ do
 
   pure ()
 
+data TodoItemConfig =
+  TodoItemConfig {
+    _todoItemConfig_initialComplete :: Bool
+  , _todoItemConfig_initialText     :: Text
+  }
+
+makeLenses ''TodoItemConfig
+
+data TodoItem t =
+  TodoItem {
+    _todoItem_dComplete :: Dynamic t Bool
+  , _todoItem_dText     :: Dynamic t Text
+  , _todoItem_eRemove   :: Event t ()
+  }
+
+makeLenses ''TodoItem
+
+complete ::
+  MonadWidget t m =>
+  Dynamic t Bool ->
+  m (Event t Bool)
+complete dComplete  = do
+  initialValue <- sample . current $ dComplete
+  cb <- checkbox initialValue def
+  pure $ cb ^. checkbox_change
+
+edit ::
+  MonadWidget t m =>
+  Dynamic t Text ->
+  Dynamic t Text ->
+  m (Event t ())
+edit dText dClass = do
+  (e, _) <- elDynClass' "span" dClass $
+    dynText dText
+  pure $ () <$ domEvent Dblclick e
+
+remove ::
+  MonadWidget t m =>
+  m (Event t ())
+remove =
+  button "Remove"
+
+data ItemChanges t =
+  ItemChanges {
+    _itemChanges_eComplete :: Event t Bool
+  , _itemChanges_eText     :: Event t Text
+  , _itemChanges_eRemove   :: Event t ()
+  }
+
+todoItemRead ::
+  MonadWidget t m =>
+  Dynamic t Bool ->
+  Dynamic t Text ->
+  Workflow t m (ItemChanges t)
+todoItemRead dComplete dText = Workflow $ mdo
+  eComplete <- complete dComplete
+  let
+    mkCompleteClass False = ""
+    mkCompleteClass True  = "completed "
+    dCompleteClass = mkCompleteClass <$> dComplete
+
+  eEditStart <- edit dText (dCompleteClass <> dRemoveClass)
+
+  eRemove <- remove
+
+  dRemoveClass <- holdDyn "" $
+    "removed " <$ eRemove
+
+  pure (ItemChanges eComplete never eRemove, todoItemEdit dComplete dText <$ eEditStart)
+
+getKey :: Reflex t => TextInput t -> Key -> Event t ()
+getKey ti k =
+  void .
+  ffilter ((== k) . keyCodeLookup . fromIntegral) $
+  ti ^. textInput_keypress
+
+todoItemEdit ::
+  MonadWidget t m =>
+  Dynamic t Bool ->
+  Dynamic t Text ->
+  Workflow t m (ItemChanges t)
+todoItemEdit dComplete dText = Workflow $ mdo
+  initial <- sample . current $ dText
+
+  ti <- textInput $
+    def & textInputConfig_initialValue .~
+            initial
+
+  let
+    bValue = current $ ti ^. textInput_value
+    eAtEnter = bValue <@ getKey ti Enter
+    eDone = ffilter (not . Text.null) eAtEnter
+    eRemove = () <$ ffilter Text.null eAtEnter
+    eEditStop = leftmost [void eDone, getKey ti Escape]
+
+  pure (ItemChanges never eDone eRemove, todoItemRead dComplete dText <$ eEditStop)
+
+todoItem ::
+  MonadWidget t m =>
+  TodoItemConfig ->
+  m (TodoItem t)
+todoItem (TodoItemConfig iComplete iText) =
+  elClass "div" "todo-item" $ mdo
+
+    dChanges <- workflow $ todoItemRead dComplete dText
+    let
+      eComplete = switch . current . fmap _itemChanges_eComplete $ dChanges
+      eText     = switch . current . fmap _itemChanges_eText $ dChanges
+      eRemove   = switch . current . fmap _itemChanges_eRemove $ dChanges
+
+    dComplete <- holdDyn iComplete eComplete
+    dText <- holdDyn iText eText
+
+    pure $ TodoItem dComplete dText eRemove
+
+switchTodoItemExample ::
+  MonadWidget t m =>
+  m ()
+switchTodoItemExample = reset $ do
+  _ <- el "div" $ todoItem $ TodoItemConfig False "TODO"
+  pure ()
+
+switchPostExamples ::
+  MonadJSM m =>
+  m ()
+switchPostExamples = do
+  attachId_ "examples-switch-count-1" $
+    switchCount leftInput1 rightInput1
+  attachId_ "examples-switch-count-2" $
+    switchCount leftInput2 rightInput2
+
+  attachId_ "examples-switch-colour-1" $
+    switchColourExample switchColour1
+  attachId_ "examples-switch-colour-2" $
+    switchColourExample switchColour2
+
+  attachId_ "examples-switch-demo-text" $
+    demoText
+  attachId_ "examples-switch-demo-button" $
+    demoButton
+  attachId_ "examples-switch-demo-tick" $
+    demoTick
+
+  attachId_ "examples-switch-hide-button" $
+    hideExample buttonWidget
+  attachId_ "examples-switch-hold-button" $
+    holdExample buttonWidget
+  attachId_ "examples-switch-dyn-button" $
+    dynExample buttonWidget
+
+  attachId_ "examples-switch-hide-tick" $
+    hideExample tickWidget
+  attachId_ "examples-switch-hold-tick" $
+    holdExample tickWidget
+  attachId_ "examples-switch-dyn-tick" $
+    dynExample tickWidget
+
+  attachId_ "examples-switch-workflow-button" $
+    workflowExample buttonWidget
+  attachId_ "examples-switch-workflow-tick" $
+    workflowExample tickWidget
+
+  attachId_ "examples-switch-workflow-1"
+    workflowExample1
+  attachId_ "examples-switch-workflow-2"
+    workflowExample2
+
+  attachId_ "examples-switch-todo"
+    switchTodoItemExample

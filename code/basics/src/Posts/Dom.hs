@@ -154,6 +154,8 @@ data TodoItemConfig =
     _todoItemConfig_initialValue :: Text
   }
 
+makeLenses ''TodoItemConfig
+
 data TodoItem t =
   TodoItem {
     _todoItem_dComplete :: Dynamic t Bool
