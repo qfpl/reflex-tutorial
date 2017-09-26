@@ -24,6 +24,11 @@ import Util.Run
 import Ex08.Common
 import Ex08.Run
 
+-- There are a few ways that we can slice this,
+-- and it comes down to personal style.
+--
+-- Recently, I've been favoring a style like what follows,
+-- partly so that I have more opportunities to explain things in passing.
 mkStock ::
   ( Reflex t
   , MonadHold t m
@@ -45,6 +50,21 @@ mkStock i p e = mdo
     -- but only when the name matches and we have stock to vend
     subtract 1 <$ ffilter (== pName p) eSub
   pure $ Stock p <$> dQuantity
+
+-- At the other end of the spectrum is a more direct style which
+-- uses less of the FRP machinery in favor of pure functions.
+--
+-- Thanks to Sarah Brofeldt for this version:
+{-
+mkStock c p e =
+  let
+    purchase t (Stock p c) =
+      if t == pName p && c > 0
+      then Stock p (c-1)
+      else Stock p c
+  in
+    foldDyn purchase (Stock p c) e
+-}
 
 ex08 ::
   ( Reflex t
