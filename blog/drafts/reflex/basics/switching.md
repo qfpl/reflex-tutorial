@@ -60,19 +60,19 @@ join :: Reflex t
 
 There are other functions provided by `reflex` that enable higher-order FRP, including:
 ```haskell
-switch        :: Reflex t
-              => Behavior t (Event t    a)
-              ->             Event t    a
+switch         :: Reflex t
+               => Behavior t (Event t    a)
+               ->             Event t    a
 
-switcher      :: (Reflex t, MonadHold t m) 
-              =>             Behavior t a
-              -> Event t    (Behavior t a)
-              -> m          (Behavior t a)
+switcher       :: (Reflex t, MonadHold t m) 
+               =>             Behavior t a
+               -> Event t    (Behavior t a)
+               -> m          (Behavior t a)
 
-switchPrompty :: (Reflex t, MonadHold t m) 
-              =>             Event t    a
-              -> Event t    (Event t    a)
-              -> m          (Event t    a)
+switchPromptly :: (Reflex t, MonadHold t m) 
+               =>             Event t    a
+               -> Event t    (Event t    a)
+               -> m          (Event t    a)
 ```
 
 
@@ -227,10 +227,10 @@ rightInput eAdd eSwitchL eSwitchR = do
 
 We can do this a little more directly using `switchPromptly`:
 ```haskell
-switchPrompty :: (Reflex t, MonadHold t m) 
-              =>             Event t    a
-              -> Event t    (Event t    a)
-              -> m          (Event t    a)
+switchPromptly :: (Reflex t, MonadHold t m) 
+               =>             Event t    a
+               -> Event t    (Event t    a)
+               -> m          (Event t    a)
 ```
 which takes an initial `Event`, along with an `Event` which fires with a new `Event` as the value. 
 The output `Event` starts as the initial `Event`.
@@ -257,7 +257,7 @@ rightInput :: (Reflex t, MonadHold t m)
           -> Event t () 
           -> m (Event t ())
 rightInput eAdd eSwitchL eSwitchR =
-  switchPrompty never . leftmost $ [
+  switchPromptly never . leftmost $ [
     eAdd  <$ eSwitchR
   , never <$ eSwitchL
   ]
