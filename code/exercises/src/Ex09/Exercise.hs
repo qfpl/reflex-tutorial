@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Ex08.Exercise where
+module Ex09.Exercise where
 
 import Control.Monad.Fix (MonadFix)
 
@@ -9,13 +9,14 @@ import Data.Text (Text)
 import qualified Data.Map as Map
 
 import Reflex
+import Reflex.Dom.Core
 
 #ifndef ghcjs_HOST_OS
 import Util.Run
 #endif
 
-import Ex08.Common
-import Ex08.Run
+import Ex09.Common
+import Ex09.Run
 
 mkStock ::
   ( Reflex t
@@ -26,39 +27,25 @@ mkStock ::
   Product ->
   Event t Text ->
   m (Dynamic t Stock)
-mkStock _ _ _ =
+mkStock =
   error "TODO"
 
-ex08 ::
-  ( Reflex t
-  , MonadFix m
-  , MonadHold t m
+ex09 ::
+  ( MonadWidget t m
   ) =>
   Inputs t ->
   m (Outputs t)
-ex08 (Inputs dCarrot dCelery dCucumber dSelected eAdd eBuy eRefund) = mdo
+ex09 (Inputs dCarrot dCelery dCucumber dSelected) = mdo
   let
     eVend =
       never
-    eSpend =
-      never
-    eChange =
-      never
-    eError =
-      never
-    dMoney =
-      pure 0
-    dChange =
-      pure 0
-    dVend =
-      pure ""
 
-  pure $ Outputs eVend eSpend eChange eError dMoney dChange dVend
+  pure $ Outputs eVend
 
 #ifndef ghcjs_HOST_OS
 go ::
   IO ()
 go =
   run $
-    host mkStock ex08
+    host mkStock ex09
 #endif
