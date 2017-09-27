@@ -92,6 +92,7 @@ If we want to see something happen when that `Event` is fired, we can use it to 
 
 This gives us a marginally less boring todo item:
 ```haskell
+{-# LANGUAGE RecursiveDo #-}
 example :: MonadWidget t m
         => Dynamic t Text
         -> m ()
@@ -106,6 +107,15 @@ example dTexet = el "div" $ mdo
 ```
 
 <div class="demo" id="examples-dom-todoitem-2"></div>
+
+We're using the `RecursiveDo` language extension and the `mdo` keyword in the above code, which was discussed in the [previous post](../dynamics/).
+We use `RecursiveDo` with `reflex` code when we have cycles in our FRP network.
+
+We use it more often with `reflex-dom`.
+This is because we are working in a builder monad, and so the order in which widgets appear in the code is the order in which the widgets are laid out on the page.
+Sometimes a widget will need access to an `Event` or `Dynamic` produced by a widget that is laid out further down on the page, and `RecursiveDo` lets us make the forward references that enable that.
+
+It can be a little mind-bending the first time you come across, but it doesn't take long until it starts to feel natural.
 
 ## Various functions for creating elements
 
