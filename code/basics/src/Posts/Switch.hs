@@ -578,14 +578,15 @@ todoItem ::
 todoItem (TodoItemConfig iComplete iText) =
   elClass "div" "todo-item" $ mdo
 
-    dChanges <- workflow $ todoItemRead dComplete dText
     let
       eComplete = switch . current . fmap _itemChanges_eComplete $ dChanges
       eText     = switch . current . fmap _itemChanges_eText $ dChanges
       eRemove   = switch . current . fmap _itemChanges_eRemove $ dChanges
 
     dComplete <- holdDyn iComplete eComplete
-    dText <- holdDyn iText eText
+    dText     <- holdDyn iText     eText
+
+    dChanges <- workflow $ todoItemRead dComplete dText
 
     pure $ TodoItem dComplete dText eRemove
 

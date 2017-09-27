@@ -10,11 +10,15 @@ extra-js: /js/reflex/basics/reflex-basics.min.js
 [Previously](../dynamics/) we looked at `Dynamic`s, which combine the fundamental `Event` and `Behavior` types to allow us to do some things more efficiently.
 Now we'll put them to use and actually create some DOM elements.
 
+We'll be building up pieces of a todo-list application along the way.
+It is probably becoming a cliche by now, but it is familiar to a lot of people and will give me something concrete to use while demonstrating some of the cooler things that `reflex` provides as the series progresses.
+
 ## The `DomBuilder` monad
 
 When we want to create some DOM elements we use the `reflex-dom` library.
 
 The main thing that it provides is an FRP aware builder monad for the DOM.
+The `DomBuilder` typeclass indicates that we are building up a DOM tree.
 
 We can lay out elements using `el`:
 ```haskell
@@ -72,7 +76,8 @@ todoItem :: MonadWidget t m
          -> m (Event t ())
 todoItem dText =
   el "div" $ do
-    el "div" $ dynText dText
+    el "div" $ 
+      dynText dText
     button "Remove"
 ```
 
@@ -81,7 +86,7 @@ todoItem dText =
 This is following some common `reflex` advice about components: start with `Dynamic`s as inputs and `Event`s as outputs.
 We'll come back to this later, and will see when to break those rules, but it's a very useful place to start.
 
-It also introduces `MonadWidget`, which is a constraint synonym for a long list of typeclasses that are often used when created components that will be translated to parts of a DOM tree.
+It also introduces `MonadWidget`, which is a constraint synonym for a long list of typeclasses that are often used when created components that will be translated to parts of a DOM tree, including the `DomBuilder t m` constraint.
 
 If we want to see something happen when that `Event` is fired, we can use it to modify the text we are displaying.
 
@@ -573,9 +578,14 @@ It's the biggest piece of functionality that we have put together so far, but it
 
 ## Playing along at home
 
-If you want to test out your understanding of how you can use `reflex-dom` to work with the DOM, there are exercises [here](../exercises/dom/) that might help.
+If you want to test out your understanding of how you can use `reflex-dom` to work with the DOM, there are exercises coming soon.
+<!--If you want to test out your understanding of how you can use `reflex-dom` to work with the DOM, there are exercises [here](../exercises/dom/) that might help.-->
 These exercises build up incrementally as the series progresses, so it would probably best to start the exercises beginning at the start of the series.
 
 ## Next up
 
-In the [next post](../switching/) we'll look at some tools `reflex` provides for making modifications to the graph in response to `Event`s.
+There is much more to say about working with the DOM, but this should have given you an understanding of the basics.
+The next few posts will cover some additional tools and techniques while using and expanding on the functionality presented here.
+
+In the next post we'll look at some tools `reflex` provides for making modifications to the FRP network in response to `Event`s.
+<!--In the [next post](../switching/) we'll look at some tools `reflex` provides for making modifications to the graph in response to `Event`s.-->
