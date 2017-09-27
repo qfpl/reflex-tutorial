@@ -81,7 +81,7 @@ ex06 (Inputs dMoney dCarrot dCelery dCucumber dSelected eBuy eRefund) =
       , 0 <$ eError
       ]
 
-    dVend <-holdDyn "" .  leftmost $ [
+    dVend <- holdDyn "" .  leftmost $ [
         eVend
       , ""        <$  eSpend
       , errorText <$> eError
@@ -89,11 +89,11 @@ ex06 (Inputs dMoney dCarrot dCelery dCucumber dSelected eBuy eRefund) =
 
     -- If you're doing the optional extra and breaking these
     -- out into their own functions, they appear below as
-    -- `changeDisplay` and `vendDisplay`.
+    -- `dynChange` and `dynVend`.
 
     pure $ Outputs eVend eSpend eChange eError dChange dVend
 
-changeDisplay ::
+dynChange ::
   ( Reflex t
   , MonadFix m
   , MonadHold t m
@@ -102,14 +102,14 @@ changeDisplay ::
   Event t Money ->
   Event t Error ->
   m (Dynamic t Money)
-changeDisplay eSpend eChange eError =
+dynChange eSpend eChange eError =
   holdDyn 0 .  leftmost $ [
       eChange
     , 0 <$ eSpend
     , 0 <$ eError
     ]
 
-vendDisplay ::
+dynVend ::
   ( Reflex t
   , MonadFix m
   , MonadHold t m
@@ -118,7 +118,7 @@ vendDisplay ::
   Event t Money ->
   Event t Error ->
   m (Dynamic t Text)
-vendDisplay eVend eSpend eError =
+dynVend eVend eSpend eError =
   holdDyn "" .  leftmost $ [
      eVend
    , ""        <$  eSpend

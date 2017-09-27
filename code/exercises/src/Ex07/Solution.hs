@@ -73,15 +73,15 @@ ex07 (Inputs dCarrot dCelery dCucumber dSelected eAdd eBuy eRefund) = mdo
       current dMoney <@ eRefund
 
   -- We have separated out the tracking of the money into a
-  -- function called `trackMoney`
-  dMoney  <- trackMoney eAdd eSpend eRefund
+  -- function called `dynMoney`
+  dMoney  <- dynMoney eAdd eSpend eRefund
 
-  dChange <- changeDisplay eSpend eChange eError
-  dVend   <- vendDisplay eVend eSpend eError
+  dChange <- dynChange eSpend eChange eError
+  dVend   <- dynVend eVend eSpend eError
 
   pure $ Outputs eVend eSpend eChange eError dMoney dChange dVend
 
-trackMoney ::
+dynMoney ::
   ( Reflex t
   , MonadFix m
   , MonadHold t m
@@ -90,7 +90,7 @@ trackMoney ::
   Event t Money ->
   Event t () ->
   m (Dynamic t Money)
-trackMoney eAdd eSpend eRefund = mdo
+dynMoney eAdd eSpend eRefund = mdo
   -- There are many, many ways that we can do this.
 
   -- If what you have works, I'd call it a win - you'll
@@ -114,7 +114,7 @@ trackMoney eAdd eSpend eRefund = mdo
 
   pure dMoney
 
-changeDisplay ::
+dynChange ::
   ( Reflex t
   , MonadFix m
   , MonadHold t m
@@ -123,14 +123,14 @@ changeDisplay ::
   Event t Money ->
   Event t Error ->
   m (Dynamic t Money)
-changeDisplay eSpend eChange eError =
+dynChange eSpend eChange eError =
   holdDyn 0 .  leftmost $ [
       eChange
     , 0 <$ eSpend
     , 0 <$ eError
     ]
 
-vendDisplay ::
+dynVend ::
   ( Reflex t
   , MonadFix m
   , MonadHold t m
@@ -139,7 +139,7 @@ vendDisplay ::
   Event t Money ->
   Event t Error ->
   m (Dynamic t Text)
-vendDisplay eVend eSpend eError =
+dynVend eVend eSpend eError =
   holdDyn "" .  leftmost $ [
      eVend
    , ""        <$  eSpend

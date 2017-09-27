@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecursiveDo #-}
-module Ex09.Run (
+{-# LANGUAGE RankNTypes #-}
+module Ex10.Run (
     host
   ) where
 
@@ -13,14 +14,15 @@ import Reflex.Dom.Core
 
 import qualified Util.Bootstrap as B
 
-import Ex09.Common
+import Ex10.Common
 
 stockWidget ::
   MonadWidget t m =>
+  Ex10FnRow m ->
   Dynamic t Stock ->
   Dynamic t Text ->
   m (Event t Text)
-stockWidget dStock dSelected =
+stockWidget row dStock dSelected =
   let
     r1 = dynText $ pName . sProduct <$> dStock
     r2 = dynText $ Text.pack . show . sQuantity <$> dStock
@@ -40,29 +42,27 @@ stockWidget dStock dSelected =
       let eClick = domEvent Click e
       pure $ pName . sProduct <$> current dStock <@ eClick
   in
-    el "tr" $ do
-      el "td" r1
-      el "td" r2
-      el "td" r3
-      el "td" r4
+    row r1 r2 r3 r4
 
 host ::
   MonadWidget t m =>
-  Ex09FnA t m ->
-  Ex09FnB t m ->
+  Ex10FnGrid m  ->
+  Ex10FnRow m ->
+  Ex10FnMkStock t m ->
+  Ex10FnMain t m ->
   m ()
-host mkStock fn = B.panel . elClass "table" "table" $ mdo
+host grid row mkStock fn = B.panel . grid $ mdo
   dCarrot   <- mkStock 5 carrot   eVend
   dCelery   <- mkStock 5 celery   eVend
   dCucumber <- mkStock 5 cucumber eVend
 
   input <- mdo
       eCarrot <-
-        stockWidget dCarrot dSelected
+        stockWidget row dCarrot dSelected
       eCelery <-
-        stockWidget dCelery dSelected
+        stockWidget row dCelery dSelected
       eCucumber <-
-        stockWidget dCucumber dSelected
+        stockWidget row dCucumber dSelected
       dSelected <-
         holdDyn (pName carrot) .
         leftmost $ [

@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Ex09.Exercise where
+module Ex11.Exercise where
 
 import Control.Monad.Fix (MonadFix)
 
@@ -15,8 +15,8 @@ import Reflex.Dom.Core
 import Util.Run
 #endif
 
-import Ex09.Common
-import Ex09.Run
+import Ex11.Common
+import Ex11.Run
 
 mkStock ::
   ( Reflex t
@@ -30,12 +30,12 @@ mkStock ::
 mkStock =
   error "TODO"
 
-ex09 ::
+ex11 ::
   ( MonadWidget t m
   ) =>
   Inputs t ->
   m (Event t Text)
-ex09 (Inputs dCarrot dCelery dCucumber dSelected) = mdo
+ex11 (Inputs dCarrot dCelery dCucumber dSelected) = mdo
   let
     eVend =
       never
@@ -47,5 +47,5 @@ go ::
   IO ()
 go =
   run $
-    host mkStock ex09
+    host mkStock ex11
 #endif

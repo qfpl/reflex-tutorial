@@ -1,15 +1,17 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Ex09.Solution (
-    attachEx09
+module Ex11.Solution (
+    attachEx11
   ) where
 
 import Language.Javascript.JSaddle (JSM)
 
 import Control.Monad.Fix (MonadFix)
+import Data.Monoid ((<>))
 
 import Data.Text (Text)
+import qualified Data.Text as Text
 
 import qualified Data.Map as Map
 
@@ -17,14 +19,40 @@ import Reflex
 import Reflex.Dom.Core
 
 import Util.Attach
-import qualified Util.Bootstrap as B
 
 #ifndef ghcjs_HOST_OS
 import Util.Run
 #endif
 
-import Ex09.Common
-import Ex09.Run
+import Ex11.Common
+import Ex11.Run
+
+stockWidget ::
+  MonadWidget t m =>
+  Dynamic t Stock ->
+  Dynamic t Text ->
+  m (Event t Text)
+stockWidget dStock dSelected =
+  let
+    r1 = dynText $ pName . sProduct <$> dStock
+    r2 = dynText $ Text.pack . show . sQuantity <$> dStock
+    r3 = dynText $ moneyDisplay . pCost . sProduct <$> dStock
+
+    attrs =
+      "type" =: "radio" <>
+      "name" =: "stock"
+    mkAttrs s n =
+      if (pName . sProduct) s == n
+      then "checked" =: ""
+      else mempty
+    dynAttrs = mkAttrs <$> dStock <*> dSelected
+
+    r4 = do
+      (e, _) <- elDynAttr' "input" (pure attrs <> dynAttrs) $ pure ()
+      let eClick = domEvent Click e
+      pure $ pName . sProduct <$> current dStock <@ eClick
+  in
+    row r1 r2 r3 r4
 
 mkStock ::
   ( Reflex t
@@ -45,12 +73,12 @@ mkStock i p e = mdo
     subtract 1 <$ ffilter (== pName p) eSub
   pure $ Stock p <$> dQuantity
 
-ex09 ::
+ex11 ::
   ( MonadWidget t m
   ) =>
   Inputs t ->
   m (Event t Text)
-ex09 (Inputs dCarrot dCelery dCucumber dSelected) = mdo
+ex11 (Inputs dCarrot dCelery dCucumber dSelected) = mdo
   let
     dStocks =
       [dCarrot, dCelery, dCucumber]
@@ -106,15 +134,11 @@ buyRow ::
   MonadWidget t m =>
   m (Event t ())
 buyRow =
-  el "tr" $ do
-    el "td" $
-      pure ()
-    el "td" $
-      pure ()
-    el "td" $
-      pure ()
-    el "td" $
-      button "Buy"
+  let
+    rBlank = pure ()
+  in
+  row rBlank rBlank rBlank $
+    button "Buy"
 
 dynMoney ::
   ( Reflex t
@@ -148,15 +172,13 @@ moneyRow ::
   Dynamic t Money ->
   m (Event t ())
 moneyRow dMoney =
-  el "tr" $ do
-    el "td" $
-      text "Money inserted:"
-    el "td" $
-      pure ()
-    el "td" $
-      dynText $ moneyDisplay <$> dMoney
-    el "td" $
-      button "Add money"
+  let
+    r1 = text "Money inserted:"
+    r2 = pure ()
+    r3 = dynText $ moneyDisplay <$> dMoney
+    r4 = button "Add money"
+  in
+    row r1 r2 r3 r4
 
 dynChange ::
   ( Reflex t
@@ -180,15 +202,13 @@ changeRow ::
   Dynamic t Money ->
   m (Event t ())
 changeRow dChange =
-  el "tr" $ do
-    el "td" $
-      text "Change:"
-    el "td" $
-      pure ()
-    el "td" $
-      dynText $ moneyDisplay <$> dChange
-    el "td" $
-      button "Refund"
+  let
+    r1 = text "Change:"
+    r2 = pure ()
+    r3 = dynText $ moneyDisplay <$> dChange
+    r4 = button "Refund"
+  in
+    row r1 r2 r3 r4
 
 dynVend ::
   ( Reflex t
@@ -212,26 +232,23 @@ vendRow ::
   Dynamic t Text ->
   m ()
 vendRow dVend =
-  el "tr" $ do
-    el "td" $
-      text "Tray:"
-    el "td" $
-      pure ()
-    el "td" $
-      dynText dVend
-    el "td" $
-      pure ()
+  let
+    r1     = text "Tray:"
+    rBlank = pure ()
+    r3     = dynText dVend
+  in
+    row r1 rBlank r3 rBlank
 
-attachEx09 ::
+attachEx11 ::
   JSM ()
-attachEx09 =
-  attachId_ "ex09" $
-    host mkStock ex09
+attachEx11 =
+  attachId_ "ex11" $
+    host stockWidget mkStock ex11
 
 #ifndef ghcjs_HOST_OS
 go ::
   IO ()
 go =
   run $
-    host mkStock ex09
+    host stockWidget mkStock ex11
 #endif

@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Ex09.Common (
+{-# LANGUAGE RankNTypes #-}
+module Ex11.Common (
     Money
   , moneyDisplay
   , Product (..)
@@ -10,8 +11,11 @@ module Ex09.Common (
   , Inputs(..)
   , Error(..)
   , errorText
-  , Ex09FnA
-  , Ex09FnB
+  , grid
+  , row
+  , Ex11FnStockWidget
+  , Ex11FnMkStock
+  , Ex11FnMain
   ) where
 
 import Data.Monoid ((<>))
@@ -20,6 +24,7 @@ import Data.Text
 import qualified Data.Text as Text
 
 import Reflex
+import Reflex.Dom.Core
 
 type Money = Int
 
@@ -77,13 +82,39 @@ errorText NotEnoughMoney =
 errorText ItemOutOfStock =
   "Item out of stock"
 
-type Ex09FnA t m =
+grid ::
+  MonadWidget t m =>
+  m a ->
+  m a
+grid =
+  elClass "div" "container"
+
+row ::
+  MonadWidget t m =>
+  m a ->
+  m b ->
+  m c ->
+  m d ->
+  m d
+row ma mb mc md = elClass "div" "row" $
+  (\_ _ _ x -> x)
+    <$> elClass "div" "col-md-3" ma
+    <*> elClass "div" "col-md-1" mb
+    <*> elClass "div" "col-md-1" mc
+    <*> elClass "div" "col-md-1" md
+
+type Ex11FnStockWidget t m =
+  Dynamic t Stock ->
+  Dynamic t Text ->
+  m (Event t Text)
+
+type Ex11FnMkStock t m =
   Int ->
   Product ->
   Event t Text ->
   m (Dynamic t Stock)
 
-type Ex09FnB t m =
+type Ex11FnMain t m =
   Inputs t ->
   m (Event t Text)
 

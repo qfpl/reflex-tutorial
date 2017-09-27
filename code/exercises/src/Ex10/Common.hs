@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Ex09.Common (
+{-# LANGUAGE RankNTypes #-}
+module Ex10.Common (
     Money
   , moneyDisplay
   , Product (..)
@@ -10,8 +11,10 @@ module Ex09.Common (
   , Inputs(..)
   , Error(..)
   , errorText
-  , Ex09FnA
-  , Ex09FnB
+  , Ex10FnGrid
+  , Ex10FnRow
+  , Ex10FnMkStock
+  , Ex10FnMain
   ) where
 
 import Data.Monoid ((<>))
@@ -77,13 +80,26 @@ errorText NotEnoughMoney =
 errorText ItemOutOfStock =
   "Item out of stock"
 
-type Ex09FnA t m =
+type Ex10FnGrid m =
+  forall a.
+  m a ->
+  m a
+
+type Ex10FnRow m =
+  forall a b c d.
+  m a ->
+  m b ->
+  m c ->
+  m d ->
+  m d
+
+type Ex10FnMkStock t m =
   Int ->
   Product ->
   Event t Text ->
   m (Dynamic t Stock)
 
-type Ex09FnB t m =
+type Ex10FnMain t m =
   Inputs t ->
   m (Event t Text)
 
