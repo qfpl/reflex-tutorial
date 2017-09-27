@@ -496,8 +496,8 @@ complete ::
   Dynamic t Bool ->
   m (Event t Bool)
 complete dComplete  = do
-  initialValue <- sample . current $ dComplete
-  cb <- checkbox initialValue def
+  -- initialValue <- sample . current $ dComplete
+  cb <- checkbox False def
   pure $ cb ^. checkbox_change
 
 edit ::
