@@ -23,17 +23,73 @@ moneyDisplay ::
 moneyDisplay =
   ("$" <>) . Text.pack . show
 
+grid ::
+  MonadWidget t m =>
+  m a ->
+  m a
+grid =
+  elClass "div" "container"
+
+row ::
+  MonadWidget t m =>
+  m a ->
+  m b ->
+  m c ->
+  m c
+row ma mb mc = elClass "div" "row" $
+  (\_ _ x -> x)
+    <$> elClass "div" "col-md-3" ma
+    <*> elClass "div" "col-md-1" mb
+    <*> elClass "div" "col-md-1" mc
+
 productWidget ::
   MonadWidget t m =>
   Product ->
   m (Event t ())
-productWidget p = divClass "row" $ do
-  divClass "col-md-3" $
-    text $ pName p
-  divClass "col-md-1" $
-    text . moneyDisplay $ pCost p
-  divClass "col-md-1" $
-    B.button  "Buy"
+productWidget p =
+  let
+    r1 = text $ pName p
+    r2 = text . moneyDisplay $ pCost p
+    r3 = B.button "Buy"
+  in
+    row r1 r2 r3
+
+host ::
+  MonadWidget t m =>
+  Ex01Fn t ->
+  m ()
+host fn = B.panel . grid $ mdo
+
+  input <- do
+      eCarrot <- productWidget carrot
+      eCelery <- productWidget celery
+      eCucumber <- productWidget cucumber
+      pure $ Inputs eCarrot eCelery eCucumber eRefund
+
+  dMoney <- trackMoney $ MoneyInputs eAdd eSpend eRefund
+  eAdd   <- moneyRow dMoney
+
+  let
+    dOut =
+      (\m -> fn m input) <$> dMoney
+    eVend =
+      switch . current . fmap oeVend $ dOut
+    eSpend =
+      switch . current . fmap oeSpend $ dOut
+    eChange =
+      switch . current . fmap oeChange $ dOut
+    eNotEnoughMoney =
+      switch . current . fmap oeNotEnoughMoney $ dOut
+    outputs =
+      Outputs eVend eSpend eChange eNotEnoughMoney
+
+  dChange <- changeDisplay outputs
+  eRefund <- changeRow dChange
+
+  dVend <- vendDisplay outputs
+  vendRow dVend
+
+  pure ()
 
 data MoneyInputs t =
   MoneyInputs {
@@ -56,67 +112,69 @@ trackMoney (MoneyInputs eAdd eSpend eRefund) =
     , const 0  <$  eRefund
     ]
 
-host ::
-  MonadWidget t m =>
-  Ex01Fn t ->
-  m ()
-host fn = B.panel $ divClass "container" $ mdo
-
-  input <- do
-      eCarrot <- productWidget carrot
-      eCelery <- productWidget celery
-      eCucumber <- productWidget cucumber
-      pure $ Inputs eCarrot eCelery eCucumber eRefund
-
-  eAdd <- divClass "row" $ mdo
-      divClass "col-md-3" $
-        text "Money inserted:"
-      divClass "col-md-1" $
-        dynText $ moneyDisplay <$> dMoney
-      divClass "col-md-1" $
-        B.button "Add money"
-
-  dMoney <- trackMoney $ MoneyInputs eAdd eSpend eRefund
-
+moneyRow ::
+  ( MonadWidget t m
+  ) =>
+  Dynamic t Money ->
+  m (Event t ())
+moneyRow dMoney =
   let
-    dOut =
-      (\m -> fn m input) <$> dMoney
-    eVend =
-      switch . current . fmap oeVend $ dOut
-    eSpend =
-      switch . current . fmap oeSpend $ dOut
-    eChange =
-      switch . current . fmap oeChange $ dOut
-    eNotEnoughMoney =
-      switch . current . fmap oeNotEnoughMoney $ dOut
+    r1 = text "Money inserted:"
+    r2 = dynText $ moneyDisplay <$> dMoney
+    r3 = B.button "Add money"
+  in
+    row r1 r2 r3
 
-  dChange <- holdDyn 0 . leftmost $ [
-                 eChange
-               , 0 <$ updated dMoney
-               , 0 <$ eNotEnoughMoney
-               ]
+changeDisplay ::
+  ( Reflex t
+  , MonadFix m
+  , MonadHold t m
+  ) =>
+  Outputs t ->
+  m (Dynamic t Money)
+changeDisplay (Outputs _ eSpend eChange eError) =
+  holdDyn 0 .  leftmost $ [
+      eChange
+    , 0 <$ eSpend
+    , 0 <$ eError
+    ]
 
-  eRefund <- divClass "row" $ do
-    divClass "col-md-3" $
-      text "Change:"
-    divClass "col-md-1" $
-      dynText $ moneyDisplay <$> dChange
-    divClass "col-md-1" $
-      B.button "Refund"
+changeRow ::
+  ( MonadWidget t m
+  ) =>
+  Dynamic t Money ->
+  m (Event t ())
+changeRow dChange =
+  let
+    r1 = text "Change:"
+    r2 = dynText $ moneyDisplay <$> dChange
+    r3 = B.button "Refund"
+  in
+    row r1 r2 r3
 
-  dVend <- holdDyn "" . leftmost $ [
-               eVend
-             , "" <$ updated dMoney
-             , "Insufficient funds" <$ eNotEnoughMoney
-             ]
+vendDisplay ::
+  ( Reflex t
+  , MonadFix m
+  , MonadHold t m
+  ) =>
+  Outputs t ->
+  m (Dynamic t Text)
+vendDisplay (Outputs eVend eSpend _ eError) =
+  holdDyn "" .  leftmost $ [
+     eVend
+   , ""                   <$ eSpend
+   , "Insufficient funds" <$ eError
+   ]
 
-  divClass "row" $ do
-    divClass "col-md-3" $
-      text "Tray:"
-    divClass "col-md-1" $
-      dynText dVend
-    divClass "col-md-1" $
-      text ""
-
-  pure ()
-
+vendRow ::
+  ( MonadWidget t m
+  ) =>
+  Dynamic t Text ->
+  m ()
+vendRow dVend =
+  let
+    r1     = text "Tray:"
+    r2     = dynText dVend
+    rBlank = pure ()
+  in
+    row r1 r2 rBlank

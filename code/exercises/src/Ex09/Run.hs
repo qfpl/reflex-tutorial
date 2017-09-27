@@ -15,6 +15,29 @@ import qualified Util.Bootstrap as B
 
 import Ex09.Common
 
+radioButton ::
+  ( MonadWidget t m
+  , Eq a
+  ) =>
+  Text ->
+  Dynamic t a ->
+  Dynamic t a ->
+  m (Event t a)
+radioButton name dValue dSelected =
+  let
+    attrs =
+      "type" =: "radio" <>
+      "name" =: name
+    mkAttrs a n =
+      if a == n
+      then "checked" =: ""
+      else mempty
+    dynAttrs = mkAttrs <$> dValue <*> dSelected
+  in do
+    (e, _) <- elDynAttr' "input" (pure attrs <> dynAttrs) $ pure ()
+    let eClick = domEvent Click e
+    pure $ current dValue <@ eClick
+
 stockWidget ::
   MonadWidget t m =>
   Dynamic t Stock ->
@@ -25,20 +48,7 @@ stockWidget dStock dSelected =
     r1 = dynText $ pName . sProduct <$> dStock
     r2 = dynText $ Text.pack . show . sQuantity <$> dStock
     r3 = dynText $ moneyDisplay . pCost . sProduct <$> dStock
-
-    attrs =
-      "type" =: "radio" <>
-      "name" =: "stock"
-    mkAttrs s n =
-      if (pName . sProduct) s == n
-      then "checked" =: ""
-      else mempty
-    dynAttrs = mkAttrs <$> dStock <*> dSelected
-
-    r4 = do
-      (e, _) <- elDynAttr' "input" (pure attrs <> dynAttrs) $ pure ()
-      let eClick = domEvent Click e
-      pure $ pName . sProduct <$> current dStock <@ eClick
+    r4 = radioButton "stock" ((pName . sProduct) <$> dStock) dSelected
   in
     el "tr" $ do
       el "td" r1
