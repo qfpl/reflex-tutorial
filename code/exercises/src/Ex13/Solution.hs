@@ -1,16 +1,14 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Ex11.Solution (
-    attachEx11
+module Ex13.Solution (
+    attachEx13
   ) where
 
 import Language.Javascript.JSaddle (JSM)
 
 import Control.Monad.Fix (MonadFix)
 import Data.Monoid ((<>))
-
-import Control.Lens
 
 import Data.Text (Text)
 import qualified Data.Text as Text
@@ -26,26 +24,31 @@ import Util.Attach
 import Util.Run
 #endif
 
-import Ex11.Common
-import Ex11.Run
+import Ex13.Common
+import Ex13.Run
 
-radioCheckbox ::
+radioButton ::
   ( MonadWidget t m
   , Eq a
   ) =>
+  Text ->
   Dynamic t a ->
   Dynamic t a ->
   m (Event t a)
-radioCheckbox dValue dSelected =
+radioButton name dValue dSelected =
   let
-    dMatch = (==) <$> dValue <*> dSelected
+    attrs =
+      "type" =: "radio" <>
+      "name" =: name
+    mkAttrs a n =
+      if a == n
+      then "checked" =: ""
+      else mempty
+    dynAttrs = mkAttrs <$> dValue <*> dSelected
   in do
-    -- note about how sample for the inital value would hang?
-    ePostBuild <- getPostBuild
-    let eChanges = leftmost [updated dMatch, current dMatch <@ ePostBuild]
-    cb <- checkbox False $
-      def & checkboxConfig_setValue .~ eChanges
-    pure $ current dValue <@ ffilter id (cb ^. checkbox_change)
+    (e, _) <- elDynAttr' "input" (pure attrs <> dynAttrs) $ pure ()
+    let eClick = domEvent Click e
+    pure $ current dValue <@ eClick
 
 stockWidget ::
   MonadWidget t m =>
@@ -57,7 +60,7 @@ stockWidget dStock dSelected =
     r1 = dynText $ pName . sProduct <$> dStock
     r2 = dynText $ Text.pack . show . sQuantity <$> dStock
     r3 = dynText $ moneyDisplay . pCost . sProduct <$> dStock
-    r4 = radioCheckbox ((pName . sProduct) <$> dStock) dSelected
+    r4 = radioButton "stock" ((pName . sProduct) <$> dStock) dSelected
   in
     row r1 r2 r3 r4
 
@@ -80,12 +83,12 @@ mkStock i p e = mdo
     subtract 1 <$ ffilter (== pName p) eSub
   pure $ Stock p <$> dQuantity
 
-ex11 ::
+ex13 ::
   ( MonadWidget t m
   ) =>
   Inputs t ->
   m (Event t Text)
-ex11 (Inputs dCarrot dCelery dCucumber dSelected) = mdo
+ex13 (Inputs dCarrot dCelery dCucumber dSelected) = mdo
   let
     dStocks =
       [dCarrot, dCelery, dCucumber]
@@ -246,16 +249,16 @@ vendRow dVend =
   in
     row r1 rBlank r3 rBlank
 
-attachEx11 ::
+attachEx13 ::
   JSM ()
-attachEx11 =
-  attachId_ "ex11" $
-    host stockWidget mkStock ex11
+attachEx13 =
+  attachId_ "ex13" $
+    host stockWidget mkStock ex13
 
 #ifndef ghcjs_HOST_OS
 go ::
   IO ()
 go =
   run $
-    host stockWidget mkStock ex11
+    host stockWidget mkStock ex13
 #endif

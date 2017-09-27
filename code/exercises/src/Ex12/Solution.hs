@@ -1,8 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Ex11.Solution (
-    attachEx11
+module Ex12.Solution (
+    attachEx12
   ) where
 
 import Language.Javascript.JSaddle (JSM)
@@ -26,8 +26,8 @@ import Util.Attach
 import Util.Run
 #endif
 
-import Ex11.Common
-import Ex11.Run
+import Ex12.Common
+import Ex12.Run
 
 radioCheckbox ::
   ( MonadWidget t m
@@ -80,12 +80,12 @@ mkStock i p e = mdo
     subtract 1 <$ ffilter (== pName p) eSub
   pure $ Stock p <$> dQuantity
 
-ex11 ::
+ex12 ::
   ( MonadWidget t m
   ) =>
   Inputs t ->
   m (Event t Text)
-ex11 (Inputs dCarrot dCelery dCucumber dSelected) = mdo
+ex12 (Inputs dCarrot dCelery dCucumber dSelected) = mdo
   let
     dStocks =
       [dCarrot, dCelery, dCucumber]
@@ -246,16 +246,16 @@ vendRow dVend =
   in
     row r1 rBlank r3 rBlank
 
-attachEx11 ::
+attachEx12 ::
   JSM ()
-attachEx11 =
-  attachId_ "ex11" $
-    host stockWidget mkStock ex11
+attachEx12 =
+  attachId_ "ex12" $
+    host stockWidget mkStock ex12
 
 #ifndef ghcjs_HOST_OS
 go ::
   IO ()
 go =
   run $
-    host stockWidget mkStock ex11
+    host stockWidget mkStock ex12
 #endif
