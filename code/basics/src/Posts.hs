@@ -11,7 +11,6 @@ import Posts.Dynamic (dynamicPostExamples)
 import Posts.RecursiveDo (recursiveDoPostExamples)
 import Posts.Dom (domPostExamples)
 import Posts.Switch (switchPostExamples)
-import Posts.Component (componentPostExamples)
 
 import Util.Attach
 import Util.Grid
@@ -26,4 +25,3 @@ posts = do
   recursiveDoPostExamples
   domPostExamples
   switchPostExamples
-  componentPostExamples
