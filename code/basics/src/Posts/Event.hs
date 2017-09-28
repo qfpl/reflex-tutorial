@@ -381,7 +381,7 @@ fizzAndBuzzBits = do
     numberInput def
 
   let
-    eCount = floor <$> _numberInput_input num
+    eCount = _numberInput_input num
     eTick = () <$ eCount
 
   let
