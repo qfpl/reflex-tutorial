@@ -10,10 +10,6 @@ extra-js: /js/reflex/basics/reflex-basics.min.js
 [Previously](../dom/) we looked at how to use `reflex-dom` to put DOM elements on a page.
 Now we're going to look at how to modify our FRP network in response to user input.
 
-<div id="examples-switch-flip-1"></div>
-
-<div id="examples-switch-flip-2"></div>
-
 ## What is switching?
 
 Everything we've done so far has involved building up an FRP network that is static.
@@ -488,9 +484,28 @@ Now that we have the pieces in place, we use `widgetHold` to put `textWidget` on
 
 This gives us a `Dynamic t (Event t Text)`, and we want an `Event t Text`.
 
-There is a function with this signature, but it's hardly ever what you want.
+There is a function with this signature:
+```haskell
+switchPromptlyDyn :: Dynamic t (Event t a)
+                  -> Event t a
 
-In most cases we'll use `switch . current` to make that transition:
+```
+but I tend to favour using `switch . current`:
+```
+switch . current :: Dynamic t (Event t a)
+                 -> Event t a
+```
+to do that sort of thing.
+
+With `switchPromptlyDyn` we'll have access to the `Event` in the same frame that the `Dynamic` gets updated, and with `switch . current` we'll be working with the old `Event` in the frame when the `Dynamic` gets updated.
+
+We'll often find ourselves in situations where the `Event` that is the output out of a switching function is also being used to construct the `Dynamic` that is being input to the switching function.
+I might be doing something horribly wrong, but I've seen all kinds of mayhem when I've used `switchPromptlyDyn` when I wasn't really sure that I needed the update in that particular frame.
+
+My formal recommendation is to pick your functions based on the semantics that you want.
+My lazy recommendation is to go with `switch . current` until you know you need `switchPromptlyDyn` - it's more likely to be what you want, it has better performance, and you're less likely to shoot yourself in the foot with it.
+
+In our case, we use it to pull out an `Event t Text`:
 ```haskell
   let
     eText = switch . current $ deText
@@ -803,16 +818,13 @@ wf3 = Workflow $ do
 
 <div id="examples-switch-workflow-2"></div>
 
-## A more involved example
-
-<div id="examples-switch-todo"></div>
-
 ## Playing along at home
 
-If you want to test out your understanding of how switching works, there are exercises [here](../exercises/switching/) that might help.
+If you want to test out your understanding of how switching works, there are exercises coming soon.
+<!--If you want to test out your understanding of how switching works, there are exercises [here](../exercises/switching/) that might help.-->
 These exercises build up incrementally as the series progresses, so it would probably best to start the exercises beginning at the start of the series.
 
 ## Next up
 
-In the next post we'll look at how we manage collections in `reflex`.
-<!--In the [next post](../collections/) we'll look at how we manage collections in `reflex`.-->
+In the next post we'll look at how we break things up into components in `reflex`.
+<!--In the [next post](../components/) we'll look at how we break things up into components in `reflex`.-->
