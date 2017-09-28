@@ -86,6 +86,12 @@ todoItem dText =
 This is following some common `reflex` advice about components: start with `Dynamic`s as inputs and `Event`s as outputs.
 We'll come back to this later, and will see when to break those rules, but it's a very useful place to start.
 
+We use `Dynamic`s as much as we can to update the DOM.
+The `Behavior` aspect of the `Dynamic` keeps track of some state, and the `Event` aspect of the `Dynamic` fires when that state updates.
+For the smaller changes to the DOM, we can attach a handler for that `Event` at a particular DOM node to do what needs doing when the `Event` fires.
+If you set things up correctly, this can lead to the same effect as working with a virtual DOM but without needing to do the diffing or patching.
+The fact that we can pass these `Dynamic`s around as first class values is the cherry on top.
+
 It also introduces `MonadWidget`, which is a constraint synonym for a long list of typeclasses that are often used when created components that will be translated to parts of a DOM tree, including the `DomBuilder t m` constraint.
 
 If we want to see something happen when that `Event` is fired, we can use it to modify the text we are displaying.
