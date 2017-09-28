@@ -114,7 +114,7 @@ There is a solution in `src/Ex03/Solution.hs`, which you should look at when you
 We're going to start tracking the stock levels in the vending machine.
 
 We introduce a type for this:
-````haskell
+```haskell
 -- src/Ex04/Common.hs
 data Stock =
   Stock {
