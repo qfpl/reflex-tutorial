@@ -826,5 +826,5 @@ These exercises build up incrementally as the series progresses, so it would pro
 
 ## Next up
 
-In the next post we'll look at how we break things up into components in `reflex`.
+In the next post we'll look at how we break things up into components in `reflex`, and the various design tradeoffs that are involved with that.
 <!--In the [next post](../components/) we'll look at how we break things up into components in `reflex`.-->

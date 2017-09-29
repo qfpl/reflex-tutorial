@@ -601,5 +601,4 @@ These exercises build up incrementally as the series progresses, so it would pro
 There is much more to say about working with the DOM, but this should have given you an understanding of the basics.
 The next few posts will cover some additional tools and techniques while using and expanding on the functionality presented here.
 
-In the next post we'll look at some tools `reflex` provides for making modifications to the FRP network in response to `Event`s.
-<!--In the [next post](../switching/) we'll look at some tools `reflex` provides for making modifications to the graph in response to `Event`s.-->
+In the [next post](../switching/) we'll look at some tools `reflex` provides for making modifications to the graph in response to `Event`s.
