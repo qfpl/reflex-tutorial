@@ -48,16 +48,19 @@ remove ::
   MonadWidget t m =>
   m (Event t ())
 remove =
-  button "Remove"
+  B.button "Remove"
 
 removeExample ::
   MonadWidget t m =>
   m ()
 removeExample = B.panel . reset $ do
-  eRemove <- remove
-  dRemove <- holdDyn "" $ "Remove" <$ eRemove
-  dynText dRemove
-  pure ()
+  eRemove <- divClass "todo-item" $
+    remove
+
+  dRemove <- holdDyn "" $
+    "Remove" <$ eRemove
+  el "div" $
+    dynText dRemove
 
 completeBasic ::
   MonadWidget t m =>
@@ -71,10 +74,12 @@ completeBasicExample ::
   MonadWidget t m =>
   m ()
 completeBasicExample = B.panel . reset $ do
-  eComplete <- completeBasic False
+  eComplete <- divClass "todo-item" $
+    completeBasic False
+
   dComplete <- holdDyn False eComplete
-  display dComplete
-  pure ()
+  el "div" $
+    display dComplete
 
 completeSample ::
   MonadWidget t m =>
@@ -92,9 +97,12 @@ completeSampleExample ::
   MonadWidget t m =>
   m ()
 completeSampleExample = B.panel . reset $ mdo
+  eComplete <- divClass "todo-item" $
+    completeSample dComplete
+
   dComplete <- holdDyn False eComplete
-  eComplete <- completeSample dComplete
-  display dComplete
+  el "div" $
+    display dComplete
   pure ()
 
 completePostBuild ::
@@ -116,9 +124,12 @@ completePostBuildExample ::
   MonadWidget t m =>
   m ()
 completePostBuildExample = B.panel . reset $ mdo
-  eComplete <- completePostBuild dComplete
+  eComplete <- divClass "todo-item" $
+    completePostBuild dComplete
+
   dComplete <- holdDyn False eComplete
-  display dComplete
+  el "div" $
+    display dComplete
   pure ()
 
 completeEndo ::
@@ -137,9 +148,12 @@ completeEndoExample ::
   MonadWidget t m =>
   m ()
 completeEndoExample = B.panel . reset $ mdo
-  eComplete <- completeEndo dComplete
+  eComplete <- divClass "todo-item" $
+    completeEndo dComplete
+
   dComplete <- foldDyn ($) False eComplete
-  display dComplete
+  el "div" $
+    display dComplete
   pure ()
 
 textRead ::
@@ -155,9 +169,12 @@ textReadExample ::
   MonadWidget t m =>
   m ()
 textReadExample = B.panel . reset $ do
-  eEdit <- textRead $ pure "TODO"
+  eEdit <- divClass "todo-item" $
+    textRead $ pure "TODO"
+
   dEdit <- holdDyn "" $ "Edit" <$ eEdit
-  dynText dEdit
+  el "div" $
+    dynText dEdit
   pure ()
 
 getKey :: Reflex t => TextInput t -> Key -> Event t ()
@@ -195,15 +212,32 @@ textWriteExample ::
   MonadWidget t m =>
   m ()
 textWriteExample = B.panel . reset $ mdo
-  (eChange, eRemove, eEditStop) <- textWrite dText
-  dText <- foldDyn ($) "Test me" eChange
-  dynText dText
+  (eChange, eRemove, eEditStop) <- divClass "todo-item" $
+    textWrite dText
 
-  dRemove <- holdDyn "" $ "Remove" <$ eRemove
-  dynText dRemove
+  dText <- foldDyn ($) "Test me" . leftmost $ [
+      eChange
+    , const "" <$ eRemove
+    , const "" <$ eEditStop
+    ]
+  el "div" $
+    dynText dText
 
-  dEditStop <- holdDyn "" $ "Stop editing" <$ eEditStop
-  dynText dEditStop
+  dRemove <- holdDyn "" . leftmost $ [
+      "Remove" <$ eRemove
+    , "" <$ eChange
+    , "" <$ eEditStop
+    ]
+  el "div" $
+    dynText dRemove
+
+  dEditStop <- holdDyn "" . leftmost $ [
+      "Stop editing" <$ eEditStop
+    , "" <$ eRemove
+    , "" <$ eChange
+    ]
+  el "div" $
+    dynText dEditStop
 
 data TodoItem =
   TodoItem {
@@ -250,7 +284,7 @@ todoItem ::
   MonadWidget t m =>
   Dynamic t TodoItem ->
   m (Event t (TodoItem -> TodoItem), Event t ())
-todoItem dTodo = do
+todoItem dTodo = divClass "todo-item" $ do
   dpe <- workflow $ todoItemRead dTodo
   let
     eChange = switch . current . fmap fst $ dpe
@@ -265,7 +299,8 @@ todoItemExample = B.panel . reset $ mdo
   (eChange, eRemove) <- todoItem dTodo
 
   dRemove <- holdDyn "" $ "Remove" <$ eRemove
-  dynText dRemove
+  el "div" $
+    dynText dRemove
 
 todoItemDRead ::
   MonadWidget t m =>
@@ -292,7 +327,7 @@ todoItemD ::
   Dynamic t Bool ->
   Dynamic t Text ->
   m (Event t (Bool -> Bool), Event t (Text -> Text), Event t ())
-todoItemD dComplete dText = do
+todoItemD dComplete dText = divClass "todo-item" $ do
   dte <- workflow $ todoItemDRead dComplete dText
   let
     eComplete = switch . current . fmap (\(x, _, _) -> x) $ dte
@@ -306,10 +341,12 @@ todoItemDExample ::
 todoItemDExample = B.panel . reset $ mdo
   dComplete <- foldDyn ($) False eChangeComplete
   dText <- foldDyn ($) "Test me" eChangeText
+
   (eChangeComplete, eChangeText, eRemove) <- todoItemD dComplete dText
 
   dRemove <- holdDyn "" $ "Remove" <$ eRemove
-  dynText dRemove
+  el "div" $
+    dynText dRemove
 
 todoItemDIRead ::
   MonadWidget t m =>
@@ -327,18 +364,18 @@ todoItemDIWrite ::
   Dynamic t Bool ->
   Dynamic t Text ->
   Workflow t m (Event t (Bool -> Bool), Event t ())
-todoItemDIWrite dComplete dText = Workflow $ do
-  initial <- sample . current $ dText
-  (eText, eRemove, eEditStop) <- textWrite (pure initial)
-  dNewText <- foldDyn ($) initial eText
-  pure ((never, eRemove), todoItemDIWrite dComplete dNewText <$ eEditStop)
+todoItemDIWrite dComplete dText = Workflow $ mdo
+  ePostBuild <- getPostBuild
+  dNewText <- foldDyn ($) "" . leftmost $ [eText, const <$> current dText <@ ePostBuild]
+  (eText, eRemove, eEditStop) <- textWrite dNewText
+  pure ((never, eRemove), todoItemDIRead dComplete dNewText <$ eEditStop)
 
 todoItemDI ::
   MonadWidget t m =>
   Dynamic t Bool ->
   Dynamic t Text ->
   m (Event t (Bool -> Bool), Event t ())
-todoItemDI dComplete dText = do
+todoItemDI dComplete dText = divClass "todo-item" $ do
   dpe <- workflow $ todoItemDIRead dComplete dText
   let
     eComplete = switch . current . fmap fst $ dpe
@@ -348,13 +385,14 @@ todoItemDI dComplete dText = do
 todoItemDIExample ::
   MonadWidget t m =>
   m ()
-todoItemDIExample = mdo
+todoItemDIExample = B.panel . reset $ mdo
   dComplete <- foldDyn ($) False eChangeComplete
   let dText = pure "Test me"
   (eChangeComplete, eRemove) <- todoItemDI dComplete dText
 
   dRemove <- holdDyn "" $ "Remove" <$ eRemove
-  dynText dRemove
+  el "div" $
+    dynText dRemove
 
 componentPostExamples ::
   MonadJSM m =>
@@ -378,3 +416,5 @@ componentPostExamples = do
     todoItemExample
   attachId_ "examples-component-todo-item-d"
     todoItemDExample
+  attachId_ "examples-component-todo-item-di"
+    todoItemDIExample

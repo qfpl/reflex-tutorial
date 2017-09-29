@@ -1,9 +1,9 @@
 ---
 title: Components
-date: 2017-09-07
+date: 2017-10-03
 authors: dlaing
 project: reflex
-extra-css: /css/reflex/basics/grid-light.css
+extra-css: /css/reflex/basics/grid-light.css, /css/reflex/basics/todo.css
 extra-js: /js/reflex/basics/reflex-basics.min.js
 ---
 
@@ -132,6 +132,8 @@ textWrite dText =
 <div id="examples-component-todo-item-d"></div>
 
 ### When we don't need to build a model of a component
+
+<div id="examples-component-todo-item-di"></div>
 
 ## Playing along at home
 
