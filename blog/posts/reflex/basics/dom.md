@@ -593,8 +593,7 @@ It's the biggest piece of functionality that we have put together so far, but it
 
 ## Playing along at home
 
-If you want to test out your understanding of how you can use `reflex-dom` to work with the DOM, there are exercises coming soon.
-<!--If you want to test out your understanding of how you can use `reflex-dom` to work with the DOM, there are exercises [here](../exercises/dom/) that might help.-->
+If you want to test out your understanding of how you can use `reflex-dom` to work with the DOM, there are exercises [here](../exercises/dom/).
 These exercises build up incrementally as the series progresses, so it would probably best to start the exercises beginning at the start of the series.
 
 ## Next up

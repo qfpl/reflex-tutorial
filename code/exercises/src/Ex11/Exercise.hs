@@ -18,6 +18,21 @@ import Util.Run
 import Ex11.Common
 import Ex11.Run
 
+stockWidget ::
+  MonadWidget t m =>
+  Dynamic t Stock ->
+  Dynamic t Text ->
+  m (Event t Text)
+stockWidget dStock dSelected =
+  pure never
+
+grid ::
+  MonadWidget t m =>
+  m a ->
+  m a
+grid =
+  error "TODO"
+
 mkStock ::
   ( Reflex t
   , MonadHold t m
@@ -47,5 +62,5 @@ go ::
   IO ()
 go =
   run $
-    host mkStock ex11
+    host grid stockWidget mkStock ex11
 #endif

@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
-module Ex11.Common (
+module Ex14.Common (
     Money
   , moneyDisplay
   , Product (..)
@@ -8,22 +8,14 @@ module Ex11.Common (
   , carrot
   , celery
   , cucumber
-  , Inputs(..)
   , Error(..)
   , errorText
-  , Ex11FnGrid
-  , Ex11FnStockWidget
-  , Ex11FnMkStock
-  , Ex11FnMain
   ) where
 
 import Data.Monoid ((<>))
 
 import Data.Text
 import qualified Data.Text as Text
-
-import Reflex
-import Reflex.Dom.Core
 
 type Money = Int
 
@@ -60,14 +52,6 @@ data Stock =
   , sQuantity :: Int
   } deriving (Eq, Ord, Show)
 
-data Inputs t =
-  Inputs {
-    ibCarrot   :: Dynamic t Stock
-  , ibCelery   :: Dynamic t Stock
-  , ibCucumber :: Dynamic t Stock
-  , ibSelected :: Dynamic t Text
-  }
-
 data Error =
     NotEnoughMoney
   | ItemOutOfStock
@@ -80,24 +64,4 @@ errorText NotEnoughMoney =
   "Insufficient funds"
 errorText ItemOutOfStock =
   "Item out of stock"
-
-type Ex11FnGrid m =
-  forall a.
-  m a ->
-  m a
-
-type Ex11FnStockWidget t m =
-  Dynamic t Stock ->
-  Dynamic t Text ->
-  m (Event t Text)
-
-type Ex11FnMkStock t m =
-  Int ->
-  Product ->
-  Event t Text ->
-  m (Dynamic t Stock)
-
-type Ex11FnMain t m =
-  Inputs t ->
-  m (Event t Text)
 

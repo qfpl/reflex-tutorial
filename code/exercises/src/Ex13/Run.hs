@@ -5,11 +5,6 @@ module Ex13.Run (
     host
   ) where
 
-import Data.Monoid ((<>))
-
-import Data.Text (Text)
-import qualified Data.Text as Text
-
 import Reflex.Dom.Core
 
 import qualified Util.Bootstrap as B
@@ -18,11 +13,12 @@ import Ex13.Common
 
 host ::
   MonadWidget t m =>
+  Ex13FnGrid m ->
   Ex13FnStockWidget t m ->
   Ex13FnMkStock t m ->
   Ex13FnMain t m ->
   m ()
-host stockWidget mkStock fn = B.panel . grid $ mdo
+host grid stockWidget mkStock fn = B.panel . grid $ mdo
   dCarrot   <- mkStock 5 carrot   eVend
   dCelery   <- mkStock 5 celery   eVend
   dCucumber <- mkStock 5 cucumber eVend

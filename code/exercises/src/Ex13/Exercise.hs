@@ -18,6 +18,13 @@ import Util.Run
 import Ex13.Common
 import Ex13.Run
 
+grid ::
+  MonadWidget t m =>
+  m a ->
+  m a
+grid =
+  error "TODO"
+
 mkStock ::
   ( Reflex t
   , MonadHold t m
@@ -47,5 +54,5 @@ go ::
   IO ()
 go =
   run $
-    host mkStock ex13
+    host grid mkStock ex13
 #endif

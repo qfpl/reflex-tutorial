@@ -11,8 +11,7 @@ module Ex12.Common (
   , Inputs(..)
   , Error(..)
   , errorText
-  , grid
-  , row
+  , Ex12FnGrid
   , Ex12FnStockWidget
   , Ex12FnMkStock
   , Ex12FnMain
@@ -24,7 +23,6 @@ import Data.Text
 import qualified Data.Text as Text
 
 import Reflex
-import Reflex.Dom.Core
 
 type Money = Int
 
@@ -82,26 +80,10 @@ errorText NotEnoughMoney =
 errorText ItemOutOfStock =
   "Item out of stock"
 
-grid ::
-  MonadWidget t m =>
+type Ex12FnGrid m =
+  forall a.
   m a ->
   m a
-grid =
-  elClass "div" "container"
-
-row ::
-  MonadWidget t m =>
-  m a ->
-  m b ->
-  m c ->
-  m d ->
-  m d
-row ma mb mc md = elClass "div" "row" $
-  (\_ _ _ x -> x)
-    <$> elClass "div" "col-md-3" ma
-    <*> elClass "div" "col-md-1" mb
-    <*> elClass "div" "col-md-1" mc
-    <*> elClass "div" "col-md-1" md
 
 type Ex12FnStockWidget t m =
   Dynamic t Stock ->

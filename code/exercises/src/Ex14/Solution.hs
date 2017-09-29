@@ -1,8 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Ex13.Solution (
-    attachEx13
+module Ex14.Solution (
+    attachEx14
   ) where
 
 import Language.Javascript.JSaddle (JSM)
@@ -24,8 +24,80 @@ import Util.Attach
 import Util.Run
 #endif
 
-import Ex13.Common
-import Ex13.Run
+import Ex14.Common
+import Ex14.Run
+
+ex14 ::
+  ( MonadWidget t m
+  ) =>
+  m ()
+ex14 = grid $ mdo
+
+  dCarrot   <- mkStock 5 carrot eVend
+  eCarrot   <- stockWidget dCarrot dSelected
+
+  dCelery   <- mkStock 5 celery eVend
+  eCelery   <- stockWidget dCelery dSelected
+
+  dCucumber <- mkStock 5 cucumber eVend
+  eCucumber <- stockWidget dCucumber dSelected
+
+  dSelected <- holdDyn (pName carrot) . leftmost $ [
+                 eCarrot
+               , eCelery
+               , eCucumber
+               ]
+
+  let
+    dStocks =
+      [dCarrot, dCelery, dCucumber]
+    stockSingleton s =
+      Map.singleton (pName . sProduct $ s) s
+    dmStock =
+      foldMap (fmap stockSingleton) dStocks
+    emStock =
+      Map.lookup <$> current dSelected <*> current dmStock <@ eBuy
+    eStock =
+      fmapMaybe id emStock
+
+    checkItemOutOfStock s =
+      sQuantity s == 0
+    eItemOutOfStock =
+      ItemOutOfStock <$ ffilter checkItemOutOfStock eStock
+
+    checkNotEnoughMoney money s =
+      money < (pCost . sProduct $ s)
+    eNotEnoughMoney =
+      NotEnoughMoney <$ ffilter id (checkNotEnoughMoney <$> current dMoney <@> eStock)
+
+    eError =
+      leftmost [
+        eItemOutOfStock
+      , eNotEnoughMoney
+      ]
+
+    eSale =
+      sProduct <$> difference eStock eError
+
+    eVend =
+      pName <$> eSale
+    eSpend =
+      pCost <$> eSale
+    eChange =
+      current dMoney <@ eRefund
+
+  eBuy    <- buyRow
+
+  dMoney  <- dynMoney eAdd eSpend eRefund
+  eAdd    <- moneyRow dMoney
+
+  dChange <- dynChange eSpend eChange eError
+  eRefund <- changeRow dChange
+
+  dVend   <- dynVend eVend eSpend eError
+  vendRow dVend
+
+  pure ()
 
 radioButton ::
   ( MonadWidget t m
@@ -89,7 +161,6 @@ mkStock ::
   ( Reflex t
   , MonadHold t m
   , MonadFix m
-
   ) =>
   Int ->
   Product ->
@@ -103,63 +174,6 @@ mkStock i p e = mdo
   dQuantity <- foldDyn ($) i $
     subtract 1 <$ ffilter (== pName p) eSub
   pure $ Stock p <$> dQuantity
-
-ex13 ::
-  ( MonadWidget t m
-  ) =>
-  Inputs t ->
-  m (Event t Text)
-ex13 (Inputs dCarrot dCelery dCucumber dSelected) = mdo
-  let
-    dStocks =
-      [dCarrot, dCelery, dCucumber]
-    stockSingleton s =
-      Map.singleton (pName . sProduct $ s) s
-    dmStock =
-      foldMap (fmap stockSingleton) dStocks
-    emStock =
-      Map.lookup <$> current dSelected <*> current dmStock <@ eBuy
-    eStock =
-      fmapMaybe id emStock
-
-    checkItemOutOfStock s =
-      sQuantity s == 0
-    eItemOutOfStock =
-      ItemOutOfStock <$ ffilter checkItemOutOfStock eStock
-
-    checkNotEnoughMoney money s =
-      money < (pCost . sProduct $ s)
-    eNotEnoughMoney =
-      NotEnoughMoney <$ ffilter id (checkNotEnoughMoney <$> current dMoney <@> eStock)
-
-    eError =
-      leftmost [
-        eItemOutOfStock
-      , eNotEnoughMoney
-      ]
-
-    eSale =
-      sProduct <$> difference eStock eError
-
-    eVend =
-      pName <$> eSale
-    eSpend =
-      pCost <$> eSale
-    eChange =
-      current dMoney <@ eRefund
-
-  eBuy    <- buyRow
-
-  dMoney  <- dynMoney eAdd eSpend eRefund
-  eAdd    <- moneyRow dMoney
-
-  dChange <- dynChange eSpend eChange eError
-  eRefund <- changeRow dChange
-
-  dVend   <- dynVend eVend eSpend eError
-  vendRow dVend
-
-  pure eVend
 
 buyRow ::
   MonadWidget t m =>
@@ -270,16 +284,16 @@ vendRow dVend =
   in
     row r1 rBlank r3 rBlank
 
-attachEx13 ::
+attachEx14 ::
   JSM ()
-attachEx13 =
-  attachId_ "ex13" $
-    host grid stockWidget mkStock ex13
+attachEx14 =
+  attachId_ "ex14" $
+    host ex14
 
 #ifndef ghcjs_HOST_OS
 go ::
   IO ()
 go =
   run $
-    host grid stockWidget mkStock ex13
+  host ex14
 #endif

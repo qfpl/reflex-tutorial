@@ -29,24 +29,6 @@ import Util.Run
 import Ex11.Common
 import Ex11.Run
 
-radioCheckbox ::
-  ( MonadWidget t m
-  , Eq a
-  ) =>
-  Dynamic t a ->
-  Dynamic t a ->
-  m (Event t a)
-radioCheckbox dValue dSelected =
-  let
-    dMatch = (==) <$> dValue <*> dSelected
-  in do
-    -- note about how sample for the inital value would hang?
-    ePostBuild <- getPostBuild
-    let eChanges = leftmost [updated dMatch, current dMatch <@ ePostBuild]
-    cb <- checkbox False $
-      def & checkboxConfig_setValue .~ eChanges
-    pure $ current dValue <@ ffilter id (cb ^. checkbox_change)
-
 stockWidget ::
   MonadWidget t m =>
   Dynamic t Stock ->
@@ -65,7 +47,6 @@ mkStock ::
   ( Reflex t
   , MonadHold t m
   , MonadFix m
-
   ) =>
   Int ->
   Product ->
@@ -79,6 +60,27 @@ mkStock i p e = mdo
   dQuantity <- foldDyn ($) i $
     subtract 1 <$ ffilter (== pName p) eSub
   pure $ Stock p <$> dQuantity
+
+grid ::
+  MonadWidget t m =>
+  m a ->
+  m a
+grid =
+  elClass "div" "container"
+
+row ::
+  MonadWidget t m =>
+  m a ->
+  m b ->
+  m c ->
+  m d ->
+  m d
+row ma mb mc md = elClass "div" "row" $
+  (\_ _ _ x -> x)
+    <$> elClass "div" "col-md-3" ma
+    <*> elClass "div" "col-md-1" mb
+    <*> elClass "div" "col-md-1" mc
+    <*> elClass "div" "col-md-1" md
 
 ex11 ::
   ( MonadWidget t m
@@ -250,12 +252,12 @@ attachEx11 ::
   JSM ()
 attachEx11 =
   attachId_ "ex11" $
-    host stockWidget mkStock ex11
+    host grid stockWidget mkStock ex11
 
 #ifndef ghcjs_HOST_OS
 go ::
   IO ()
 go =
   run $
-    host stockWidget mkStock ex11
+    host grid stockWidget mkStock ex11
 #endif

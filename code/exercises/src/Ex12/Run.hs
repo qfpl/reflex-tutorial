@@ -18,11 +18,12 @@ import Ex12.Common
 
 host ::
   MonadWidget t m =>
+  Ex12FnGrid m ->
   Ex12FnStockWidget t m ->
   Ex12FnMkStock t m ->
   Ex12FnMain t m ->
   m ()
-host stockWidget mkStock fn = B.panel . grid $ mdo
+host grid stockWidget mkStock fn = B.panel . grid $ mdo
   dCarrot   <- mkStock 5 carrot   eVend
   dCelery   <- mkStock 5 celery   eVend
   dCucumber <- mkStock 5 cucumber eVend

@@ -40,7 +40,6 @@ radioCheckbox dValue dSelected =
   let
     dMatch = (==) <$> dValue <*> dSelected
   in do
-    -- note about how sample for the inital value would hang?
     ePostBuild <- getPostBuild
     let eChanges = leftmost [updated dMatch, current dMatch <@ ePostBuild]
     cb <- checkbox False $
@@ -60,6 +59,27 @@ stockWidget dStock dSelected =
     r4 = radioCheckbox ((pName . sProduct) <$> dStock) dSelected
   in
     row r1 r2 r3 r4
+
+grid ::
+  MonadWidget t m =>
+  m a ->
+  m a
+grid =
+  elClass "div" "container"
+
+row ::
+  MonadWidget t m =>
+  m a ->
+  m b ->
+  m c ->
+  m d ->
+  m d
+row ma mb mc md = elClass "div" "row" $
+  (\_ _ _ x -> x)
+    <$> elClass "div" "col-md-3" ma
+    <*> elClass "div" "col-md-1" mb
+    <*> elClass "div" "col-md-1" mc
+    <*> elClass "div" "col-md-1" md
 
 mkStock ::
   ( Reflex t
@@ -250,12 +270,12 @@ attachEx12 ::
   JSM ()
 attachEx12 =
   attachId_ "ex12" $
-    host stockWidget mkStock ex12
+    host grid stockWidget mkStock ex12
 
 #ifndef ghcjs_HOST_OS
 go ::
   IO ()
 go =
   run $
-    host stockWidget mkStock ex12
+    host grid stockWidget mkStock ex12
 #endif

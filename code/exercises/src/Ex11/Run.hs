@@ -2,10 +2,13 @@
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE RankNTypes #-}
 module Ex11.Run (
-    host
+    radioCheckbox
+  , host
   ) where
 
 import Data.Monoid ((<>))
+
+import Control.Lens
 
 import Data.Text (Text)
 import qualified Data.Text as Text
@@ -16,13 +19,34 @@ import qualified Util.Bootstrap as B
 
 import Ex11.Common
 
+radioCheckbox ::
+  ( MonadWidget t m
+  , Eq a
+  ) =>
+  Dynamic t a ->
+  Dynamic t a ->
+  m (Event t a)
+radioCheckbox dValue dSelected =
+  let
+    dMatch = (==) <$> dValue <*> dSelected
+  in do
+    ePostBuild <- getPostBuild
+    let eChanges = leftmost [
+            updated dMatch
+          , current dMatch <@ ePostBuild
+          ]
+    cb <- checkbox False $
+      def & checkboxConfig_setValue .~ eChanges
+    pure $ current dValue <@ ffilter id (cb ^. checkbox_change)
+
 host ::
   MonadWidget t m =>
+  Ex11FnGrid m ->
   Ex11FnStockWidget t m ->
   Ex11FnMkStock t m ->
   Ex11FnMain t m ->
   m ()
-host stockWidget mkStock fn = B.panel . grid $ mdo
+host grid stockWidget mkStock fn = B.panel . grid $ mdo
   dCarrot   <- mkStock 5 carrot   eVend
   dCelery   <- mkStock 5 celery   eVend
   dCucumber <- mkStock 5 cucumber eVend

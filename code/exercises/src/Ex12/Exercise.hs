@@ -18,6 +18,31 @@ import Util.Run
 import Ex12.Common
 import Ex12.Run
 
+radioCheckbox ::
+  ( MonadWidget t m
+  , Eq a
+  ) =>
+  Dynamic t a ->
+  Dynamic t a ->
+  m (Event t a)
+radioCheckbox dValue dSelected =
+  pure never
+
+stockWidget ::
+  MonadWidget t m =>
+  Dynamic t Stock ->
+  Dynamic t Text ->
+  m (Event t Text)
+stockWidget dStock dSelected =
+  pure never
+
+grid ::
+  MonadWidget t m =>
+  m a ->
+  m a
+grid =
+  error "TODO"
+
 mkStock ::
   ( Reflex t
   , MonadHold t m
@@ -47,5 +72,5 @@ go ::
   IO ()
 go =
   run $
-    host mkStock ex12
+    host grid stockWidget mkStock ex12
 #endif

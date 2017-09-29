@@ -6,7 +6,7 @@ project: reflex
 extra-js: /js/reflex/basics-exercises/solutions.min.js
 ---
 
-If you haven't done it already, I'd work through [the `Behavior` exercises](../behaviors/), since these builds from there.
+If you haven't done it already, I'd work through [the `Behavior` exercises](../behaviors/), since these build from there.
 
 None of these exercises will change the overall behavior of our application.
 Instead they'll expose more of the application that was previously being taken care of behind the scenes.

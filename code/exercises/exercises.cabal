@@ -61,6 +61,9 @@ library
     , Ex13.Common
     , Ex13.Solution
     , Ex13.Run
+    , Ex14.Common
+    , Ex14.Solution
+    , Ex14.Run
     , Util.Attach
     , Util.Reflex
     , Util.Bootstrap
