@@ -29,6 +29,8 @@ import Util.Run
 import Ex11.Common
 import Ex11.Run
 
+-- This is mostly about pulling the write pieces out and transforming them
+-- for use with `dynText`
 stockWidget ::
   MonadWidget t m =>
   Dynamic t Stock ->

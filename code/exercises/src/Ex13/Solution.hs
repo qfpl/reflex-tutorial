@@ -37,17 +37,25 @@ radioButton ::
   m (Event t a)
 radioButton name dValue dSelected =
   let
+    -- The `type` and `name` are fixed attributes
     attrs =
       "type" =: "radio" <>
       "name" =: name
+    -- A helper function to create the `checked` attribute
     mkAttrs a n =
       if a == n
+      -- We can use an empty string for attributes that don't take values
       then "checked" =: ""
       else mempty
-    dynAttrs = mkAttrs <$> dValue <*> dSelected
+    -- The checked attribute varies over time
+    dynAttrs =
+      mkAttrs <$> dValue <*> dSelected
   in do
+    -- Build an `input` and get hold of the underlying element
     (e, _) <- elDynAttr' "input" (pure attrs <> dynAttrs) $ pure ()
+    -- Create an `Event` that fires when the element is clicked on
     let eClick = domEvent Click e
+    -- We fire the output event with the value of `dValue` at the time of the click
     pure $ current dValue <@ eClick
 
 stockWidget ::

@@ -25,6 +25,7 @@ import Util.Run
 import Ex10.Common
 import Ex10.Run
 
+-- We already knew what this was going to look like
 grid ::
   MonadWidget t m =>
   m a ->
@@ -32,6 +33,10 @@ grid ::
 grid =
   elClass "div" "container"
 
+-- I wrote `row` this way
+-- - partly to remind people that `Applicative` style is fine for this stuff
+-- - partly because I didn't know if I was going to need to expose a version of 
+--   this that took a combining function as an argument
 row ::
   MonadWidget t m =>
   m a ->
@@ -45,6 +50,8 @@ row ma mb mc md = elClass "div" "row" $
     <*> elClass "div" "col-md-1" mb
     <*> elClass "div" "col-md-1" mc
     <*> elClass "div" "col-md-1" md
+
+-- The changes to the display code are mechanical
 
 mkStock ::
   ( Reflex t

@@ -89,6 +89,9 @@ ex09 (Inputs dCarrot dCelery dCucumber dSelected) = mdo
     eChange =
       current dMoney <@ eRefund
 
+  -- We have move the display code out into functions, see below for the `*Row` functions.
+  -- They are mostly about getting calls to the `dynText` and `button` functions into the right places
+
   eBuy    <- buyRow
 
   dMoney  <- dynMoney eAdd eSpend eRefund

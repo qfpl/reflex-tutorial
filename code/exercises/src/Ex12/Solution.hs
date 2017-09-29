@@ -38,12 +38,24 @@ radioCheckbox ::
   m (Event t a)
 radioCheckbox dValue dSelected =
   let
+    -- This tracks whether or not the current item is selected
     dMatch = (==) <$> dValue <*> dSelected
   in do
+    -- We ask for the `Event` that occurs when this widget is laid out on the page
     ePostBuild <- getPostBuild
-    let eChanges = leftmost [updated dMatch, current dMatch <@ ePostBuild]
+    let eChanges = leftmost [
+            -- We change the state of the checkbox when our selection match state changes
+            updated dMatch
+            -- and we set it to an initial value when the widget is laid out on the page
+          , current dMatch <@ ePostBuild
+          ]
+
     cb <- checkbox False $
       def & checkboxConfig_setValue .~ eChanges
+
+    -- We fire the output event
+    -- - if the checkbox was set to selected
+    -- - with the value of `dValue` at the time of the click
     pure $ current dValue <@ ffilter id (cb ^. checkbox_change)
 
 stockWidget ::

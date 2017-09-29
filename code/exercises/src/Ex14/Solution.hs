@@ -33,7 +33,13 @@ ex14 ::
   m ()
 ex14 = grid $ mdo
 
+  -- These calls to `mkStock` create a `Dynamic t Stock` for the stock items
+  -- - this starts with a quantity of 5
+  -- - this quantity is decreased whenever `eVend` fires with a value matching
+  --   the name of the stock
   dCarrot   <- mkStock 5 carrot eVend
+  -- We then display the stock information and emit an `Event t Text` with the
+  -- name of the stock when the stock item is selected
   eCarrot   <- stockWidget dCarrot dSelected
 
   dCelery   <- mkStock 5 celery eVend
@@ -42,11 +48,19 @@ ex14 = grid $ mdo
   dCucumber <- mkStock 5 cucumber eVend
   eCucumber <- stockWidget dCucumber dSelected
 
+  -- We gather up the selection `Event`s to track which stock item is selected
   dSelected <- holdDyn (pName carrot) . leftmost $ [
                  eCarrot
                , eCelery
                , eCucumber
                ]
+
+  -- Everything after this we had before.
+  -- The existing code:
+  -- - took in `Dynamic`s for each stock
+  -- - took in a `Dynamic` for which stock was selected
+  -- - create an `Event t Text` when an item was vended
+  --   - which gets used above to decrease the stock levels
 
   let
     dStocks =
