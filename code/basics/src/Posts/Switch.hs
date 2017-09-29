@@ -66,25 +66,26 @@ rightInput2 eAdd eSwitchL eSwitchR =
   , never <$ eSwitchL
   ]
 
+-- TODO turn this into a table
+
 countBlock ::
   MonadWidget t m =>
   Dynamic t Text ->
   Event t () ->
   m (Event t ())
-countBlock dLabel eAdd =
-  divClass "col-md-6" $ do
-    eSwitch <- button "Select"
+countBlock dLabel eAdd = do
+  eSwitch <- button "Select"
 
-    divClass "center-block" $
-      dynText dLabel
+  divClass "center-block" $
+    dynText dLabel
 
-    dCount <- foldDyn ($) 0 $
-              (+ 1) <$ eAdd
+  dCount <- foldDyn ($) 0 $
+            (+ 1) <$ eAdd
 
-    divClass "center-block" $
-      display dCount
+  divClass "center-block" $
+    display dCount
 
-    pure eSwitch
+  pure eSwitch
 
 mkCountNetwork ::
   ( Reflex t
@@ -106,14 +107,14 @@ switchCount ::
   SwitchCountInput t m ->
   SwitchCountInput t m ->
   m ()
-switchCount mkLeft mkRight = B.panel . reset . divClass "container" $ mdo
+switchCount mkLeft mkRight = B.panel . reset . elClass "table" "table" $ mdo
   let
     selected =
       "Selected"
     notSelected =
       "Not selected"
 
-  divClass "row" $ mdo
+  el "tr" $ mdo
     (eAddL, eAddR) <- mkCountNetwork mkLeft mkRight eAdd eSwitchL eSwitchR
 
     dLabelL <- holdDyn selected .
@@ -128,13 +129,23 @@ switchCount mkLeft mkRight = B.panel . reset . divClass "container" $ mdo
                 , notSelected <$ eSwitchL
                 ]
 
-    eSwitchL <- countBlock dLabelL eAddL
-    eSwitchR <- countBlock dLabelR eAddR
+    eSwitchL <- el "td" $
+      countBlock dLabelL eAddL
+    el "td" $
+      pure ()
+    eSwitchR <- el "td" $
+      countBlock dLabelR eAddR
 
     pure ()
 
-  eAdd <- divClass "row" . divClass "col-md-offset-3 col-md-6" $ do
-    B.button "Add"
+  eAdd <- el "tr" $ do
+    el "td" $
+      pure ()
+    e <- el "td" $
+      B.button "Add"
+    el "td" $
+      pure ()
+    pure e
 
   pure ()
 
