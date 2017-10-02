@@ -11,10 +11,16 @@ extra-js: /js/reflex/basics/reflex-basics.min.js
 
 Now we have the pieces we need to have a discussion about the ins and out of how to break apart those FRP networks into components that we can easily reason about and reuse.
 
-We're going to iterate on our todo item from the post on working with the DOM, looking at a few different options and trade offs along the way.
+We're going to iterate on our todo list item from the post on working with the DOM, looking at a few different options and trade offs along the way.
 
 ## A remove button
 
+In general, we want to have our components take `Dynamic`s as inputs and have `Event`s as outputs.
+The application makes some of its state available to our component via `Dynamics`s, and the component handle its own inputs in the context of that state and then lets the application know about changes that should be made and when via `Event`s.
+
+We'll start with an easy part of our todo list item - the "Remove" button.
+
+It has no state to take in, and it returns an `Event` that lets us know when we should remove the item:
 ```haskell
 remove :: MonadWidget t m 
        => m (Event t ())
@@ -24,7 +30,11 @@ remove =
 
 <div id="examples-component-remove"></div>
 
+So far, so good.
+
 ## A completion checkbox
+
+The checkbox that manages the completion state of the todo item is a little more complicated.
 
 ```haskell
 complete :: MonadWidget t m 
@@ -99,6 +109,8 @@ complete dComplete = do
 
 ## The text of the item
 
+### When we want to model the text
+
 ```haskell
 textRead :: MonadWidget t m 
          => Dynamic t Text 
@@ -121,6 +133,8 @@ textWrite dText =
 
 <div id="examples-component-text-write"></div>
 
+### When we don't want the text in our model
+
 ## Putting the item together
 
 ### When we need to build a model of the component
@@ -131,9 +145,15 @@ textWrite dText =
 
 <div id="examples-component-todo-item-d"></div>
 
-### When we don't need to build a model of a component
+### When we don't want the text in our model
 
 <div id="examples-component-todo-item-di"></div>
+
+## Breaking the rules
+
+TODO bring mark all complete and clear complete into play
+
+TODO show how make use of it per item
 
 ## Playing along at home
 
