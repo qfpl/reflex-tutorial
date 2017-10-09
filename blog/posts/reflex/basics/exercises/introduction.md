@@ -16,6 +16,7 @@ If you don't have Nix installed, you can get going with the `try-reflex` script 
 > git checkout b7c00b35
 > cd reflex-platform
 > ./try-reflex
+> exit
 ```
 and then you'll be able to use the `work-on` script later on, which is pretty handy.
 
