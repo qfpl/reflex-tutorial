@@ -24,6 +24,7 @@ library
                      , Posts.Dom
                      , Posts.Switch
                      , Posts.Component
+                     , Posts.Collection
   build-depends:       base >=4.9 && <4.10
                      , containers >=0.5 && <0.6
                      , text >= 1.2 && < 1.3

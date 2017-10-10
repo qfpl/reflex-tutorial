@@ -22,7 +22,6 @@ import qualified Util.Bootstrap as B
 {-
 Options:
   D a -> E a
-  D a -> E (a -> a)
 
   D (TodoItem B T)
   and break apart, if you need a complete model
@@ -97,13 +96,14 @@ completeSampleExample ::
   MonadWidget t m =>
   m ()
 completeSampleExample = B.panel . reset $ mdo
+
   eComplete <- divClass "todo-item" $
     completeSample dComplete
 
   dComplete <- holdDyn False eComplete
+
   el "div" $
     display dComplete
-  pure ()
 
 completePostBuild ::
   MonadWidget t m =>
@@ -132,30 +132,6 @@ completePostBuildExample = B.panel . reset $ mdo
     display dComplete
   pure ()
 
-completeEndo ::
-  MonadWidget t m =>
-  Dynamic t Bool ->
-  m (Event t (Bool -> Bool))
-completeEndo dComplete = do
-  ePostBuild <- getPostBuild
-  let
-    eChanges = leftmost [updated dComplete, current dComplete <@ ePostBuild]
-  cb <- checkbox False $
-    def & checkboxConfig_setValue .~ eChanges
-  pure . fmap const $ cb ^. checkbox_change
-
-completeEndoExample ::
-  MonadWidget t m =>
-  m ()
-completeEndoExample = B.panel . reset $ mdo
-  eComplete <- divClass "todo-item" $
-    completeEndo dComplete
-
-  dComplete <- foldDyn ($) False eComplete
-  el "div" $
-    display dComplete
-  pure ()
-
 completeI ::
   MonadWidget t m =>
   Event t Bool ->
@@ -168,7 +144,6 @@ completeI eMarkAllComplete eClearComplete iComplete = do
     def & checkboxConfig_setValue .~ eMarkAllComplete
 
   let
-    eChange = const <$> cb ^. checkbox_change
     dValue = cb ^. checkbox_value
     eRemove = void . ffilter id $ current dValue <@ eClearComplete
 
@@ -195,12 +170,6 @@ textReadExample = B.panel . reset $ do
     dynText dEdit
   pure ()
 
-getKey :: Reflex t => TextInput t -> Key -> Event t ()
-getKey ti k =
-  void .
-  ffilter ((== k) . keyCodeLookup . fromIntegral) $
-  ti ^. textInput_keypress
-
 textWrite ::
   MonadWidget t m =>
   Dynamic t Text ->
@@ -209,7 +178,7 @@ textWrite dText = mdo
   ePostBuild <- getPostBuild
   let
     eChanges = leftmost [
-        eClear
+        eDone
       , current dText <@ ePostBuild
       ]
 
@@ -218,17 +187,21 @@ textWrite dText = mdo
             eChanges
 
   let
-    bValue = current $ ti ^. textInput_value
-    eAtEnter = bValue <@ getKey ti Enter
+    dValue = ti ^. textInput_value
+
+    eKeypress = ti ^. textInput_keypress
+    isKey k   = (== k) . keyCodeLookup . fromIntegral
+    eEnter    = ffilter (isKey Enter) eKeypress
+    eEscape   = ffilter (isKey Escape) eKeypress
+
+    eAtEnter  = Text.strip <$> current dValue <@ eEnter
+    eAtEscape =                current dText  <@ eEscape
+
     eDone = leftmost [
         ffilter (not . Text.null) eAtEnter
-      , current dText <@ getKey ti Escape
+      , eAtEscape
       ]
     eRemove = () <$ ffilter Text.null eAtEnter
-    eClear = leftmost [
-        "" <$ eDone
-      , current dText <@ getKey ti Escape
-      ]
 
   pure (eDone, eRemove)
 
@@ -253,116 +226,46 @@ textWriteExample = B.panel . reset $ mdo
   el "div" $
     dynText dRemove
 
-data TodoItem =
-  TodoItem {
-    _tiComplete :: Bool
-  , _tiText     :: Text
-  }
-
-makeLenses ''TodoItem
-
-todoItemRead ::
+textReadW ::
   MonadWidget t m =>
-  Dynamic t TodoItem ->
-  Workflow t m (Event t (TodoItem -> TodoItem), Event t ())
-todoItemRead dTodo = Workflow $ do
-  dComplete <- holdUniqDyn $ view tiComplete <$> dTodo
-  dText     <- holdUniqDyn $ view tiText     <$> dTodo
-
-  eComplete <- completeEndo dComplete
+  Dynamic t Text ->
+  Workflow t m (Event t Text, Event t ())
+textReadW dText = Workflow $ do
   eEditStart <- textRead dText
-  eRemove <- remove
-  let
-    -- for Event t Bool
-    -- eChange = set tiComplete <$> eComplete
-    -- for Event t (Bool -> Bool)
-    eChange = over tiComplete <$> eComplete
+  pure ((never, never), textWriteW dText <$ eEditStart)
 
-  pure ((eChange, eRemove), todoItemWrite dTodo <$ eEditStart)
-
-todoItemWrite ::
+textWriteW ::
   MonadWidget t m =>
-  Dynamic t TodoItem ->
-  Workflow t m (Event t (TodoItem -> TodoItem), Event t ())
-todoItemWrite dTodo = Workflow $ do
-  dText <- holdUniqDyn $ view tiText <$> dTodo
-
+  Dynamic t Text ->
+  Workflow t m (Event t Text, Event t ())
+textWriteW dText = Workflow $ do
   (eText, eRemove) <- textWrite dText
+  let eEditStop = leftmost [() <$ eText, eRemove]
+  pure ((eText, eRemove), textReadW dText <$ eEditStop)
 
-  let
-    eChange = set tiText <$> eText
-
-  pure ((eChange, eRemove), todoItemRead dTodo <$ eText)
-
-todoItem ::
+textW ::
   MonadWidget t m =>
-  Dynamic t TodoItem ->
-  m (Event t (TodoItem -> TodoItem), Event t ())
-todoItem dTodo = divClass "todo-item" $ do
-  dpe <- workflow $ todoItemRead dTodo
+  Dynamic t Text ->
+  m (Event t Text, Event t ())
+textW dText = do
+  dpe <- workflow $ textReadW dText
   let
-    eChange = switch . current . fmap fst $ dpe
+    eText   = switch . current . fmap fst $ dpe
     eRemove = switch . current . fmap snd $ dpe
-  pure (eChange, eRemove)
+  pure (eText, eRemove)
 
-todoItemExample ::
+textExample ::
   MonadWidget t m =>
   m ()
-todoItemExample = B.panel . reset $ mdo
-  dTodo <- foldDyn ($) (TodoItem False "Test me") eChange
-  (eChange, eRemove) <- todoItem dTodo
+textExample = B.panel . reset $ mdo
+  (eText, eRemove) <- textW dText
 
-  dRemove <- holdDyn "" $ "Remove" <$ eRemove
-  el "div" $
-    dynText dRemove
+  dText <- holdDyn "Test me" . leftmost $ [
+      eText
+    , "(Removed)" <$ eRemove
+    ]
 
-todoItemDRead ::
-  MonadWidget t m =>
-  Dynamic t Bool ->
-  Dynamic t Text ->
-  Workflow t m (Event t (Bool -> Bool), Event t (Text -> Text), Event t ())
-todoItemDRead dComplete dText = Workflow $ do
-  eComplete <- completeEndo dComplete
-  eEditStart <- textRead dText
-  eRemove <- remove
-  pure ((eComplete, never, eRemove), todoItemDWrite dComplete dText <$ eEditStart)
-
-todoItemDWrite ::
-  MonadWidget t m =>
-  Dynamic t Bool ->
-  Dynamic t Text ->
-  Workflow t m (Event t (Bool -> Bool), Event t (Text -> Text), Event t ())
-todoItemDWrite dComplete dText = Workflow $ do
-  (eText, eRemove) <- textWrite dText
-  let eChange =
-        const <$> eText
-  pure ((never, eChange, eRemove), todoItemDRead dComplete dText <$ eText)
-
-todoItemD ::
-  MonadWidget t m =>
-  Dynamic t Bool ->
-  Dynamic t Text ->
-  m (Event t (Bool -> Bool), Event t (Text -> Text), Event t ())
-todoItemD dComplete dText = divClass "todo-item" $ do
-  dte <- workflow $ todoItemDRead dComplete dText
-  let
-    eComplete = switch . current . fmap (\(x, _, _) -> x) $ dte
-    eText     = switch . current . fmap (\(_, x, _) -> x) $ dte
-    eRemove   = switch . current . fmap (\(_, _, x) -> x) $ dte
-  pure (eComplete, eText, eRemove)
-
-todoItemDExample ::
-  MonadWidget t m =>
-  m ()
-todoItemDExample = B.panel . reset $ mdo
-  dComplete <- foldDyn ($) False eChangeComplete
-  dText <- foldDyn ($) "Test me" eChangeText
-
-  (eChangeComplete, eChangeText, eRemove) <- todoItemD dComplete dText
-
-  dRemove <- holdDyn "" $ "Remove" <$ eRemove
-  el "div" $
-    dynText dRemove
+  pure ()
 
 textReadDI ::
   MonadWidget t m =>
@@ -382,30 +285,170 @@ textWriteDI iText = mdo
     def & textInputConfig_initialValue .~
             iText
         & textInputConfig_setValue .~
-            eClear
+            eDone
 
   let
     bValue = current $ ti ^. textInput_value
-    eAtEnter = bValue <@ getKey ti Enter
+
+    eKeypress = ti ^. textInput_keypress
+    isKey k   = (== k) . keyCodeLookup . fromIntegral
+    eEnter    = ffilter (isKey Enter) eKeypress
+    eEscape   = ffilter (isKey Escape) eKeypress
+
+    eAtEnter = Text.strip <$> bValue <@ eEnter
     eDone = leftmost [
         ffilter (not . Text.null) eAtEnter
-      , iText <$ getKey ti Escape
+      , iText <$ eEscape
       ]
     eRemove = () <$ ffilter Text.null eAtEnter
-    eClear = leftmost [
-        "" <$ eDone
-      , iText <$ getKey ti Escape
-      ]
 
   pure (eDone, eRemove)
+
+textWReadDI ::
+  MonadWidget t m =>
+  Text ->
+  Workflow t m (Event t ())
+textWReadDI iText = Workflow $ do
+  eEditStart <- textReadDI iText
+  pure (never, textWWriteDI iText <$ eEditStart)
+
+textWWriteDI ::
+  MonadWidget t m =>
+  Text ->
+  Workflow t m (Event t ())
+textWWriteDI iText = Workflow $ do
+  (eText, eRemove) <- textWriteDI iText
+  let eEditStop = leftmost [eText, "(Removed)" <$ eRemove]
+  pure (eRemove, textWReadDI <$> eEditStop)
+
+textDI ::
+  MonadWidget t m =>
+  Text ->
+  m (Event t ())
+textDI iText = do
+  deRemove <- workflow $ textWReadDI iText
+  pure . switch . current $ deRemove
+
+textExampleDI ::
+  MonadWidget t m =>
+  m ()
+textExampleDI = B.panel . reset $ mdo
+  _ <- textDI "Test me"
+  pure ()
+
+data TodoItem =
+  TodoItem {
+    _tiComplete :: Bool
+  , _tiText     :: Text
+  }
+
+makeLenses ''TodoItem
+
+todoItemRead ::
+  MonadWidget t m =>
+  Dynamic t TodoItem ->
+  Workflow t m (Event t TodoItem, Event t ())
+todoItemRead dTodo = Workflow $ do
+  dComplete <- holdUniqDyn $ view tiComplete <$> dTodo
+  dText     <- holdUniqDyn $ view tiText     <$> dTodo
+
+  eComplete <- completePostBuild dComplete
+  eEditStart <- textRead dText
+  eRemove <- remove
+  let
+    eChange = (\d c -> d & tiComplete .~ c) <$> current dTodo <@> eComplete
+
+  pure ((eChange, eRemove), todoItemWrite dTodo <$ eEditStart)
+
+todoItemWrite ::
+  MonadWidget t m =>
+  Dynamic t TodoItem ->
+  Workflow t m (Event t TodoItem, Event t ())
+todoItemWrite dTodo = Workflow $ do
+  dText <- holdUniqDyn $ view tiText <$> dTodo
+
+  (eText, eRemove) <- textWrite dText
+
+  let
+    eChange = (\d t -> d & tiText .~ t) <$> current dTodo <@> eText
+
+  pure ((eChange, eRemove), todoItemRead dTodo <$ eText)
+
+todoItem ::
+  MonadWidget t m =>
+  Dynamic t TodoItem ->
+  m (Event t TodoItem, Event t ())
+todoItem dTodo = divClass "todo-item" $ do
+  dpe <- workflow $ todoItemRead dTodo
+  let
+    eChange = switch . current . fmap fst $ dpe
+    eRemove = switch . current . fmap snd $ dpe
+  pure (eChange, eRemove)
+
+todoItemExample ::
+  MonadWidget t m =>
+  m ()
+todoItemExample = B.panel . reset $ mdo
+  dTodo <- holdDyn (TodoItem False "Test me") eChange
+  (eChange, eRemove) <- todoItem dTodo
+
+  dRemove <- holdDyn "" $ "Remove" <$ eRemove
+  el "div" $
+    dynText dRemove
+
+todoItemDRead ::
+  MonadWidget t m =>
+  Dynamic t Bool ->
+  Dynamic t Text ->
+  Workflow t m (Event t Bool, Event t Text, Event t ())
+todoItemDRead dComplete dText = Workflow $ do
+  eComplete <- completePostBuild dComplete
+  eEditStart <- textRead dText
+  eRemove <- remove
+  pure ((eComplete, never, eRemove), todoItemDWrite dComplete dText <$ eEditStart)
+
+todoItemDWrite ::
+  MonadWidget t m =>
+  Dynamic t Bool ->
+  Dynamic t Text ->
+  Workflow t m (Event t Bool, Event t Text, Event t ())
+todoItemDWrite dComplete dText = Workflow $ do
+  (eText, eRemove) <- textWrite dText
+  pure ((never, eText, eRemove), todoItemDRead dComplete dText <$ eText)
+
+todoItemD ::
+  MonadWidget t m =>
+  Dynamic t Bool ->
+  Dynamic t Text ->
+  m (Event t Bool, Event t Text, Event t ())
+todoItemD dComplete dText = divClass "todo-item" $ do
+  dte <- workflow $ todoItemDRead dComplete dText
+  let
+    eComplete = switch . current . fmap (\(x, _, _) -> x) $ dte
+    eText     = switch . current . fmap (\(_, x, _) -> x) $ dte
+    eRemove   = switch . current . fmap (\(_, _, x) -> x) $ dte
+  pure (eComplete, eText, eRemove)
+
+todoItemDExample ::
+  MonadWidget t m =>
+  m ()
+todoItemDExample = B.panel . reset $ mdo
+  dComplete <- holdDyn False eComplete
+  dText <- holdDyn "Test me" eText
+
+  (eComplete, eText, eRemove) <- todoItemD dComplete dText
+
+  dRemove <- holdDyn "" $ "Remove" <$ eRemove
+  el "div" $
+    dynText dRemove
 
 todoItemDIRead ::
   MonadWidget t m =>
   Dynamic t Bool ->
   Text ->
-  Workflow t m (Event t (Bool -> Bool), Event t ())
+  Workflow t m (Event t Bool, Event t ())
 todoItemDIRead dComplete iText = Workflow $ do
-  eComplete <- completeEndo dComplete
+  eComplete <- completePostBuild dComplete
   eEditStart <- textReadDI iText
   eRemove <- remove
   pure ((eComplete, eRemove), todoItemDIWrite dComplete iText <$ eEditStart)
@@ -414,7 +457,7 @@ todoItemDIWrite ::
   MonadWidget t m =>
   Dynamic t Bool ->
   Text ->
-  Workflow t m (Event t (Bool -> Bool), Event t ())
+  Workflow t m (Event t Bool, Event t ())
 todoItemDIWrite dComplete iText = Workflow $ mdo
   (eText, eRemove) <- textWriteDI iText
   pure ((never, eRemove), todoItemDIRead dComplete <$> eText)
@@ -423,7 +466,7 @@ todoItemDI ::
   MonadWidget t m =>
   Dynamic t Bool ->
   Text ->
-  m (Event t (Bool -> Bool), Event t ())
+  m (Event t Bool, Event t ())
 todoItemDI dComplete iText = divClass "todo-item" $ do
   dpe <- workflow $ todoItemDIRead dComplete iText
   let
@@ -435,8 +478,8 @@ todoItemDIExample ::
   MonadWidget t m =>
   m ()
 todoItemDIExample = B.panel . reset $ mdo
-  dComplete <- foldDyn ($) False eChangeComplete
-  (eChangeComplete, eRemove) <- todoItemDI dComplete "Test me"
+  dComplete <- holdDyn False eComplete
+  (eComplete, eRemove) <- todoItemDI dComplete "Test me"
 
   dRemove <- holdDyn "" $ "Remove" <$ eRemove
   el "div" $
@@ -508,29 +551,103 @@ todoItemI eMarkAllComplete eClearComplete iTodo = divClass "todo-item" $ do
     eRemove   = switch . current . fmap snd $ dpe
   pure (dComplete, eRemove)
 
-todoItemIExample ::
+todoItemsExample ::
   MonadWidget t m =>
   m ()
-todoItemIExample = B.panel . reset $ mdo
-  (dCompleteA, eRemoveA) <-
-    todoItemI eMarkAllComplete eClearComplete $
-      TodoItem False "A"
-  (dCompleteB, eRemoveB) <-
-    todoItemI eMarkAllComplete eClearComplete $
-      TodoItem True "B"
-  (dCompleteC, eRemoveC) <-
-    todoItemI eMarkAllComplete eClearComplete $
-      TodoItem False "C"
+todoItemsExample = B.panel . reset $ mdo
+  dTodoA <- foldDyn ($) (TodoItem False "A") . leftmost $ [
+      const <$> eChangeA
+    , set tiComplete <$> eMarkAllComplete
+    ]
+  (eChangeA, eRemoveA) <- todoItem dTodoA
+
+  let
+    dCompleteA = view tiComplete <$> dTodoA
+    eRemoveA' = leftmost [
+        eRemoveA
+      , void . ffilter id $ current dCompleteA <@ eClearComplete
+      ]
+
+  dRemoveA <- holdDyn "" $ "Remove" <$ eRemoveA'
+  el "div" $
+    dynText dRemoveA
+
+  dTodoB <- foldDyn ($) (TodoItem True "B") . leftmost $ [
+      const <$> eChangeB
+    , set tiComplete <$> eMarkAllComplete
+    ]
+  (eChangeB, eRemoveB) <- todoItem dTodoB
+
+  let
+    dCompleteB = view tiComplete <$> dTodoB
+    eRemoveB' = leftmost [
+        eRemoveB
+      , void . ffilter id $ current dCompleteB <@ eClearComplete
+      ]
+
+  dRemoveB <- holdDyn "" $ "Remove" <$ eRemoveB'
+  el "div" $
+    dynText dRemoveB
+
+  dTodoC <- foldDyn ($) (TodoItem False "C") . leftmost $ [
+      const <$> eChangeC
+    , set tiComplete <$> eMarkAllComplete
+    ]
+  (eChangeC, eRemoveC) <- todoItem dTodoC
+
+  let
+    dCompleteC = view tiComplete <$> dTodoC
+    eRemoveC' = leftmost [
+        eRemoveC
+      , void . ffilter id $ current dCompleteC <@ eClearComplete
+      ]
+
+  dRemoveC <- holdDyn "" $ "Remove" <$ eRemoveC'
+  el "div" $
+    dynText dRemoveC
 
   let
     dComplete = (\x y z -> [x, y, z]) <$> dCompleteA <*> dCompleteB <*> dCompleteC
     dAllComplete = and <$> dComplete
     dAnyComplete = or <$> dComplete
-    eRemove = leftmost [eRemoveA, eRemoveB, eRemoveC]
 
-  dRemove <- holdDyn "" $ "Remove" <$ eRemove
+  eMarkAllComplete <- markAllComplete dAllComplete
+  eClearComplete <- clearComplete dAnyComplete
+
+  pure ()
+
+todoItemsIExample ::
+  MonadWidget t m =>
+  m ()
+todoItemsIExample = B.panel . reset $ mdo
+  (dCompleteA, eRemoveA) <-
+    todoItemI eMarkAllComplete eClearComplete $
+      TodoItem False "A"
+
+  dRemoveA <- holdDyn "" $ "Remove" <$ eRemoveA
   el "div" $
-    dynText dRemove
+    dynText dRemoveA
+
+  (dCompleteB, eRemoveB) <-
+    todoItemI eMarkAllComplete eClearComplete $
+      TodoItem True "B"
+
+  dRemoveB <- holdDyn "" $ "Remove" <$ eRemoveB
+  el "div" $
+    dynText dRemoveB
+
+  (dCompleteC, eRemoveC) <-
+    todoItemI eMarkAllComplete eClearComplete $
+      TodoItem False "C"
+
+  dRemoveC <- holdDyn "" $ "Remove" <$ eRemoveC
+  el "div" $
+    dynText dRemoveC
+
+  let
+    dComplete = (\x y z -> [x, y, z]) <$> dCompleteA <*> dCompleteB <*> dCompleteC
+    dAllComplete = and <$> dComplete
+    dAnyComplete = or <$> dComplete
 
   eMarkAllComplete <- markAllComplete dAllComplete
   eClearComplete <- clearComplete dAnyComplete
@@ -549,15 +666,21 @@ componentPostExamples = do
     completeSampleExample
   attachId_ "examples-component-complete-postbuild"
     completePostBuildExample
-  attachId_ "examples-component-complete-endo"
-    completeEndoExample
   attachId_ "examples-component-text-read"
     textReadExample
   attachId_ "examples-component-text-write"
     textWriteExample
+  attachId_ "examples-component-text"
+    textExample
+  attachId_ "examples-component-text-di"
+    textExampleDI
   attachId_ "examples-component-todo-item"
     todoItemExample
   attachId_ "examples-component-todo-item-d"
     todoItemDExample
   attachId_ "examples-component-todo-item-di"
     todoItemDIExample
+  attachId_ "examples-component-todo-items"
+    todoItemsExample
+  attachId_ "examples-component-todo-items-i"
+    todoItemsIExample
