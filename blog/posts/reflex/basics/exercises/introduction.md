@@ -13,7 +13,7 @@ This is all set up with Nix.
 If you don't have Nix installed, you can get going with the `try-reflex` script from the `reflex-platform` repository:
 ```
 > git clone https://github.com/reflex-frp/reflex-platform
-> git checkout b7c00b35
+> git checkout 17f3d0b8
 > cd reflex-platform
 > ./try-reflex
 > exit
