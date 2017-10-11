@@ -18,6 +18,14 @@ import Util.Run
 import Ex13.Common
 import Ex13.Run
 
+stockWidget ::
+  MonadWidget t m =>
+  Dynamic t Stock ->
+  Dynamic t Text ->
+  m (Event t Text)
+stockWidget dStock dSelected =
+  pure never
+
 grid ::
   MonadWidget t m =>
   m a ->
@@ -54,5 +62,5 @@ go ::
   IO ()
 go =
   run $
-    host grid mkStock ex13
+    host grid stockWidget mkStock ex13
 #endif
