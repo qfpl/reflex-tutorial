@@ -1,4 +1,4 @@
-{ reflex-platform ? import ./reflex-platform.nix
+{ reflex-platform ? import ../reflex-platform.nix
 , compiler   ? "ghcjs"
 } :
 let
