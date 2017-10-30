@@ -89,7 +89,9 @@ To see what this looks like in the context of our HTML vending machine, run:
 > nix-shell
 nix-shell> ./ex01.sh
 ```
-from the `exercises` directory and then visit `http://localhost:8080` in your browser.
+from the `exercises` directory and then visit `http://localhost:8080` in your browser (although there is currently a bug in jsaddle-warp effecting Firefox).
+
+It should update the browser every time that you save your code while it is in a compilable state.
 
 ## The goal
 

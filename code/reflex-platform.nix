@@ -5,8 +5,8 @@ let
     reflex-platform = initialNixpkgs.pkgs.fetchFromGitHub {
       owner = "reflex-frp";
       repo = "reflex-platform";
-      rev = "b7c00b3574d0ef42974eda0f2812c794c7b5d4f3";
-      sha256 = "1jfz17y2fq051caby4y4aslxrpvgwwa30ivfw0l5wn5pp5zlrpad";
+      rev = "0937a03b510867336490dd835c336374454ecf5c";
+      sha256 = "0g3gbjsx8nw3lki7zzypqn6bww87xc77kbl7k4a37ijpa6g62w7v";
     };
   };
 

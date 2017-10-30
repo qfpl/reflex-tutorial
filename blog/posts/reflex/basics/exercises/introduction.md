@@ -13,7 +13,7 @@ This is all set up with Nix.
 If you don't have Nix installed, you can get going with the `try-reflex` script from the `reflex-platform` repository:
 ```
 > git clone https://github.com/reflex-frp/reflex-platform
-> git checkout b7c00b35
+> git checkout 0937a03b51
 > cd reflex-platform
 > ./try-reflex
 > exit
@@ -78,7 +78,7 @@ For now, run:
 ```
 nix-shell> ./ex00.sh
 ```
-and then visit `http://localhost:8080` in your browser.
+from the `exercises` directory and then visit `http://localhost:8080` in your browser (although there is currently a bug in jsaddle-warp effecting Firefox).
 
 This script is running `ghcid` along with some magic to trigger a reload in the browser tab when the Haskell or CSS files change.
 
