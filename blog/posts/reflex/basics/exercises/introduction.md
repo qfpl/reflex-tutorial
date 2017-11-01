@@ -47,19 +47,19 @@ Let me know if you have problems and I'll try to find a way to help.
 You probably want to get hold of some of the dependencies in binary form, rather than getting hold of them in source form and building them.
 It'll save you a lot of time.
 
-If you're on NixOS, you can add the `reflex` binary caches by adding:
+If you're on NixOS, you can add the `reflex` binary caches by adding the following to `/etc/nixos/configuration.nix`:
 ```
 nix.binaryCaches = [ "https://cache.nixos.org" "https://nixcache.reflex-frp.org" ];
 nix.binaryCachePublicKeys = [ "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=" ];
 ```
-to `/etc/nixos/configuration.nix` and then running `sudo nixos-rebuild switch`.
+then running `sudo nixos-rebuild switch`.
 
-If you're not on NixOS, you can add:
+If you're not on NixOS, you can add the following to `/etc/nix/nix.conf`:
 ```
 binary-caches = https://cache.nixos.org https://nixcache.reflex-frp.org 
 binary-cache-public-keys = ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=
 ```
-to `/etc/nix/nix.conf` and you should be good to go.
+and you should be good to go.
 
 ## Getting set up with this tutorial
 
