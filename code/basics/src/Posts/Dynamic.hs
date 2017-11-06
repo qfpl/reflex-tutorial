@@ -15,7 +15,6 @@ import GHCJS.DOM.Types (MonadJSM)
 import Colour
 
 import Util.Attach
-import Util.Reflex
 import Util.Grid
 import qualified Util.Bootstrap as B
 
@@ -42,7 +41,7 @@ counterExample1 = B.panel $ mdo
   eAdd <- el "span" $
     B.button "Add"
 
-  dCount <- foldDyn ($) 0 $
+  dCount <- foldDyn ($) (0 :: Int) $
       (+ 1) <$ eAdd
 
   pure ()
@@ -59,7 +58,7 @@ counterExample2 = B.panel $ mdo
     eClear <- B.button "Clear"
     pure (eAdd, eClear)
 
-  dCount <- foldDyn ($) 0 . mergeWith (.) $ [
+  dCount <- foldDyn ($) (0 :: Int) . mergeWith (.) $ [
       const 0 <$ eClear
     , (+ 1) <$ eAdd
     ]

@@ -79,7 +79,7 @@ countBlock dLabel eAdd = do
   divClass "center-block" $
     dynText dLabel
 
-  dCount <- foldDyn ($) 0 $
+  dCount <- foldDyn ($) (0 :: Int) $
             (+ 1) <$ eAdd
 
   divClass "center-block" $

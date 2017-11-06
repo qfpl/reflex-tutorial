@@ -12,6 +12,7 @@ import Posts.RecursiveDo (recursiveDoPostExamples)
 import Posts.Dom (domPostExamples)
 import Posts.Switch (switchPostExamples)
 import Posts.Component (componentPostExamples)
+import Posts.Collection (collectionPostExamples)
 
 import Util.Attach
 import Util.Grid
@@ -27,3 +28,4 @@ posts = do
   domPostExamples
   switchPostExamples
   componentPostExamples
+  collectionPostExamples

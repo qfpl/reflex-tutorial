@@ -24,6 +24,18 @@ library
                      , Posts.Dom
                      , Posts.Switch
                      , Posts.Component
+                     , Posts.Component.Common
+                     , Posts.Component.Basic
+                     , Posts.Component.Dynamic
+                     , Posts.Component.DynamicDynamic
+                     , Posts.Component.DynamicInitial
+                     , Posts.Component.Initial
+                     , Posts.Collection
+                     , Posts.Collection.Common
+                     , Posts.Collection.Basic
+                     , Posts.Collection.CompleteEvents
+                     , Posts.Collection.NoModel
+                     , Posts.Collection.EventWriter
   build-depends:       base >=4.9 && <4.10
                      , containers >=0.5 && <0.6
                      , text >= 1.2 && < 1.3

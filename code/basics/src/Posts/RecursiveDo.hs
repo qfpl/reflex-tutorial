@@ -13,7 +13,6 @@ import Reflex.Dom.Core
 import GHCJS.DOM.Types (MonadJSM)
 
 import Util.Attach
-import Util.Reflex
 import qualified Util.Bootstrap as B
 
 recursiveDoPostExamples ::

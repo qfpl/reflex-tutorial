@@ -13,7 +13,6 @@ import Control.Lens
 
 import Colour
 
-import Util.Reflex
 import Util.Attach
 import Util.Grid
 import qualified Util.Bootstrap as B

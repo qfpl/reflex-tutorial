@@ -19,15 +19,13 @@ import Data.Time (getCurrentTime)
 
 import Reflex
 import Reflex.Dom.Core
-import GHCJS.DOM.Types (MonadJSM(..), JSString, toJSString)
+import GHCJS.DOM.Types (MonadJSM(..))
 
 import Colour
 
-import Util.Reflex
 import Util.Number
 import Util.Attach
 import Util.Grid
-import Util.SVG
 import qualified Util.Bootstrap as B
 
 eventPostExamples ::
@@ -291,7 +289,7 @@ demoClickMe ::
   m ()
 demoClickMe = B.panel $ do
   eClick <- B.button "Click Me"
-  eOnes <- accum (+) 0 (1 <$ eClick)
+  eOnes <- accum (+) (0 :: Int) (1 <$ eClick)
   let
     eHundreds = (* 100) <$> eOnes
     eSum      = mergeWith (+) [eOnes, eHundreds]

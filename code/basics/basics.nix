@@ -12,5 +12,6 @@ mkDerivation {
     base common containers data-default ghcjs-dom grid jsaddle lens mtl
     reflex reflex-dom-core text time
   ];
+  executableHaskellDepends = [ base ];
   license = stdenv.lib.licenses.bsd3;
 }
