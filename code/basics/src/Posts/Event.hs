@@ -19,7 +19,7 @@ import Data.Time (getCurrentTime)
 
 import Reflex
 import Reflex.Dom.Core
-import GHCJS.DOM.Types (MonadJSM(..))
+import GHCJS.DOM.Types (MonadJSM(..), JSString, toJSString)
 
 import Colour
 
