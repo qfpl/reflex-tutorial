@@ -216,7 +216,7 @@ We've already seen that we can create `Event`s that might be occurring in the sa
 
 That means when we want to work with multiple `Event`s, we need to be able to handle the case where several of the `Event`s are firing in the same frame.
 
-We're going to explore that by working on something that you might have come across this before as part of the game (or programming problem) known as [FizzBuzz](https://en.wikipedia.org/wiki/Fizz_buzz).
+We're going to explore that by working on something that you might have come across before as part of the game (or programming problem) known as [FizzBuzz](https://en.wikipedia.org/wiki/Fizz_buzz).
 If you haven't come across it before then it is worth taking a look before we continue.
 
 Assume we have access to
