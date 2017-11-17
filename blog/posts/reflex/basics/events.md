@@ -332,7 +332,7 @@ If we want to remove some simultaneously occurring `Event`s, we can do so with `
 ```haskell
 difference :: Event t a -> Event t b -> Event t a
 ```
-The output is the same as the first input `Event`, except firing of the `Event` are suppressed in all of the frames in which the second `Event` fires.
+The returned `Event` is the same as the first input, except that it won't fire when the second `Event` fires.
 
 We need a more contrived solution to the "FizzBuzz" problem in order to demonstrate it:
 ```haskell
