@@ -354,7 +354,7 @@ eFizzBuzz = leftmost [eDiff, eMerge]
 ## The advantages of semantics-driven abstractions
 
 Why did `reflex` bother specifying how to deal with simultaneous `Event`s?
-They did because it followed from the semantics.
+They did it because it followed from the semantics.
 
 Not everyone does things this way.
 
