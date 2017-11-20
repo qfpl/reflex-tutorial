@@ -130,12 +130,12 @@ gateIn ::
   Behavior t Bool ->
   m ()
 gateIn gc bGate = B.panel $ mdo
-    let w = runDemo gc (\e _ -> pure e) eInput never
+    let w = runDemo gc (\eIn _ -> pure $ gate bGate eIn) eInput never
     _ <- widgetHold w (w <$ eReset)
     (eInput, eReset) <- el "div" $ do
       eInput <- mkRedBlueInput
       eReset <- B.buttonClass "pull-right" "Reset"
-      return (gate bGate eInput, eReset)
+      return (eInput, eReset)
     pure ()
 
 runDemo ::

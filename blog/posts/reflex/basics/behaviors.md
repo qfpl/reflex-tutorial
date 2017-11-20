@@ -125,7 +125,12 @@ sampleBlue eInput eSample = do
 
 <div id="basics-behaviors-sampleBlue2"></div>
 
-There are some parallels with the `State` monad here.
+This is why frames are sometimes referred to as transactions.
+The values of the `Behavior`s are fixed for the duration of each frame, so that every `Event` in the frame has a consistent view of the state of the `Behavior`s.
+Any updates to the `Behavior` that are triggered during the `Event` processing for the frame are carried out after the `Event` processing has finished, so that the new state will be available from the start of the next frame.
+If it weren't for this, we'd have to worry about the order in which `Event`s were processed within a frame, and we'd be back to square one as far as state management was concerned.
+
+On the topic of state management, there are some parallels with the `State` monad here.
 Inside of the monad, there is a value for the state at all points in time.
 Any modifications to the state, or reads from the state, happen at discrete points of time.
 
@@ -147,7 +152,7 @@ We need a monadic context for `sample` because it is reading from the `Behavior`
 
 Let's take a look:
 ```haskell
-sampleBlue :: (Reflex t, MonadHold t m)
+sampleBlue :: (Reflex t, MonadSample t m, MonadHold t m)
            => Event t Colour
            -> Event t ()
            -> m (Event t Colour)
@@ -156,6 +161,8 @@ sampleBlue eColour eSample = do
   colour  <- sample bColour
   pure $ colour <$ eSample
 ```
+
+(Although the `MonadSample` constraint is redundant here, since `MonadSample` is a superclass of `MonadHold`)
 
 If we have a click around on this, we'll see how different it is to what we had before:
 <div id="basics-behaviors-sample"></div>
