@@ -101,7 +101,7 @@ This gives us a marginally less boring todo item:
 example :: MonadWidget t m
         => Dynamic t Text
         -> m ()
-example dTexet = el "div" $ mdo
+example dText = el "div" $ mdo
 
   eRemove <- todoItem $ dText <> dLabel
 
