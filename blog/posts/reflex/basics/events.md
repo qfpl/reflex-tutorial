@@ -23,7 +23,7 @@ data Event t a
 
 and we can think of it as being a bit like a list of pairs of times and values:
 
-```
+```haskell
 [(t, a)] 
 ```
 
@@ -32,13 +32,13 @@ where the time is always increasing.
 (We will ignore the `t` parameter for quite a while, but it is for keeping track of which "timeline" we are working in)
 
 If we have a button on a webpage, we'll likely have
-```
+```haskell
 eClicked :: Event t ()
 ```
 which will fire every time the button is pressed.
 
 Similarly we could have
-```
+```haskell
 eChanged :: Event t Text
 ```
 giving us the current value of a text input every time it is altered.
