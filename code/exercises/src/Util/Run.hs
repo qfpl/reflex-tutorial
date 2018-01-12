@@ -5,6 +5,7 @@ module Util.Run (
     run
   ) where
 
+import Data.Maybe (fromMaybe)
 import Data.Foldable (traverse_)
 
 import Reflex.Dom.Core
@@ -12,21 +13,36 @@ import Reflex.Dom.Core
 import           Network.Wai.Handler.Warp               (defaultSettings,
                                                          runSettings, setPort,
                                                          setTimeout)
-import           Network.WebSockets                     (defaultConnectionOptions)
+import           Network.WebSockets                     (ConnectionOptions, defaultConnectionOptions)
 
 import           Language.Javascript.JSaddle            (JSM)
 import           Language.Javascript.JSaddle.Run        (syncPoint)
-import           Language.Javascript.JSaddle.WebSockets (debugWrapper, jsaddleWithAppOr, jsaddleApp)
-import           Network.Wai                            (Application)
+import Language.Javascript.JSaddle.Run.Files (indexHtml)
+import           Language.Javascript.JSaddle.WebSockets (debugWrapper, jsaddleOr, jsaddleApp, jsaddleJs)
+import qualified Network.Wai                            as W
 import           Network.Wai.Middleware.Static
 
 import           System.FilePath                        ((</>))
 import           System.Directory                       (listDirectory)
 import qualified Data.Text                              as Text
 import qualified Data.Map                               as Map
+import Data.ByteString.Lazy (ByteString)
+import qualified Network.HTTP.Types as H (status403, status200)
+
+jsaddleWithAppOr :: ConnectionOptions -> JSM () -> W.Application -> IO W.Application
+jsaddleWithAppOr opts entryPoint otherApp = jsaddleOr opts entryPoint $ \req sendResponse ->
+  (fromMaybe (otherApp req sendResponse)
+  (jsaddleAppPartialWithJs (jsaddleJs True) req sendResponse))
+
+jsaddleAppPartialWithJs :: ByteString -> W.Request -> (W.Response -> IO W.ResponseReceived) -> Maybe (IO W.ResponseReceived)
+jsaddleAppPartialWithJs js req sendResponse =
+  case (W.requestMethod req, W.pathInfo req) of
+    ("GET", []) -> Just $ sendResponse $ W.responseLBS H.status200 [("Content-Type", "text/html")] indexHtml
+    ("GET", ["jsaddle.js"]) -> Just $ sendResponse $ W.responseLBS H.status200 [("Content-Type", "application/javascript")] js
+    _ -> Nothing
 
 -- | A @main@ for doing development.
-devMain :: Application -> JSM () -> Int -> IO ()
+devMain :: W.Application -> JSM () -> Int -> IO ()
 devMain backend frontend port = do
   app <- jsaddleWithAppOr
     defaultConnectionOptions
@@ -36,7 +52,7 @@ devMain backend frontend port = do
   runSettings (defaultSettings & setTimeout 3600 & setPort port) app
 
 -- | A version of @devMain@ that can be used with @ghcid --test@ to get an auto-reloading server.
-devMainAutoReload :: Application -> JSM () -> Int -> IO ()
+devMainAutoReload :: W.Application -> JSM () -> Int -> IO ()
 devMainAutoReload backend frontend port =
   debugWrapper $ \refreshMiddleware registerContext ->
     devMain (refreshMiddleware backend) (registerContext >> frontend) port
@@ -58,7 +74,7 @@ headSection cssPath cssFiles =
     stylesheet "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
     traverse_ (\f -> stylesheet . Text.pack $ cssPath </> f) cssFiles
 
-serveCss :: FilePath -> (forall x. Widget x ()) -> IO (Application, JSM ())
+serveCss :: FilePath -> (forall x. Widget x ()) -> IO (W.Application, JSM ())
 serveCss cssPath w = do
   cssFiles <- listDirectory $ "." </> cssPath
   let
