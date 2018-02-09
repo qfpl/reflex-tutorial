@@ -46,7 +46,7 @@ leftInput1 eAdd eSwitchL eSwitchR = do
 
 leftInput2 :: SwitchCountInput t m
 leftInput2 eAdd eSwitchL eSwitchR =
-  switchPromptly eAdd . leftmost $ [
+  switchHold eAdd . leftmost $ [
     eAdd  <$ eSwitchL
   , never <$ eSwitchR
   ]
@@ -61,7 +61,7 @@ rightInput1 eAdd eSwitchL eSwitchR = do
 
 rightInput2 :: SwitchCountInput t m
 rightInput2 eAdd eSwitchL eSwitchR =
-  switchPromptly never . leftmost $ [
+  switchHold never . leftmost $ [
     eAdd  <$ eSwitchR
   , never <$ eSwitchL
   ]
@@ -158,12 +158,12 @@ switchColour1 ::
   Event t Colour ->
   m (Event t Colour, Event t Colour)
 switchColour1 eSwitch1 eSwitch2 eInput = do
-  eOut1 <- switchPromptly eInput . leftmost $ [
+  eOut1 <- switchHold eInput . leftmost $ [
       eInput <$ eSwitch1
     , never  <$ eSwitch2
     ]
 
-  eOut2 <- switchPromptly never . leftmost $ [
+  eOut2 <- switchHold never . leftmost $ [
       never  <$ eSwitch1
     , eInput <$ eSwitch2
     ]
@@ -331,7 +331,7 @@ holdExample w = B.panel . elClass "div" "widget-hold-wrapper" $ do
     ]
 
   let
-    eText  = switch . current $ deText
+    eText  = switchDyn $ deText
 
   dText <- holdDyn "" . leftmost $ [
                eText
@@ -361,7 +361,7 @@ dynExample w = B.panel . elClass "div" "widget-hold-wrapper" $ do
     ]
 
   eeText <- dyn dWidget
-  eText <- switchPromptly never eeText
+  eText <- switchHold never eeText
 
   dText <- holdDyn "" . leftmost $ [
                eText
@@ -394,7 +394,7 @@ workflowExample w = B.panel . elClass "div" "widget-hold-wrapper" $ do
   deText <- workflow wf1
 
   let
-    eText  = switch . current $ deText
+    eText  = switchDyn $ deText
 
   dText <- holdDyn "" . leftmost $ [
                eText
@@ -433,7 +433,7 @@ workflowExample1 = B.panel . elClass "div" "widget-hold-wrapper" $ mdo
   deText <- workflow wf1
 
   let
-    eText  = switch . current $ deText
+    eText  = switchDyn $ deText
 
   dText <- holdDyn "" . leftmost $ [
                eText
@@ -477,7 +477,7 @@ workflowExample2 = B.panel . elClass "div" "widget-hold-wrapper" $ do
   deText <- workflow wf1
 
   let
-    eText = switch . current $ deText
+    eText = switchDyn $ deText
 
   dText <- holdDyn "" eText
   el "div"$
@@ -590,9 +590,9 @@ todoItem (TodoItemConfig iComplete iText) =
   elClass "div" "todo-item" $ mdo
 
     let
-      eComplete = switch . current . fmap _itemChanges_eComplete $ dChanges
-      eText     = switch . current . fmap _itemChanges_eText $ dChanges
-      eRemove   = switch . current . fmap _itemChanges_eRemove $ dChanges
+      eComplete = switchDyn . fmap _itemChanges_eComplete $ dChanges
+      eText     = switchDyn . fmap _itemChanges_eText $ dChanges
+      eRemove   = switchDyn . fmap _itemChanges_eRemove $ dChanges
 
     dComplete <- holdDyn iComplete eComplete
     dText     <- holdDyn iText     eText

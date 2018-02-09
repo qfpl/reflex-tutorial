@@ -1,4 +1,4 @@
----
+--
 title: Switching
 date: 2017-09-29
 authors: dlaing
@@ -60,19 +60,19 @@ join :: Reflex t
 
 There are other functions provided by `reflex` that enable higher-order FRP, including:
 ```haskell
-switch         :: Reflex t
-               => Behavior t (Event t    a)
-               ->             Event t    a
+switch     :: Reflex t
+           => Behavior t (Event t    a)
+           ->             Event t    a
 
-switcher       :: (Reflex t, MonadHold t m) 
-               =>             Behavior t a
-               -> Event t    (Behavior t a)
-               -> m          (Behavior t a)
+switcher   :: (Reflex t, MonadHold t m) 
+           =>             Behavior t a
+           -> Event t    (Behavior t a)
+           -> m          (Behavior t a)
 
-switchPromptly :: (Reflex t, MonadHold t m) 
-               =>             Event t    a
-               -> Event t    (Event t    a)
-               -> m          (Event t    a)
+switchHold :: (Reflex t, MonadHold t m) 
+           =>             Event t    a
+           -> Event t    (Event t    a)
+           -> m          (Event t    a)
 ```
 
 
@@ -225,12 +225,12 @@ rightInput eAdd eSwitchL eSwitchR = do
   pure (switch beAddR)
 ```
 
-We can do this a little more directly using `switchPromptly`:
+We can do this a little more directly using `switchHold`:
 ```haskell
-switchPromptly :: (Reflex t, MonadHold t m) 
-               =>             Event t    a
-               -> Event t    (Event t    a)
-               -> m          (Event t    a)
+switchHold :: (Reflex t, MonadHold t m) 
+           =>             Event t    a
+           -> Event t    (Event t    a)
+           -> m          (Event t    a)
 ```
 The first argument is the initial `Event` to use as the output.
 The second argument consists of an outer `Event` and an inner `Event`.
@@ -245,7 +245,7 @@ leftInput :: (Reflex t, MonadHold t m)
           -> Event t () 
           -> m (Event t ())
 leftInput eAdd eSwitchL eSwitchR =
-  switchPromptly eAdd . leftmost $ [
+  switchHold eAdd . leftmost $ [
     eAdd  <$ eSwitchL
   , never <$ eSwitchR
   ]
@@ -258,7 +258,7 @@ rightInput :: (Reflex t, MonadHold t m)
           -> Event t () 
           -> m (Event t ())
 rightInput eAdd eSwitchL eSwitchR =
-  switchPromptly never . leftmost $ [
+  switchHold never . leftmost $ [
     eAdd  <$ eSwitchR
   , never <$ eSwitchL
   ]
@@ -486,29 +486,15 @@ This gives us a `Dynamic t (Event t Text)`, and we want an `Event t Text`.
 
 There is a function with this signature:
 ```haskell
-switchPromptlyDyn :: Dynamic t (Event t a)
-                  -> Event t a
+switchDyn :: Dynamic t (Event t a)
+          -> Event t a
 
 ```
-but I tend to favour using `switch . current`:
-```
-switch . current :: Dynamic t (Event t a)
-                 -> Event t a
-```
-to do that sort of thing.
-
-With `switchPromptlyDyn` we'll have access to the `Event` in the same frame that the `Dynamic` gets updated, and with `switch . current` we'll be working with the old `Event` in the frame when the `Dynamic` gets updated.
-
-We'll often find ourselves in situations where the `Event` that is the output out of a switching function is also being used to construct the `Dynamic` that is being input to the switching function.
-I might be doing something horribly wrong, but I've seen all kinds of mayhem when I've used `switchPromptlyDyn` when I wasn't really sure that I needed the update in that particular frame.
-
-My formal recommendation is to pick your functions based on the semantics that you want.
-My lazy recommendation is to go with `switch . current` until you know you need `switchPromptlyDyn` - it's more likely to be what you want, it has better performance, and you're less likely to shoot yourself in the foot with it.
 
 In our case, we use it to pull out an `Event t Text`:
 ```haskell
   let
-    eText = switch . current $ deText
+    eText = switchDyn deText
 ```
 
 At that point we have what we need to display the output on the page as before:
@@ -549,7 +535,7 @@ holdWidget = el "div" $ do
 
   let
     -- Collapse the `Dynamic t (Event t Text)` to an `Event t Text`
-    eText = switch . current $ deText
+    eText = switchDyn deText
 
   -- Clear the output when switching occurs
   dText <- holdDyn "" . leftmost $ [
@@ -605,9 +591,9 @@ and we'll use `dyn` to collect the outptuts into an `Event t (Event t Text)`:
   eeText <- dyn dWidget
 ```
 
-We can collapse these to an `Event t Text` using `switchPromptly`, using `never` as the inital `Event`:
+We can collapse these to an `Event t Text` using `switchHold`, using `never` as the inital `Event`:
 ```haskell
-  eText  <- switchPromptly never eeText
+  eText  <- switchHold never eeText
 ```
 and then we proceed as normal:
 ```haskell
@@ -642,8 +628,8 @@ dynWidget = el "div" $ do
 
   -- Using `dyn` on this gives us an `Event t (Event t Text)`:
   eeText <- dyn dWidget
-  -- and we can use `switchPromptly` to turn that into an `Event t Text`:
-  eText  <- switchPromptly never eeText
+  -- and we can use `switchHold` to turn that into an `Event t Text`:
+  eText  <- switchHold never eeText
 
   dText <- holdDyn "" . leftmost $ [
                eText
@@ -714,7 +700,7 @@ We start the user on the first piece of the workflow:
 which gives us a `Dynamic t (Event t Text)`, and we know what to do with that:
 ```haskell
   let
-    eText  = switch . current $ deText
+    eText  = switchDyn deText
 
   dText <- holdDyn "" . leftmost $ [
                eText
@@ -754,7 +740,7 @@ workflowWidget = el "div" $ do
   deText <- workflow wf1
 
   let
-    eText  = switch . current $ deText
+    eText  = switchDyn deText
 
   dText <- holdDyn "" . leftmost $ [
                eText

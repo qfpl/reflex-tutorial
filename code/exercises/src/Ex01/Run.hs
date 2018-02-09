@@ -73,13 +73,13 @@ host fn = B.panel . grid $ mdo
     dOut =
       (\m -> fn m input) <$> dMoney
     eVend =
-      switch . current . fmap oeVend $ dOut
+      switchDyn . fmap oeVend $ dOut
     eSpend =
-      switch . current . fmap oeSpend $ dOut
+      switchDyn . fmap oeSpend $ dOut
     eChange =
-      switch . current . fmap oeChange $ dOut
+      switchDyn . fmap oeChange $ dOut
     eNotEnoughMoney =
-      switch . current . fmap oeNotEnoughMoney $ dOut
+      switchDyn . fmap oeNotEnoughMoney $ dOut
     outputs =
       Outputs eVend eSpend eChange eNotEnoughMoney
 
