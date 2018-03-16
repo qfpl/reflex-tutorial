@@ -12,7 +12,6 @@ buttonClass :: MonadWidget t m
             -> Text
             -> m (Event t ())
 buttonClass cl label = do
-  (e, _) <- elAttr' "button" ("class" =: cl) $
+  (e, _) <- elAttr' "a" ("class" =: cl) $
              text label
   return $ domEvent Click e
-
