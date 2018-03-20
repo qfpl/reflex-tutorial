@@ -3,7 +3,7 @@ title: Events
 date: 2017-09-20
 authors: dlaing
 project: reflex
-extra-css: /css/reflex/basics/grid-light.css
+extra-css: /css/reflex/basics/grid-light.css, /css/reflex/basics/events.css
 extra-js: /js/reflex/basics/reflex-basics.min.js, /js/reflex/basics/rx.all.min.js, /js/reflex/basics/rxjs-example.js
 ---
 
@@ -380,8 +380,10 @@ We'll also multiply the click count `Event`, and then add those two `Event`s tog
 
 Let's see how that goes, by clicking this two or three times:
 
-<div class="panel panel-default panel-body">
-  <button id="rxjs-button" class="btn btn-default">Click Me</button>
+<div class="card my-2">
+  <div class="card-body">
+  <button type="button" id="rxjs-button" class="btn data61-green text-white p-2 mx-2">Click Me</button>
+  </div>
 </div>
 
 Whoops!  We're seeing intermediate state - something referred to as "glitching" - where we didn't expect it.

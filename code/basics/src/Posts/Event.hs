@@ -345,19 +345,18 @@ layoutPair ::
   Text ->
   m a ->
   m a
-layoutPair label mLabel = do
+layoutPair label mLabel =
   el "tr" $ do
-    el "td" . el "pre" $
-      text label
-    el "td" . el "pre" $
-      mLabel
+    elClass "td" "layout-pair-td" (text label)
+    elClass "td" "layout-pair-td" mLabel
 
 wrapPairs ::
   MonadWidget t m =>
   m a ->
   m a
 wrapPairs =
-  el "table"
+  elClass "table" "table table-bordered" .
+    el "tbody"
 
 fizzBuzzPart ::
   MonadWidget t m =>
