@@ -5,3 +5,7 @@
 .fizzbuzz-pair-right {
 
 };
+
+td.layout-pair-td {
+  width: 50%;
+}

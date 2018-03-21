@@ -9,7 +9,7 @@ import qualified Data.Text as Text
 
 import Reflex.Dom.Core
 
-import Util.Reflex
+import qualified Util.Bootstrap as B
 import Util.Grid.Config
 import Util.Grid.Square
 import Util.SVG
@@ -87,7 +87,6 @@ instance Square (Colour, Colour) where
 mkRedBlueInput :: MonadWidget t m
                => m (Event t Colour)
 mkRedBlueInput = do
-  eRed <- buttonClass "btn btn-default" "Red"
-  eBlue <- buttonClass "btn btn-default" "Blue"
+  eRed <- B.button "Red"
+  eBlue <- B.button "Blue"
   return $ leftmost [Red <$ eRed, Blue <$ eBlue]
-

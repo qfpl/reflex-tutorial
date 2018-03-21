@@ -17,7 +17,7 @@ button ::
   Text ->
   m (Event t ())
 button =
-  R.buttonClass "btn btn-default"
+  R.buttonClass "btn data61-green text-white p-2 mx-2"
 
 buttonClass ::
   MonadWidget t m =>
@@ -25,12 +25,12 @@ buttonClass ::
   Text ->
   m (Event t ())
 buttonClass cl =
-  R.buttonClass ("btn btn-default " <> cl)
+  R.buttonClass ("btn data61-green text-white p-2 mx-2 " <> cl)
 
 panel ::
   MonadWidget t m =>
   m a ->
   m a
 panel =
-  divClass "panel panel-default" .
-  divClass "panel-body"
+  divClass "card my-2" .
+  divClass "card-body"
