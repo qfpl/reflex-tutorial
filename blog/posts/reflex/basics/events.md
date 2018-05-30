@@ -46,16 +46,27 @@ giving us the current value of a text input every time it is altered.
 In both cases we have a single `Event`, but it could fire many times.
 This is likely to be pretty different to what you are used to if you are use to an event-handling system where you need to poll for new events, or where you have to set up or otherwise deal with an event loop.
 
-These points in time aren't measured in sections, but in actions.
-If an externally triggered `Event` happens, a new logical point in time is created for that `Event`, and no other externally triggered `Event`s will be firing at that point in time.
+When you ask for the button click `Event` in `reflex`, you are getting an `Event` which represents all of the clicks of that button across the life of your application.
+You then get the tools to carve out subsets of those button clicks that are interesting to you: all of the button clicks that happened the left shift key is held down, or all of the button clicks that happened while the user had administration privileges.
 
-These are the observable points of time of the system.
-In `reflex` these are often referred to as _frames_.
-The documentation around the `sodium` library sometimes refers to them as _transactions_.
+## What is a _frame_?
 
-If you're familiar with ["event sourcing"](https://martinfowler.com/eaaDev/EventSourcing.html), this linearization of event occurrences might seem familiar. 
+These points in time aren't measured in seconds, but in a logical division of time known as a _frame_ or a _transaction_.
+Every time an IO action causes an `Event`, that _root_ `Event` will happen in a new frame that is distinct from all of the other frames.
 
-We can have multiple `Event`s happening in the same frame though, although only one of them will be happening due to something external to the system.
+This means that all of our IO driven `Event`s are serialized before they are processed.
+If you're familiar with ["event sourcing"](https://martinfowler.com/eaaDev/EventSourcing.html), this might seem familiar. 
+
+It is still possibly to have multiple `Event`s firing in the same frame, although it will always be the case that there is one _root_ `Event` and some number of _derived_ `Event`s that are firing in the same frame.
+
+These frames are the only observable points of time in the FRP system.
+We don't have the ability to observer the relative order in which `Event`s occur within a frame.
+This is a great thing, since it means we don't need to carry that information around in our heads as we try to reason about our applications.
+
+When working with `Event`s we deal with all firings of an `Event` at once, and `reflex` gives us the tools we need so that we don't have to think about which specific `Event`s are happening in which specific frames.
+Some of those tools will force us to think more about our edge conditions, and after a bit of practice those tools will also encourage us to deal with the edge cases as we become aware of them.
+
+Frames can still be helpful to know about if you want to understand why some of the things in `reflex` are done the way that they are.
 
 The simplest way that we can set up a derived `Event` is by defining a new `Event` based on another:
 
@@ -68,10 +79,12 @@ We often refer to the combination of `Event`s and `Behavior`s as an FRP network,
 
 (The simplest FRP network would probably just be `never`, which is the `Event` that never fires, but we don't need that just yet)
 
-In this case, the only externally triggered `Event`s are the button presses:
+In this case, the only root `Event` is the button press:
 <div id="basics-events-frame"></div>
 
-We can bring a timer into play, and since the timeout `Event`s are triggered from outside of the FRP network we can see that the timeout and button press `Event`s never occur in the same frame:
+(The squares along the horizontal access are used to represent the different frames that are created in the system)
+
+We can bring a timer into play, which is also a root `Event`, and so we would expect that the timeout and button press `Event`s will never occur in the same frame:
 <div id="basics-events-tick"></div>
 
 ## Building `Event`s
@@ -97,6 +110,9 @@ eOutput = flipColour <$> eInput
 
 <div id="basics-events-flipper"></div>
 
+If we think of an `Event t a` as being similar to `[(t, a)]`, the `Functor` instance is leaving the times alone and transforming all of the values.
+This means that the output `Event` will always be firing in the same frames as the input `Event`.
+
 There is flipped version of `fmap` in `reflex`, called `ffor`:
 ```haskell
 eOutput :: Event t Colour
@@ -117,8 +133,6 @@ We'll see `<$` used often in FRP:
 (<$) :: Functor f => a -> f b -> f a
 ```
 to map a constant value across a `Functor`.
-
-In the case of `Event`s, it is like we are borrowing the points of time from the `[(t, b)]` interpretation, and then replacing all of the values of `b` with a constant value of type `a`.
 
 In this case, we'll paint the world blue:
 ```haskell
@@ -162,7 +176,9 @@ fmapMaybe :: Reflex t
           -> Event t b
 ```
 
-Here we'll write a dodgy parser:
+We could use this to write `fmap` and `ffilter` if they didn't exist.
+
+Instead we'll write a dodgy parser:
 ```haskell
 parseColour :: Text -> Maybe Colour
 parseColour "Red"  = Just Red
@@ -212,11 +228,14 @@ There are some other tools in `reflex` for efficiently working with larger sum t
 
 ## When `Event`s collide
 
-We've already seen that we can create `Event`s that might be occurring in the same frame as other `Event`s
+We've already seen that we can create `Event`s that might be occurring in the same frame as other `Event`s, like the input and output of `fmap` or `ffilter`.
 
 That means when we want to work with multiple `Event`s, we need to be able to handle the case where several of the `Event`s are firing in the same frame.
 
-We're going to explore that by working on something that you might have come across this before as part of the game (or programming problem) known as [FizzBuzz](https://en.wikipedia.org/wiki/Fizz_buzz).
+We also want to be able to do that without having to keep track of which `Event`s may or may not be firing in each frame.
+Eventually we're going to be working with larger programs and passing `Event`s into functions and getting `Event`s back, and having to keep track of all of that isn't going to scale.
+
+We're going to explore how we deal with colliding `Event`s by working on something that you might have come across this before as part of the game (or programming problem) known as [FizzBuzz](https://en.wikipedia.org/wiki/Fizz_buzz).
 If you haven't come across it before then it is worth taking a look before we continue.
 
 Assume we have access to
@@ -290,12 +309,19 @@ is what we need.
 It lets us specify a function to use to combine the values from `Event`s which are firing simultaneously.
 The combination is effectively a `foldl1` over the `Event`s which are firing.
 
-We will use `(<>)` to concatentate the `Text` in the `Event`s:
+Having to specify a function forces us to think about how we should combine our multiple input `Event`s if they fire in the same frame, and having to put the input `Event`s into a list forces us to think about what order we should combine them in.
+
+Sometimes we are a bit slack with this, like when we combine button presses with `leftmost` because button presses are mutually exclusive and so will never collide.
+That might feel simpler, but if you can sensibly use `mergeWith` you probably should. 
+
+If you start refactoring out your program logic into FRP networks you'll end with a separation between your buttons and the functions that handle them, and then you are only a change in requirements away from failing to handle an important `Event` because `leftmost` seemed simpler when you started.
+
+Back in our "FizzBuzz" problem, we will use `(<>)` to concatentate the `Text` in the `Event`s:
 ```haskell
 eMerge :: Event t Text
 eMerge = mergeWith (<>) [eFizz, eBuzz]
 ```
-and that seems to work for us when the `Event`s collide:
+which seems to work for us when the `Event`s collide:
 <div id="basics-events-mergeWith"></div>
 
 We can be more concise than that, as `reflex` adds a lot of useful typeclass instances for us.
