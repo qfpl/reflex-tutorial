@@ -11,7 +11,6 @@ let
       http2 = pkgs.haskell.lib.dontCheck super.http2;
       bsb-http-chunked = pkgs.haskell.lib.dontCheck super.bsb-http-chunked;
       SHA = pkgs.haskell.lib.dontCheck super.SHA;
-      tasty = pkgs.haskell.lib.doJailbreak super.tasty;
     };
   };
   common = haskellPackages.callPackage ./common.nix {};
