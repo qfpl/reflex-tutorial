@@ -8,6 +8,7 @@ let
     overrides = (self: super: {
       common = pkgs.haskell.lib.dontHaddock (import ../common { inherit compiler; });
       grid = pkgs.haskell.lib.dontHaddock (import ../grid { inherit compiler; });
+      tasty = pkgs.haskell.lib.doJailbreak super.tasty;
     });
   };
 

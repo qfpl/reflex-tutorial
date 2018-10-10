@@ -7,6 +7,7 @@ let
   haskellPackages = reflex-platform.${compiler}.override {
     overrides = (self: super: rec {
       common = pkgs.haskell.lib.dontHaddock (import ../common { inherit compiler; });
+      tasty = pkgs.haskell.lib.doJailbreak super.tasty;
     });
   };
 
