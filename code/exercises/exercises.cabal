@@ -70,24 +70,26 @@ library
   if !impl(ghcjs -any)
     exposed-modules:   Util.Run
   build-depends:       
-      base >= 4.9 && < 4.10
+      base >= 4.9 && < 4.13
     , text >= 1.2 && < 1.3
     , mtl >= 2.2 && < 2.3
-    , containers >=0.5 && <0.6
+    , containers >=0.5 && <0.7
     , reflex >= 0.5 && < 0.6
     , reflex-dom-core >= 0.4 && < 0.5
-    , lens
-    , jsaddle
-    , ghcjs-dom
+    , lens >= 4.15 && < 4.18
+    , ghcjs-dom >= 0.9 && < 0.10
+    , jsaddle >= 0.9 && < 0.10
   if !impl(ghcjs -any)
     build-depends:
         filepath >=1.4 && <1.5
       , directory >=1.3 && <1.4
-      , jsaddle-warp
+      , bytestring >= 0.10.8 && < 0.11
+      , http-types >= 0.9 && < 0.13
+      , jsaddle-warp >= 0.9 && < 0.10
       , wai >= 3.2 && < 3.3
-      , warp
-      , wai-middleware-static
-      , websockets
+      , websockets >= 0.12 && < 0.13
+      , warp >= 3.2 && < 3.3
+      , wai-middleware-static >= 0.8 && < 0.9
   hs-source-dirs:      src
   if impl(ghcjs -any)
     ghc-options:       -Wall -dedupe
@@ -101,7 +103,7 @@ executable solutions
   if !impl(ghcjs -any)
     buildable: False
   main-is:             Main.hs
-  build-depends:       base >=4.9 && < 4.10
+  build-depends:       base >=4.9 && < 4.13
                      , reflex-dom-core >= 0.4 && < 0.5
                      , exercises
   hs-source-dirs:      exe

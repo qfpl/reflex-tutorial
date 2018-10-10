@@ -1,6 +1,7 @@
-{ mkDerivation, base, containers, directory, filepath, ghcjs-dom
-, jsaddle, jsaddle-warp, lens, mtl, reflex, reflex-dom-core, stdenv
-, text, wai, wai-middleware-static, warp, websockets
+{ mkDerivation, base, bytestring, containers, directory, filepath
+, ghcjs-dom, http-types, jsaddle, jsaddle-warp, lens, mtl, reflex
+, reflex-dom-core, stdenv, text, wai, wai-middleware-static, warp
+, websockets
 }:
 mkDerivation {
   pname = "exercises";
@@ -9,9 +10,10 @@ mkDerivation {
   isLibrary = true;
   isExecutable = true;
   libraryHaskellDepends = [
-    base containers directory filepath ghcjs-dom jsaddle jsaddle-warp
-    lens mtl reflex reflex-dom-core text wai wai-middleware-static warp
-    websockets
+    base bytestring containers directory filepath ghcjs-dom http-types
+    jsaddle jsaddle-warp lens mtl reflex reflex-dom-core text wai
+    wai-middleware-static warp websockets
   ];
+  executableHaskellDepends = [ base reflex-dom-core ];
   license = stdenv.lib.licenses.bsd3;
 }

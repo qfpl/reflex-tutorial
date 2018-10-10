@@ -1,12 +1,13 @@
 let  
   initialNixpkgs = import <nixpkgs> {};
 
-  sources = {
+  sources = rec {
+    reflex-platform-info-pinned = initialNixpkgs.pkgs.lib.importJSON ./reflex-platform.json;
+      inherit (reflex-platform-info-pinned) rev sha256;
     reflex-platform = initialNixpkgs.pkgs.fetchFromGitHub {
       owner = "reflex-frp";
       repo = "reflex-platform";
-      rev = "b365d0b3f55ebcca0c6f8517b20cf5d0b7b1cd37";
-      sha256 = "198vckj8lls5d6ig4ayizk4mw7lsnbnynf187agagk2yfab0v6ll";
+      inherit (reflex-platform-info-pinned) rev sha256;
     };
   };
 
