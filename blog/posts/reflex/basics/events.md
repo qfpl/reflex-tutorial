@@ -44,7 +44,7 @@ eChanged :: Event t Text
 giving us the current value of a text input every time it is altered.
 
 In both cases we have a single `Event`, but it could fire many times.
-This is likely to be pretty different to what you are used to if you are use to an event-handling system where you need to poll for new events, or where you have to set up or otherwise deal with an event loop.
+This is likely to be pretty different if you are used to an event-handling system where you need to poll for new events, or where you have to set up or otherwise deal with an event loop.
 
 These points in time aren't measured in sections, but in actions.
 If an externally triggered `Event` happens, a new logical point in time is created for that `Event`, and no other externally triggered `Event`s will be firing at that point in time.
