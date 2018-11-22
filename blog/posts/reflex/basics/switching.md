@@ -234,7 +234,7 @@ switchHold :: (Reflex t, MonadHold t m)
 ```
 The first argument is the initial `Event` to use as the output.
 The second argument consists of an outer `Event` and an inner `Event`.
-The outer `Event` fires to it indicate that the output should switch.
+The outer `Event` fires to indicate that the output should switch.
 It switches to the value of the inner `Event` until such time that the outer `Event` fires again.
 
 This results in:
