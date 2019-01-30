@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE GADTs #-}
 module Ex14.Solution (
     attachEx14
   ) where
@@ -113,29 +114,6 @@ ex14 = grid $ mdo
 
   pure ()
 
-radioButton ::
-  ( MonadWidget t m
-  , Eq a
-  ) =>
-  Text ->
-  Dynamic t a ->
-  Dynamic t a ->
-  m (Event t a)
-radioButton name dValue dSelected =
-  let
-    attrs =
-      "type" =: "radio" <>
-      "name" =: name
-    mkAttrs a n =
-      if a == n
-      then "checked" =: ""
-      else mempty
-    dynAttrs = mkAttrs <$> dValue <*> dSelected
-  in do
-    (e, _) <- elDynAttr' "input" (pure attrs <> dynAttrs) $ pure ()
-    let eClick = domEvent Click e
-    pure $ current dValue <@ eClick
-
 stockWidget ::
   MonadWidget t m =>
   Dynamic t Stock ->
@@ -149,27 +127,6 @@ stockWidget dStock dSelected =
     r4 = radioButton "stock" ((pName . sProduct) <$> dStock) dSelected
   in
     row r1 r2 r3 r4
-
-grid ::
-  MonadWidget t m =>
-  m a ->
-  m a
-grid =
-  elClass "div" "container"
-
-row ::
-  MonadWidget t m =>
-  m a ->
-  m b ->
-  m c ->
-  m d ->
-  m d
-row ma mb mc md = elClass "div" "row" $
-  (\_ _ _ x -> x)
-    <$> elClass "div" "col-md-3" ma
-    <*> elClass "div" "col-md-1" mb
-    <*> elClass "div" "col-md-1" mc
-    <*> elClass "div" "col-md-1" md
 
 mkStock ::
   ( Reflex t
@@ -297,6 +254,50 @@ vendRow dVend =
     r3     = dynText dVend
   in
     row r1 rBlank r3 rBlank
+
+radioButton ::
+  ( MonadWidget t m
+  , Eq a
+  ) =>
+  Text ->
+  Dynamic t a ->
+  Dynamic t a ->
+  m (Event t a)
+radioButton name dValue dSelected =
+  let
+    attrs =
+      "type" =: "radio" <>
+      "name" =: name
+    mkAttrs a n =
+      if a == n
+      then "checked" =: ""
+      else mempty
+    dynAttrs = mkAttrs <$> dValue <*> dSelected
+  in do
+    (e, _) <- elDynAttr' "input" (pure attrs <> dynAttrs) $ pure ()
+    let eClick = domEvent Click e
+    pure $ current dValue <@ eClick
+
+grid ::
+  MonadWidget t m =>
+  m a ->
+  m a
+grid =
+  elClass "div" "container"
+
+row ::
+  MonadWidget t m =>
+  m a ->
+  m b ->
+  m c ->
+  m d ->
+  m d
+row ma mb mc md = elClass "div" "row" $
+  (\_ _ _ x -> x)
+    <$> elClass "div" "col-md-3" ma
+    <*> elClass "div" "col-md-1" mb
+    <*> elClass "div" "col-md-1" mc
+    <*> elClass "div" "col-md-1" md
 
 attachEx14 ::
   JSM ()

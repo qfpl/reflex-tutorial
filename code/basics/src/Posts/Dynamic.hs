@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE RecursiveDo #-}
 module Posts.Dynamic (
     dynamicPostExamples
@@ -54,9 +55,9 @@ counterExample2 = B.panel $ mdo
     display dCount
 
   (eAdd, eClear) <- el "span" $ do
-    eAdd   <- B.button "Add"
-    eClear <- B.button "Clear"
-    pure (eAdd, eClear)
+    eAdd'   <- B.button "Add"
+    eClear' <- B.button "Clear"
+    pure (eAdd', eClear')
 
   dCount <- foldDyn ($) (0 :: Int) . mergeWith (.) $ [
       const 0 <$ eClear
@@ -122,10 +123,10 @@ wrapDemo2 guest mkIn = B.panel $ mdo
   let w = runDemo2 guest eInput1 eInput2
   _ <- widgetHold w (w <$ eReset)
   (eInput1, eInput2, eReset) <- el "div" $ do
-    eInput1 <- mkIn
-    eInput2 <- mkIn
-    eReset <- B.buttonClass "pull-right" "Reset"
-    return (eInput1, eInput2, eReset)
+    eInput1' <- mkIn
+    eInput2' <- mkIn
+    eReset' <- B.buttonClass "pull-right" "Reset"
+    return (eInput1', eInput2', eReset')
   return ()
 
 runDemo2 ::

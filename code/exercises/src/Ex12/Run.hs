@@ -1,14 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE GADTs #-}
 module Ex12.Run (
     host
   ) where
-
-import Data.Monoid ((<>))
-
-import Data.Text (Text)
-import qualified Data.Text as Text
 
 import Reflex.Dom.Core
 

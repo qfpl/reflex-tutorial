@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE RecursiveDo #-}
 module Posts.Collection.Basic (
     todoList

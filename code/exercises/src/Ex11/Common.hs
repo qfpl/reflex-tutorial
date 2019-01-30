@@ -23,7 +23,6 @@ import Data.Text
 import qualified Data.Text as Text
 
 import Reflex
-import Reflex.Dom.Core
 
 type Money = Int
 

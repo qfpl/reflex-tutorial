@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE GADTs #-}
 module Ex04.Run (
     host
   ) where
@@ -154,11 +155,10 @@ buyRow =
     B.button "Buy"
 
 data MoneyInputs t =
-  MoneyInputs {
-    mieAdd    :: Event t ()
-  , mieSpend  :: Event t Money
-  , mieRefund :: Event t ()
-  }
+  MoneyInputs
+    (Event t ())    -- add
+    (Event t Money) -- spend
+    (Event t ())    -- refund
 
 trackMoney ::
   ( Reflex t

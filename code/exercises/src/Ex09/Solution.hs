@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE GADTs #-}
 module Ex09.Solution (
     attachEx09
   ) where
@@ -17,7 +18,6 @@ import Reflex
 import Reflex.Dom.Core
 
 import Util.Attach
-import qualified Util.Bootstrap as B
 
 #ifndef ghcjs_HOST_OS
 import Util.Run

@@ -1,9 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE TemplateHaskell #-}
 module Posts.Dom (
     domPostExamples
+  , todoItemConfig_initialValue
+  , todoItem_dComplete
+  , todoItem_eRemove
   ) where
 
 import Control.Monad (void)
@@ -163,22 +167,6 @@ data TodoItem t =
   }
 
 makeLenses ''TodoItem
-
-complete ::
-  MonadWidget t m =>
-  m (Dynamic t Bool)
-complete = do
-  cb <- checkbox False def
-  pure $ cb ^. checkbox_value
-
-edit ::
-  MonadWidget t m =>
-  Dynamic t Text ->
-  Text ->
-  m ()
-edit dClass initialValue = do
-  elDynClass "span" dClass $
-    text initialValue
 
 todoItem6 ::
   MonadWidget t m =>

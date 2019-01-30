@@ -2,6 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
 module Posts.Behavior (
     behaviorPostExamples
   ) where
@@ -109,10 +110,10 @@ wrapDemo gc guest mkIn = B.panel $ mdo
   let w = runDemo gc guest eInput eSample
   _ <- widgetHold w (w <$ eReset)
   (eInput, eSample, eReset) <- el "div" $ do
-    eInput <- mkIn
-    eSample <- B.button "Sample"
-    eReset <- B.buttonClass "pull-right" "Reset"
-    return (eInput, eSample, eReset)
+    eInput' <- mkIn
+    eSample' <- B.button "Sample"
+    eReset' <- B.buttonClass "pull-right" "Reset"
+    return (eInput', eSample', eReset')
   return ()
 
 gateOut ::
@@ -133,9 +134,9 @@ gateIn gc bGate = B.panel $ mdo
     let w = runDemo gc (\eIn _ -> pure $ gate bGate eIn) eInput never
     _ <- widgetHold w (w <$ eReset)
     (eInput, eReset) <- el "div" $ do
-      eInput <- mkRedBlueInput
-      eReset <- B.buttonClass "pull-right" "Reset"
-      return (eInput, eReset)
+      eInput' <- mkRedBlueInput
+      eReset' <- B.buttonClass "pull-right" "Reset"
+      return (eInput', eReset')
     pure ()
 
 runDemo ::
@@ -184,11 +185,11 @@ wrapDemo2 gc guest mkIn = B.panel $ mdo
   let w = runDemo2 gc guest eInput1 eInput2 eSample
   _ <- widgetHold w (w <$ eReset)
   (eInput1, eInput2, eSample, eReset) <- el "div" $ do
-    eInput1 <- mkIn
-    eInput2 <- mkIn
-    eSample <- B.button "Sample"
-    eReset <- B.buttonClass "pull-right" "Reset"
-    return (eInput1, eInput2, eSample, eReset)
+    eInput1' <- mkIn
+    eInput2' <- mkIn
+    eSample' <- B.button "Sample"
+    eReset' <- B.buttonClass "pull-right" "Reset"
+    return (eInput1', eInput2', eSample', eReset')
   return ()
 
 runDemo2 ::

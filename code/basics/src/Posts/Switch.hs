@@ -3,8 +3,14 @@
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE GADTs #-}
 module Posts.Switch (
     switchPostExamples
+  , todoItemConfig_initialComplete
+  , todoItemConfig_initialText
+  , todoItem_dComplete
+  , todoItem_dText
+  , todoItem_eRemove
   ) where
 
 import Control.Monad (void)
@@ -417,18 +423,18 @@ workflowExample1 = B.panel . elClass "div" "widget-hold-wrapper" $ mdo
   let
     wf1 :: Workflow t m (Event t Text)
     wf1 = Workflow $ do
-      eText <- textWidget
-      pure (eText, wf2 <$ eSwitch)
+      eText1 <- textWidget
+      pure (eText1, wf2 <$ eSwitch)
 
     wf2 :: Workflow t m (Event t Text)
     wf2 = Workflow $ do
-      eText <- buttonWidget
-      pure (eText, wf3 <$ eSwitch)
+      eText2 <- buttonWidget
+      pure (eText2, wf3 <$ eSwitch)
 
     wf3 :: Workflow t m (Event t Text)
     wf3 = Workflow $ do
-      eText <- tickWidget
-      pure (eText, wf1 <$ eSwitch)
+      eText3 <- tickWidget
+      pure (eText3, wf1 <$ eSwitch)
 
   deText <- workflow wf1
 
@@ -506,7 +512,7 @@ complete ::
   MonadWidget t m =>
   Dynamic t Bool ->
   m (Event t Bool)
-complete dComplete  = do
+complete _  = do
   -- initialValue <- sample . current $ dComplete
   cb <- checkbox False def
   pure $ cb ^. checkbox_change

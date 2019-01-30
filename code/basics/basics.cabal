@@ -24,12 +24,12 @@ library
                      , Posts.Dom
                      , Posts.Switch
                      , Posts.Component
-                     , Posts.Component.Common
-                     , Posts.Component.Basic
-                     , Posts.Component.Dynamic
-                     , Posts.Component.DynamicDynamic
-                     , Posts.Component.DynamicInitial
-                     , Posts.Component.Initial
+                     -- , Posts.Component.Common
+                     -- , Posts.Component.Basic
+                     -- , Posts.Component.Dynamic
+                     -- , Posts.Component.DynamicDynamic
+                     -- , Posts.Component.DynamicInitial
+                     -- , Posts.Component.Initial
                      , Posts.Collection
                      , Posts.Collection.Common
                      , Posts.Collection.Basic

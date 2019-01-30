@@ -2,8 +2,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
 module Posts.Collection.EventWriter (
     todoList
+  , ceMarkAllComplete
+  , ceClearComplete
   ) where
 
 import Control.Monad (void, join)
@@ -108,7 +111,7 @@ textWrite k iText = mdo
     dValue = ti ^. textInput_value
 
     eKeypress = ti ^. textInput_keypress
-    isKey k   = (== k) . keyCodeLookup . fromIntegral
+    isKey j   = (== j) . keyCodeLookup . fromIntegral
     eEnter    = void . ffilter (isKey Enter) $ eKeypress
     eEscape   = void . ffilter (isKey Escape) $ eKeypress
 
@@ -200,8 +203,8 @@ todoList i = mdo
     flip runReaderT (CompleteEvents eMarkAllComplete eClearComplete) .
     runEventWriterT .
     el "ul" . listWithKey dModel $ \k dv -> do
-      i <- sample . current $ dv
-      el "li" . todoItem k $ i
+      j <- sample . current $ dv
+      el "li" . todoItem k $ j
 
   let
     dComplete = joinDynThroughMap dmdComplete

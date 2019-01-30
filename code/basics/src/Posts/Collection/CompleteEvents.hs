@@ -2,8 +2,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
 module Posts.Collection.CompleteEvents (
     todoList
+  , ceMarkAllComplete
+  , ceClearComplete
   ) where
 
 import Control.Monad (void)

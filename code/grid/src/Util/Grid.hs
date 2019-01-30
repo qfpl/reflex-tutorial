@@ -73,11 +73,11 @@ drawGridEventSquares ::
   Int ->
   Dynamic t [Maybe a] ->
   m ()
-drawGridEventSquares gc row dValues = do
+drawGridEventSquares gc r dValues = do
   let
     tidy = Map.fromList . zip [0..] . reverse . take (_gcColumns gc)
     dTidy = tidy <$> dValues
-  _ <- listWithKey dTidy (mkSquare gc row)
+  _ <- listWithKey dTidy (mkSquare gc r)
   pure ()
 
 width :: GridConfig -> Text
@@ -167,7 +167,7 @@ drawGrid gc rows =
   let
     drawGridEventSquares' r =
       case r of
-        Row _ r d -> drawGridEventSquares gc r d
+        Row _ r' d -> drawGridEventSquares gc r' d
     labels =
       traverse_ (drawGridEventLabel gc) rows
     squares =

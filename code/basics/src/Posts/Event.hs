@@ -19,7 +19,7 @@ import Data.Time (getCurrentTime)
 
 import Reflex
 import Reflex.Dom.Core
-import GHCJS.DOM.Types (MonadJSM(..), JSString, toJSString)
+import GHCJS.DOM.Types (MonadJSM, JSString, toJSString)
 
 import Colour
 
@@ -153,9 +153,9 @@ wrapDemo gc guest mkIn = B.panel $ mdo
   let w = runDemo gc guest eInput
   _ <- widgetHold w (w <$ eReset)
   (eInput, eReset) <- el "div" $ do
-    eInput <- mkIn
-    eReset <- B.buttonClass "pull-right" "Reset"
-    return (eInput, eReset)
+    eInput' <- mkIn
+    eReset' <- B.buttonClass "pull-right" "Reset"
+    return (eInput', eReset')
   return ()
 
 runDemo ::
@@ -265,9 +265,9 @@ demoEither = B.panel $ mdo
 
   _ <- widgetHold widget (widget <$ eReset)
   (eInput, eReset) <- el "div" $ do
-    eInput <- mkRedBlueInput
-    eReset <- B.buttonClass "pull-right" "Reset"
-    return (eInput, eReset)
+    eInput' <- mkRedBlueInput
+    eReset' <- B.buttonClass "pull-right" "Reset"
+    return (eInput', eReset')
   return ()
 
 alertEvent :: MonadWidget t m => (a -> String) -> Event t a -> m ()

@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE GADTs #-}
 module Ex11.Solution (
     attachEx11
   ) where
@@ -8,9 +9,6 @@ module Ex11.Solution (
 import Language.Javascript.JSaddle (JSM)
 
 import Control.Monad.Fix (MonadFix)
-import Data.Monoid ((<>))
-
-import Control.Lens
 
 import Data.Text (Text)
 import qualified Data.Text as Text

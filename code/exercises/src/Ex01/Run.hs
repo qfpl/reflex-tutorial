@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE GADTs #-}
 module Ex01.Run (
     host
   ) where
@@ -92,11 +93,10 @@ host fn = B.panel . grid $ mdo
   pure ()
 
 data MoneyInputs t =
-  MoneyInputs {
-    mieAdd    :: Event t ()
-  , mieSpend  :: Event t Money
-  , mieRefund :: Event t ()
-  }
+  MoneyInputs
+    (Event t ())    -- add
+    (Event t Money) -- spend
+    (Event t ())    -- refund
 
 trackMoney ::
   ( Reflex t

@@ -2,8 +2,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
 module Posts.Collection.NoModel (
     todoList
+  , ceMarkAllComplete
+  , ceClearComplete
   ) where
 
 import Control.Monad (void, join)
@@ -172,8 +175,8 @@ todoList i = mdo
   dme <-
     flip runReaderT (CompleteEvents eMarkAllComplete eClearComplete) .
     el "ul" . list dModel $ \dv -> do
-      i <- sample . current $ dv
-      el "li" . todoItem $ i
+      j <- sample . current $ dv
+      el "li" . todoItem $ j
 
   let
     dComplete = joinDynThroughMap . fmap (fmap fst) $ dme

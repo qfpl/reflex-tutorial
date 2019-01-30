@@ -15,7 +15,6 @@ import Util.Attach
 import Util.Run
 #endif
 
-import Ex00.Common
 import Ex00.Run
 
 ex00 ::

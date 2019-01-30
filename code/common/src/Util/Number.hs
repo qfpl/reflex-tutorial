@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE RecursiveDo #-}
 module Util.Number where
 
@@ -10,8 +11,6 @@ import Control.Lens
 
 import Reflex
 import Reflex.Dom.Core
-
-import qualified Util.Bootstrap as B
 
 data NumberInputConfig t
    = NumberInputConfig { _numberInputConfig_initialValue :: Int

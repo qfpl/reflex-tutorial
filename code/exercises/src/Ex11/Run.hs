@@ -1,17 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE GADTs #-}
 module Ex11.Run (
     radioCheckbox
   , host
   ) where
 
-import Data.Monoid ((<>))
-
 import Control.Lens
-
-import Data.Text (Text)
-import qualified Data.Text as Text
 
 import Reflex.Dom.Core
 
