@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Ex03.Exercise where
 
 import qualified Data.Map as Map
@@ -18,14 +19,16 @@ ex03 ::
   Outputs t
 ex03 (Inputs bMoney bSelected eBuy eRefund) =
   let
-    eVend =
-      never
-    eSpend =
-      never
-    eChange =
-      never
-    eError =
-      never
+    product name | name == "Carrot" = carrot
+                 | name == "Celery" = celery
+                 | otherwise = cucumber
+    eProduct = product <$> bSelected <@ eBuy
+    eSale = difference eProduct eError
+    eVend = pName <$> eSale
+    eSpend = pCost <$> eSale
+    eChange = bMoney <@ eRefund
+    notEnough money cost = if cost > money then Just NotEnoughMoney else Nothing
+    eError = attachWithMaybe notEnough bMoney (pCost <$> eProduct)
   in
     Outputs eVend eSpend eChange eError
 

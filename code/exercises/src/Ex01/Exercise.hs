@@ -17,14 +17,12 @@ ex01 ::
   Outputs t
 ex01 money (Inputs eCarrot eCelery eCucumber eRefund) =
   let
-    eVend =
-      never
-    eSpend =
-      never
-    eChange =
-      never
-    eNotEnoughMoney =
-      never
+    eProduct = leftmost [carrot <$ eCarrot, celery <$ eCelery, cucumber <$ eCucumber]
+    eVend = difference (pName <$> eProduct) eNotEnoughMoney
+    eSpend = difference (pCost <$> eProduct) eNotEnoughMoney
+    eChange = money <$ eRefund
+    notEnough = (> money) . pCost
+    eNotEnoughMoney = () <$ ffilter notEnough eProduct
   in
     Outputs eVend eSpend eChange eNotEnoughMoney
 

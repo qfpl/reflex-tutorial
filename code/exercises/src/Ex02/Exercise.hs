@@ -16,14 +16,13 @@ ex02 ::
   Outputs t
 ex02 (Inputs bMoney eCarrot eCelery eCucumber eRefund) =
   let
-    eVend =
-      never
-    eSpend =
-      never
-    eChange =
-      never
-    eError =
-      never
+    eProduct = leftmost [carrot <$ eCarrot, celery <$ eCelery, cucumber <$ eCucumber]
+    eSale = difference eProduct eError
+    eVend = pName <$> eSale
+    eSpend = pCost <$> eSale
+    eChange = tag bMoney eRefund
+    notEnough money cost = if cost > money then Just NotEnoughMoney else Nothing
+    eError = attachWithMaybe notEnough bMoney (pCost <$> eProduct)
   in
     Outputs eVend eSpend eChange eError
 
