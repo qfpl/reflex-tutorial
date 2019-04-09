@@ -104,7 +104,7 @@ executable solutions
     buildable: False
   main-is:             Main.hs
   build-depends:       base >=4.9 && < 4.13
-                     , reflex-dom-core >= 0.4 && < 0.5
+                     , reflex-dom-core >= 0.4 && < 0.6
                      , exercises
   hs-source-dirs:      exe
   if impl(ghcjs -any)
