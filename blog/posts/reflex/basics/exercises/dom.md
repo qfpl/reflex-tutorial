@@ -253,7 +253,7 @@ radioCheckbox :: (MonadWidget t m , Eq a)
 radioCheckbox dValue dSelected = do
   ePostBuild <- getPostBuild
   let 
-    eIniital :: Event t a = current dValue <@ ePostBuild
+    eInitial :: Event t a = current dValue <@ ePostBuild
   ...
 ```
 although are quite a few different ways to approach this problem.
