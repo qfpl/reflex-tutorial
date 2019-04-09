@@ -57,7 +57,7 @@ You can play with this in a browser by running:
 > nix-shell
 nix-shell> ./ex09.sh
 ```
-from the `exercises` directory and then visit `http://localhost:8080` in your browser (although there is currently a bug in jsaddle-warp effecting Firefox).
+from the `exercises` directory and then visit `http://localhost:9090` in your browser (although there is currently a bug in jsaddle-warp effecting Firefox).
 
 It should update the browser every time that you save your code while it is in a compilable state.
 
