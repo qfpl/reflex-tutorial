@@ -45,7 +45,11 @@ It should update the browser every time that you save your code while it is in a
 
 If you succeed, you should get something that behaves like this:
 
-<div id="ex05"></div>
+<div class="card my-2">
+  <div class="card-body">
+    <div id="ex05"></div>
+  </div>
+</div>
 
 which should be behaving the same way as everything else on this page.
 
@@ -102,7 +106,11 @@ from the `exercises` directory.
 
 If you succeed, you should get something that behaves like this:
 
-<div id="ex06"></div>
+<div class="card my-2">
+  <div class="card-body">
+    <div id="ex06"></div>
+  </div>
+</div>
 
 which should be behaving the same way as everything else on this page.
 
@@ -166,7 +174,11 @@ from the `exercises` directory.
 
 If you succeed, you should get something that behaves like this:
 
-<div id="ex07"></div>
+<div class="card my-2">
+  <div class="card-body">
+    <div id="ex07"></div>
+  </div>
+</div>
 
 which should be behaving the same way as everything else on this page.
 
@@ -223,7 +235,11 @@ from the `exercises` directory.
 
 If you succeed, you should get something that behaves like this:
 
-<div id="ex08"></div>
+<div class="card my-2">
+  <div class="card-body">
+    <div id="ex08"></div>
+  </div>
+</div>
 
 which should be behaving the same way as everything else on this page.
 
