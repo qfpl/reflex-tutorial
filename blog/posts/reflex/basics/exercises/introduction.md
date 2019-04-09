@@ -81,6 +81,7 @@ nix-shell> ./ex00.sh
 from the `exercises` directory and then visit `http://localhost:9090` in your browser (although there is currently a bug in jsaddle-warp affecting Firefox).
 
 This script is running `ghcid` along with some magic to trigger a reload in the browser tab when the Haskell or CSS files change.
+Depending on your browser, you _might_ need to either run in private browsing mode or do a hard reload in order to get the CSS to update.
 
 In this case the Haskell looks like this:
 ```haskell
