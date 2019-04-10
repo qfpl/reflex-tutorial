@@ -65,11 +65,7 @@ It should update the browser every time that you save your code while it is in a
 
 If you succeed, you should get something that behaves like this:
 
-<div class="card my-2">
-  <div class="card-body">
-    <div id="ex09"></div>
-  </div>
-</div>
+<div id="ex09"></div>
 
 which should be similar to what we had before, but perhaps styled a little differently.
 
@@ -164,11 +160,7 @@ buyRow =
 
 If you succeed, you should get something that behaves like this:
 
-<div class="card my-2">
-  <div class="card-body">
-    <div id="ex10"></div>
-  </div>
-</div>
+<div id="ex10"></div>
 
 which should be similar to what we had before, but styled closer to what we had before.
 
@@ -201,11 +193,7 @@ which acts like a radio button.
 
 If you succeed, you should get something that behaves like this:
 
-<div class="card my-2">
-  <div class="card-body">
-    <div id="ex11"></div>
-  </div>
-</div>
+<div id="ex11"></div>
 
 which should be similar to what we had before, but perhaps styled a little differently.
 
@@ -232,11 +220,7 @@ When your solution is working there should always be exactly one checkbox that i
 
 If you succeed, you should get something that behaves like this:
 
-<div class="card my-2">
-  <div class="card-body">
-    <div id="ex12"></div>
-  </div>
-</div>
+<div id="ex12"></div>
 
 which should be similar to what we had before, but perhaps styled a little differently.
 
@@ -287,11 +271,7 @@ We want to return an `Event t a` when this button is clicked.
 
 If you succeed, you should get something that behaves like this:
 
-<div class="card my-2">
-  <div class="card-body">
-    <div id="ex13"></div>
-  </div>
-</div>
+<div id="ex13"></div>
 
 which should be similar to what we had before, but perhaps styled a little differently.
 
@@ -321,11 +301,7 @@ For bonus points, go through and style it and really make it your own.
 
 If you succeed, you should get something that behaves like this:
 
-<div class="card my-2">
-  <div class="card-body">
-    <div id="ex14"></div>
-  </div>
-</div>
+<div id="ex14"></div>
 
 which should be similar to what we had before, but perhaps styled a little differently.
 

@@ -62,7 +62,7 @@ host ::
   Ex09FnA t m ->
   Ex09FnB t m ->
   m ()
-host mkStock fn = B.panel . elClass "table" "table" $ mdo
+host mkStock fn = B.panel . divClass "card my-2" . divClass "card-body" . elClass "table" "table" $ mdo
   dCarrot   <- mkStock 5 carrot   eVend
   dCelery   <- mkStock 5 celery   eVend
   dCucumber <- mkStock 5 cucumber eVend

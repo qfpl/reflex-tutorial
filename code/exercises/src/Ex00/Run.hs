@@ -15,7 +15,7 @@ host ::
   MonadWidget t m =>
   Ex00Fn t ->
   m ()
-host fn = B.panel $ divClass "container" $ mdo
+host fn = B.panel . divClass "card my-2" . divClass "card-body" . divClass "container" $ mdo
 
   eFirst <- divClass "row" $  do
     eFirst' <- divClass "col-md-3" $

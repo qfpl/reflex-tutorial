@@ -83,7 +83,7 @@ host ::
   MonadWidget t m =>
   Ex03Fn t ->
   m ()
-host fn = B.panel . grid $ mdo
+host fn = B.panel . divClass "card my-2" . divClass "card-body" . grid $ mdo
 
   input <- mdo
       eCarrot <-

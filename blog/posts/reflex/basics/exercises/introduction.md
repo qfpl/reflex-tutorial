@@ -125,8 +125,4 @@ The goal of this exercise was to get you comfortable with the workflow, but some
 
 If that's the case then I'm happy to accommodate you: your new goal is to edit the above files and to try to end up in a state where you have something in your browser that behaves like this:
 
-<div class="card my-2">
-  <div class="card-body">
-    <div id="ex00"></div>
-  </div>
-</div>
+<div id="ex00"></div>

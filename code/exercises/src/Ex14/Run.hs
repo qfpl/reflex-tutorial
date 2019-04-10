@@ -14,5 +14,5 @@ host ::
   MonadWidget t m =>
   m () ->
   m ()
-host = B.panel
+host = B.panel . divClass "card my-2" . divClass "card-body"
 

@@ -102,7 +102,7 @@ host ::
   MonadWidget t m =>
   Ex07Fn t m ->
   m ()
-host fn = B.panel . grid $ mdo
+host fn = B.panel . divClass "card my-2" . divClass "card-body" . grid $ mdo
   dCarrot   <- mkStock 5 carrot   eVend
   dCelery   <- mkStock 5 celery   eVend
   dCucumber <- mkStock 5 cucumber eVend

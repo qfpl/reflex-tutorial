@@ -58,11 +58,7 @@ It should update the browser every time that you save your code while it is in a
 
 If you succeed, you should get something that behaves like this:
 
-<div class="card my-2">
-  <div class="card-body">
-    <div id="ex02"></div>
-  </div>
-</div>
+<div id="ex02"></div>
 
 which will bear an uncanny resemblance to the result of the first exercise.
 
@@ -102,11 +98,7 @@ from the `exercises` directory.
 
 If you succeed, you should get something that behaves like this:
 
-<div class="card my-2">
-  <div class="card-body">
-    <div id="ex03"></div>
-  </div>
-</div>
+<div id="ex03"></div>
 
 ### Hints
 
@@ -169,11 +161,7 @@ from the `exercises` directory.
 
 If you succeed, you should get something that behaves like this:
 
-<div class="card my-2">
-  <div class="card-body">
-    <div id="ex04"></div>
-  </div>
-</div>
+<div id="ex04"></div>
 
 ### Hints
 

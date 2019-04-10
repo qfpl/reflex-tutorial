@@ -42,7 +42,7 @@ host ::
   Ex11FnMkStock t m ->
   Ex11FnMain t m ->
   m ()
-host grid stockWidget mkStock fn = B.panel . grid $ mdo
+host grid stockWidget mkStock fn = B.panel . divClass "card my-2" . divClass "card-body" . grid $ mdo
   dCarrot   <- mkStock 5 carrot   eVend
   dCelery   <- mkStock 5 celery   eVend
   dCucumber <- mkStock 5 cucumber eVend

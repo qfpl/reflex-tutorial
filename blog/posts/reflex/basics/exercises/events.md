@@ -121,11 +121,7 @@ open `src/Ex01/Exercise.hs` in an editor and give it a try.
 
 If you achieve those things, you should get something that behaves like this:
 
-<div class="card my-2">
-  <div class="card-body">
-    <div id="ex01"></div>
-  </div>
-</div>
+<div id="ex01"></div>
 
 ### Hints
 

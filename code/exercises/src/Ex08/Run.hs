@@ -85,7 +85,7 @@ host ::
   Ex08FnA t m ->
   Ex08FnB t m ->
   m ()
-host mkStock fn = B.panel . grid $ mdo
+host mkStock fn = B.panel . divClass "card my-2" . divClass "card-body" . grid $ mdo
   dCarrot   <- mkStock 5 carrot   eVend
   dCelery   <- mkStock 5 celery   eVend
   dCucumber <- mkStock 5 cucumber eVend
