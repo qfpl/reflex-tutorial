@@ -14,7 +14,7 @@ If you don't have Nix installed, you can get going with the `try-reflex` script 
 ```
 > git clone https://github.com/reflex-frp/reflex-platform
 > cd reflex-platform
-> git checkout b365d0b3f5
+> git checkout 8f4b8973a0
 > ./try-reflex
 > exit
 ```

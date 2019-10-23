@@ -11,6 +11,7 @@ let
       iproute = pkgs.haskell.lib.dontCheck super.iproute;
       Glob = pkgs.haskell.lib.dontCheck super.Glob;
       http2 = pkgs.haskell.lib.dontCheck super.http2;
+      network-byte-order = pkgs.haskell.lib.dontCheck super.network-byte-order;
       bsb-http-chunked = pkgs.haskell.lib.dontCheck super.bsb-http-chunked;
       SHA = pkgs.haskell.lib.dontCheck super.SHA;
     }; 
