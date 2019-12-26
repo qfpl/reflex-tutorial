@@ -13,9 +13,9 @@ module Ex04.Common (
   , Ex04Fn
   ) where
 
-import Data.Text
+import           Data.Text
 
-import Reflex
+import           Reflex
 
 type Money = Int
 

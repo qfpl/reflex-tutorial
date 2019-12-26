@@ -1,16 +1,16 @@
 {-# LANGUAGE CPP #-}
 module Ex03.Exercise where
 
-import qualified Data.Map as Map
+import qualified Data.Map    as Map
 
-import Reflex
+import           Reflex
 
 #ifndef ghcjs_HOST_OS
-import Util.Run
+import           Util.Run
 #endif
 
-import Ex03.Common
-import Ex03.Run
+import           Ex03.Common
+import           Ex03.Run
 
 ex03 ::
   Reflex t =>
@@ -18,14 +18,27 @@ ex03 ::
   Outputs t
 ex03 (Inputs bMoney bSelected eBuy eRefund) =
   let
+    products =
+      Map.fromList $ toTuple <$>
+      [ carrot, celery, cucumber ]
+      where
+        toTuple p@(Product n _) = (n, p)
+    getProduct = (flip Map.lookup) products
+    checkNotEnoughMoney money p =
+      money < pCost p
+    eProduct =
+      fmapMaybe getProduct $
+      bSelected <@ eBuy
+    eSale =
+      difference eProduct eError
     eVend =
-      never
+      pName <$> eSale
     eSpend =
-      never
+      pCost <$> eSale
     eChange =
-      never
+      bMoney <@ eRefund
     eError =
-      never
+      NotEnoughMoney <$ ffilter id (checkNotEnoughMoney <$> bMoney <@> eProduct)
   in
     Outputs eVend eSpend eChange eError
 
