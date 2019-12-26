@@ -5,7 +5,11 @@ module Ex12.Exercise where
 
 import Control.Monad.Fix (MonadFix)
 
+import Control.Lens
+
 import Data.Text (Text)
+import qualified Data.Text as Text
+
 import qualified Data.Map as Map
 
 import Reflex
